@@ -28,7 +28,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-export default function PosPage() {
+function PosContent() {
   const searchParams = useSearchParams();
   const tableParam = searchParams.get('table');
 
@@ -982,5 +982,13 @@ export default function PosPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PosPage() {
+  return (
+    <React.Suspense fallback={<div className="h-full flex items-center justify-center text-slate-500 font-semibold text-sm">Loading ORDRIVA POS Terminal...</div>}>
+      <PosContent />
+    </React.Suspense>
   );
 }
