@@ -1,0 +1,14 @@
+{
+  "name": "ordriva-pos-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ORDRIVA - Restaurant POS & Management System (Product & Engineering Blueprint implementation)",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "start": "pnpm --filter web start",
+    "api:dev": "pnpm --filter api dev",
+    "api:build": "pnpm --filter api build"
+  },
+  "packageManager": "pnpm@10.15.1"
+}
