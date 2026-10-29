@@ -17,7 +17,12 @@ export function formatCurrency(amount: number, currency = 'INR'): string {
 export function formatTime(isoString: string): string {
   if (!isoString) return '';
   const d = new Date(isoString);
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const h12 = hours % 12 || 12;
+  const hStr = h12.toString().padStart(2, '0');
+  return `${hStr}:${minutes} ${ampm}`;
 }
 
 export function formatDuration(isoString: string): string {

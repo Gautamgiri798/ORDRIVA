@@ -36,7 +36,7 @@ export default function MenuManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#3B82F6]">
             <UtensilsCrossed className="w-6 h-6" />
           </div>
           <div>
@@ -56,7 +56,7 @@ export default function MenuManagementPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search dishes or ingredients..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function MenuManagementPage() {
           onClick={() => setSelectedCat('all')}
           className={`px-3.5 py-1.5 rounded-full font-bold transition-all whitespace-nowrap ${
             selectedCat === 'all'
-              ? 'bg-[#172554] text-white shadow-sm'
+              ? 'bg-[#3B82F6] text-white shadow-sm'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
           }`}
         >
@@ -80,7 +80,7 @@ export default function MenuManagementPage() {
             onClick={() => setSelectedCat(c.id)}
             className={`px-3.5 py-1.5 rounded-full font-bold transition-all whitespace-nowrap ${
               selectedCat === c.id
-                ? 'bg-[#0F766E] text-white shadow-sm'
+                ? 'bg-[#3B82F6] text-white shadow-sm'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
             }`}
           >

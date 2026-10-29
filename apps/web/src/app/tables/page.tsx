@@ -64,7 +64,7 @@ export default function TablesPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#3B82F6]">
             <Grid className="w-6 h-6" />
           </div>
           <div>
@@ -81,7 +81,7 @@ export default function TablesPage() {
             <button
               onClick={() => setSelectedSection('all')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                selectedSection === 'all' ? 'bg-[#172554] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                selectedSection === 'all' ? 'bg-[#3B82F6] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               All Areas ({tables.length})
@@ -91,7 +91,7 @@ export default function TablesPage() {
                 key={sec}
                 onClick={() => setSelectedSection(sec)}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
-                  selectedSection === sec ? 'bg-[#172554] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  selectedSection === sec ? 'bg-[#3B82F6] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {sec}
@@ -192,15 +192,15 @@ export default function TablesPage() {
               {/* Bottom Timer or Action */}
               <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
                 {table.seatedAt ? (
-                  <div className="flex items-center space-x-1 text-slate-500 font-medium">
+                  <div className="flex items-center space-x-1 text-slate-500 font-medium" suppressHydrationWarning>
                     <Clock className="w-3 h-3 text-slate-400" />
-                    <span>{formatDuration(table.seatedAt)}</span>
+                    <span suppressHydrationWarning>{formatDuration(table.seatedAt)}</span>
                   </div>
                 ) : (
                   <span className="text-slate-400 text-[11px]">Ready to seat</span>
                 )}
 
-                <span className="font-bold text-teal-700 hover:underline text-[11px]">
+                <span className="font-bold text-[#3B82F6] hover:underline text-[11px]">
                   Manage &rarr;
                 </span>
               </div>
@@ -235,7 +235,7 @@ export default function TablesPage() {
               {/* Action 1: Open POS Order for this table */}
               <Link
                 href={`/pos?table=${actionModalTable.id}`}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#0F766E] hover:bg-[#0D6861] text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-sm transition-all"
+                className="w-full py-2.5 px-3 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-sm transition-all"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Take Order / Add Items in POS</span>

@@ -166,12 +166,13 @@ export default function KitchenKdsPage() {
                             {ticket.tableLabel}
                           </span>
                         )}
-                        <span className="capitalize text-teal-700 font-bold px-1.5 py-0.2 rounded bg-teal-50">
+                        <span className="capitalize text-[#3B82F6] font-bold px-1.5 py-0.2 rounded bg-blue-50">
                           {ticket.station}
                         </span>
                       </div>
                     </div>
                     <span
+                      suppressHydrationWarning
                       className={`text-xs px-2 py-0.5 rounded-full border ${getAgeSeverity(
                         ticket.createdAt
                       )}`}
@@ -191,7 +192,7 @@ export default function KitchenKdsPage() {
                           <span className="font-bold text-slate-800 text-sm">{item.name}</span>
                         </div>
                         {item.modifiers.length > 0 && (
-                          <div className="text-[11px] text-teal-700 font-semibold pl-6">
+                          <div className="text-[11px] text-[#3B82F6] font-semibold pl-6">
                             + {item.modifiers.join(', ')}
                           </div>
                         )}
@@ -261,6 +262,7 @@ export default function KitchenKdsPage() {
                       </div>
                     </div>
                     <span
+                      suppressHydrationWarning
                       className={`text-xs px-2 py-0.5 rounded-full border ${getAgeSeverity(
                         ticket.createdAt
                       )}`}
@@ -279,7 +281,7 @@ export default function KitchenKdsPage() {
                           <span className="font-bold text-slate-800 text-sm">{item.name}</span>
                         </div>
                         {item.modifiers.length > 0 && (
-                          <div className="text-[11px] text-teal-700 font-semibold pl-6">
+                          <div className="text-[11px] text-[#3B82F6] font-semibold pl-6">
                             + {item.modifiers.join(', ')}
                           </div>
                         )}

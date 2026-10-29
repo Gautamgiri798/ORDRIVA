@@ -178,7 +178,7 @@ function PosContent() {
               <button
                 onClick={() => setOrderType('dine_in')}
                 className={`px-3 py-1.5 rounded-md transition-all ${
-                  orderType === 'dine_in' ? 'bg-[#0F766E] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
+                  orderType === 'dine_in' ? 'bg-[#3B82F6] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
                 Dine-In
@@ -186,7 +186,7 @@ function PosContent() {
               <button
                 onClick={() => setOrderType('takeaway')}
                 className={`px-3 py-1.5 rounded-md transition-all ${
-                  orderType === 'takeaway' ? 'bg-[#0F766E] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
+                  orderType === 'takeaway' ? 'bg-[#3B82F6] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
                 Takeaway
@@ -194,7 +194,7 @@ function PosContent() {
               <button
                 onClick={() => setOrderType('delivery')}
                 className={`px-3 py-1.5 rounded-md transition-all ${
-                  orderType === 'delivery' ? 'bg-[#0F766E] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
+                  orderType === 'delivery' ? 'bg-[#3B82F6] text-white shadow-sm' : 'text-slate-700 hover:text-slate-900'
                 }`}
               >
                 Delivery
@@ -209,7 +209,7 @@ function PosContent() {
                   value={selectedTableId || ''}
                   onChange={(e) => setSelectedTableId(e.target.value || null)}
                   aria-label="Select Dining Table"
-                  className="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  className="bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/30 focus:border-[#3B82F6] cursor-pointer"
                 >
                   <option value="">Select Table...</option>
                   {tables.map((tbl) => (
@@ -275,7 +275,7 @@ function PosContent() {
             onClick={() => setActiveCategory('all')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               activeCategory === 'all'
-                ? 'bg-[#172554] text-white shadow'
+                ? 'bg-[#3B82F6] text-white shadow'
                 : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
             }`}
           >
@@ -290,7 +290,7 @@ function PosContent() {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                   isSelected
-                    ? 'bg-[#0F766E] text-white shadow'
+                    ? 'bg-[#3B82F6] text-white shadow'
                     : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
                 }`}
               >
@@ -352,7 +352,7 @@ function PosContent() {
 
                 {/* Details */}
                 <div>
-                  <h3 className="font-bold text-sm text-slate-900 line-clamp-1 group-hover:text-[#0F766E]">
+                  <h3 className="font-bold text-sm text-slate-900 line-clamp-1 group-hover:text-[#3B82F6]">
                     {item.name}
                   </h3>
                   <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-tight">
@@ -368,7 +368,7 @@ function PosContent() {
                   <button
                     disabled={!item.isAvailable}
                     aria-label={`Add ${item.name} to cart`}
-                    className="w-7 h-7 rounded-lg bg-teal-50 group-hover:bg-[#0F766E] text-teal-700 group-hover:text-white flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-lg bg-blue-50 group-hover:bg-[#3B82F6] text-[#3B82F6] group-hover:text-white flex items-center justify-center transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -382,13 +382,13 @@ function PosContent() {
       {/* RIGHT: Active Order Cart & Rapid Checkout Panel */}
       <div className="w-full lg:w-96 bg-white flex flex-col h-full border-t lg:border-t-0 lg:border-l border-slate-200 shadow-xl shrink-0">
         {/* Cart Header */}
-        <div className="p-3 border-b border-slate-200 bg-[#172554] text-white flex items-center justify-between">
+        <div className="p-3 border-b border-[#3B82F6]/30 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-white flex items-center justify-between">
           <div>
-            <div className="text-xs uppercase tracking-wider text-teal-300 font-bold">Current Order</div>
+            <div className="text-xs uppercase tracking-wider text-[#60A5FA] font-bold">Current Order</div>
             <div className="text-sm font-extrabold flex items-center space-x-1.5">
               <span>{orderType.toUpperCase()}</span>
               {selectedTable && (
-                <span className="bg-teal-700/80 text-white px-2 py-0.5 rounded text-xs">
+                <span className="bg-[#3B82F6] text-white px-2 py-0.5 rounded text-xs font-bold">
                   {selectedTable.label}
                 </span>
               )}
@@ -527,7 +527,7 @@ function PosContent() {
 
           <div className="pt-2 border-t border-slate-300 flex justify-between items-baseline">
             <span className="font-extrabold text-sm text-slate-900">Total Payable</span>
-            <span className="font-extrabold text-xl text-[#0F766E] tabular-nums">
+            <span className="font-extrabold text-xl text-[#3B82F6] tabular-nums">
               {formatCurrency(cartCalculations.grandTotal)}
             </span>
           </div>
@@ -547,7 +547,7 @@ function PosContent() {
           <button
             onClick={handleOpenCheckout}
             disabled={cart.length === 0}
-            className="py-3 px-3 rounded-xl bg-[#0F766E] hover:bg-[#0D6861] text-white font-extrabold text-sm flex items-center justify-center space-x-1.5 shadow-md transition-all disabled:opacity-50"
+            className="py-3 px-3 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-extrabold text-sm flex items-center justify-center space-x-1.5 shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
           >
             <Banknote className="w-4 h-4" />
             <span>Pay {formatCurrency(cartCalculations.grandTotal)}</span>
@@ -559,10 +559,10 @@ function PosContent() {
       {modifierModalItem && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-200">
-            <div className="p-4 bg-[#172554] text-white flex items-center justify-between">
+            <div className="p-4 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-white flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-base">{modifierModalItem.name}</h3>
-                <span className="text-teal-300 text-xs">
+                <span className="text-[#60A5FA] text-xs">
                   Base Price: {formatCurrency(modifierModalItem.price)}
                 </span>
               </div>
@@ -646,7 +646,7 @@ function PosContent() {
               </button>
               <button
                 onClick={handleAddWithModifiers}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#0F766E] hover:bg-[#0D6861] text-white shadow"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
               >
                 Add to Cart
               </button>
@@ -676,7 +676,7 @@ function PosContent() {
                   }}
                   className={`py-2 rounded-lg text-xs font-bold border transition-all ${
                     discountPercentage === pct
-                      ? 'bg-teal-600 text-white border-teal-600'
+                      ? 'bg-[#3B82F6] text-white border-[#3B82F6]'
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
                   }`}
                 >
@@ -693,10 +693,10 @@ function PosContent() {
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200">
             {/* Modal Header */}
-            <div className="p-4 bg-[#172554] text-white flex items-center justify-between">
+            <div className="p-4 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-white flex items-center justify-between">
               <div>
                 <h3 className="font-extrabold text-lg">Checkout & Settlement</h3>
-                <p className="text-teal-200 text-xs">Total: {formatCurrency(cartCalculations.grandTotal)}</p>
+                <p className="text-[#60A5FA] text-xs">Total: {formatCurrency(cartCalculations.grandTotal)}</p>
               </div>
               <button
                 onClick={() => setIsCheckoutOpen(false)}
@@ -857,7 +857,7 @@ function PosContent() {
               </button>
               <button
                 onClick={handleCompleteSettlement}
-                className="px-6 py-2.5 rounded-xl text-sm font-extrabold bg-[#0F766E] hover:bg-[#0D6861] text-white shadow-md flex items-center space-x-2"
+                className="px-6 py-2.5 rounded-xl text-sm font-extrabold bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-md shadow-blue-500/25 flex items-center space-x-2"
               >
                 <CheckCircle className="w-4 h-4" />
                 <span>Confirm & Generate Bill</span>

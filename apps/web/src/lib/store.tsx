@@ -20,6 +20,9 @@ import {
   SelectedModifier,
 } from '@/types';
 
+// Deterministic baseline timestamp for seed data to guarantee 100% hydration match
+const DEMO_BASE_TIME = 1793290000000;
+
 const INITIAL_USERS: User[] = [
   { id: 'usr-admin', name: 'Vikram Malhotra', email: 'admin@ordriva.com', role: 'admin', branchId: 'br-dt-01', status: 'active' },
   { id: 'usr-mgr', name: 'Pooja Sharma', email: 'manager@ordriva.com', role: 'manager', branchId: 'br-dt-01', status: 'active' },
@@ -296,27 +299,27 @@ const INITIAL_MENU_ITEMS: MenuItem[] = [
 
 const INITIAL_TABLES: DiningTable[] = [
   { id: 'tbl-01', branchId: 'br-dt-01', label: 'T-01', section: 'Main Dining', capacity: 2, status: 'available' },
-  { id: 'tbl-02', branchId: 'br-dt-01', label: 'T-02', section: 'Main Dining', capacity: 4, status: 'occupied', activeOrderId: 'ord-1001', seatedAt: new Date(Date.now() - 42 * 60000).toISOString() },
+  { id: 'tbl-02', branchId: 'br-dt-01', label: 'T-02', section: 'Main Dining', capacity: 4, status: 'occupied', activeOrderId: 'ord-1001', seatedAt: new Date(DEMO_BASE_TIME - 42 * 60000).toISOString() },
   { id: 'tbl-03', branchId: 'br-dt-01', label: 'T-03', section: 'Main Dining', capacity: 4, status: 'available' },
   { id: 'tbl-04', branchId: 'br-dt-01', label: 'T-04', section: 'Main Dining', capacity: 6, status: 'reserved' },
   { id: 'tbl-05', branchId: 'br-dt-01', label: 'T-05', section: 'Main Dining', capacity: 6, status: 'available' },
-  { id: 'tbl-06', branchId: 'br-dt-01', label: 'T-06', section: 'Garden Terrace', capacity: 2, status: 'occupied', activeOrderId: 'ord-1002', seatedAt: new Date(Date.now() - 18 * 60000).toISOString() },
+  { id: 'tbl-06', branchId: 'br-dt-01', label: 'T-06', section: 'Garden Terrace', capacity: 2, status: 'occupied', activeOrderId: 'ord-1002', seatedAt: new Date(DEMO_BASE_TIME - 18 * 60000).toISOString() },
   { id: 'tbl-07', branchId: 'br-dt-01', label: 'T-07', section: 'Garden Terrace', capacity: 4, status: 'available' },
-  { id: 'tbl-08', branchId: 'br-dt-01', label: 'T-08', section: 'Garden Terrace', capacity: 4, status: 'billed', activeOrderId: 'ord-1003', seatedAt: new Date(Date.now() - 55 * 60000).toISOString() },
+  { id: 'tbl-08', branchId: 'br-dt-01', label: 'T-08', section: 'Garden Terrace', capacity: 4, status: 'billed', activeOrderId: 'ord-1003', seatedAt: new Date(DEMO_BASE_TIME - 55 * 60000).toISOString() },
   { id: 'tbl-09', branchId: 'br-dt-01', label: 'VIP-1', section: 'VIP Lounge', capacity: 8, status: 'available' },
   { id: 'tbl-10', branchId: 'br-dt-01', label: 'VIP-2', section: 'VIP Lounge', capacity: 10, status: 'available' },
 ];
 
 const INITIAL_INVENTORY: InventoryItem[] = [
-  { id: 'inv-01', branchId: 'br-dt-01', name: 'Artisan Pizza Flour', unit: 'kg', currentStock: 74.2, minReorderLevel: 25.0, costPerUnit: 75.0, category: 'Dry Goods', lastUpdated: new Date().toISOString() },
-  { id: 'inv-02', branchId: 'br-dt-01', name: 'Buffalo Mozzarella', unit: 'kg', currentStock: 16.8, minReorderLevel: 10.0, costPerUnit: 480.0, category: 'Dairy', lastUpdated: new Date().toISOString() },
-  { id: 'inv-03', branchId: 'br-dt-01', name: 'San Marzano Crushed Tomatoes', unit: 'kg', currentStock: 38.5, minReorderLevel: 15.0, costPerUnit: 180.0, category: 'Canned Goods', lastUpdated: new Date().toISOString() },
-  { id: 'inv-04', branchId: 'br-dt-01', name: 'White Truffle Infused Oil', unit: 'l', currentStock: 2.8, minReorderLevel: 2.0, costPerUnit: 2200.0, category: 'Oils', lastUpdated: new Date().toISOString() },
-  { id: 'inv-05', branchId: 'br-dt-01', name: 'Fresh Sweet Basil', unit: 'kg', currentStock: 1.4, minReorderLevel: 2.0, costPerUnit: 350.0, category: 'Produce', lastUpdated: new Date().toISOString() },
-  { id: 'inv-06', branchId: 'br-dt-01', name: 'Chicken Breast Boneless', unit: 'kg', currentStock: 19.5, minReorderLevel: 10.0, costPerUnit: 260.0, category: 'Meat', lastUpdated: new Date().toISOString() },
-  { id: 'inv-07', branchId: 'br-dt-01', name: 'Salmon Fillets', unit: 'kg', currentStock: 5.8, minReorderLevel: 5.0, costPerUnit: 1450.0, category: 'Seafood', lastUpdated: new Date().toISOString() },
-  { id: 'inv-08', branchId: 'br-dt-01', name: 'French Brioche Buns', unit: 'pcs', currentStock: 42.0, minReorderLevel: 30.0, costPerUnit: 22.0, category: 'Bakery', lastUpdated: new Date().toISOString() },
-  { id: 'inv-09', branchId: 'br-dt-01', name: 'Arabica Coffee Beans', unit: 'kg', currentStock: 12.5, minReorderLevel: 8.0, costPerUnit: 850.0, category: 'Beverage', lastUpdated: new Date().toISOString() },
+  { id: 'inv-01', branchId: 'br-dt-01', name: 'Artisan Pizza Flour', unit: 'kg', currentStock: 74.2, minReorderLevel: 25.0, costPerUnit: 75.0, category: 'Dry Goods', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-02', branchId: 'br-dt-01', name: 'Buffalo Mozzarella', unit: 'kg', currentStock: 16.8, minReorderLevel: 10.0, costPerUnit: 480.0, category: 'Dairy', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-03', branchId: 'br-dt-01', name: 'San Marzano Crushed Tomatoes', unit: 'kg', currentStock: 38.5, minReorderLevel: 15.0, costPerUnit: 180.0, category: 'Canned Goods', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-04', branchId: 'br-dt-01', name: 'White Truffle Infused Oil', unit: 'l', currentStock: 2.8, minReorderLevel: 2.0, costPerUnit: 2200.0, category: 'Oils', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-05', branchId: 'br-dt-01', name: 'Fresh Sweet Basil', unit: 'kg', currentStock: 1.4, minReorderLevel: 2.0, costPerUnit: 350.0, category: 'Produce', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-06', branchId: 'br-dt-01', name: 'Chicken Breast Boneless', unit: 'kg', currentStock: 19.5, minReorderLevel: 10.0, costPerUnit: 260.0, category: 'Meat', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-07', branchId: 'br-dt-01', name: 'Salmon Fillets', unit: 'kg', currentStock: 5.8, minReorderLevel: 5.0, costPerUnit: 1450.0, category: 'Seafood', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-08', branchId: 'br-dt-01', name: 'French Brioche Buns', unit: 'pcs', currentStock: 42.0, minReorderLevel: 30.0, costPerUnit: 22.0, category: 'Bakery', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
+  { id: 'inv-09', branchId: 'br-dt-01', name: 'Arabica Coffee Beans', unit: 'kg', currentStock: 12.5, minReorderLevel: 8.0, costPerUnit: 850.0, category: 'Beverage', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
 ];
 
 const INITIAL_ORDERS: Order[] = [
@@ -363,8 +366,8 @@ const INITIAL_ORDERS: Order[] = [
     grandTotal: 1089,
     createdBy: 'usr-waiter',
     createdByName: 'Amit Patel',
-    createdAt: new Date(Date.now() - 42 * 60000).toISOString(),
-    updatedAt: new Date(Date.now() - 42 * 60000).toISOString(),
+    createdAt: new Date(DEMO_BASE_TIME - 42 * 60000).toISOString(),
+    updatedAt: new Date(DEMO_BASE_TIME - 42 * 60000).toISOString(),
     paymentStatus: 'pending',
   },
   {
@@ -410,8 +413,8 @@ const INITIAL_ORDERS: Order[] = [
     grandTotal: 968,
     createdBy: 'usr-cashier',
     createdByName: 'Rahul Verma',
-    createdAt: new Date(Date.now() - 18 * 60000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 60000).toISOString(),
+    createdAt: new Date(DEMO_BASE_TIME - 18 * 60000).toISOString(),
+    updatedAt: new Date(DEMO_BASE_TIME - 5 * 60000).toISOString(),
     paymentStatus: 'pending',
   },
   {
@@ -459,8 +462,8 @@ const INITIAL_ORDERS: Order[] = [
     grandTotal: 1237.5,
     createdBy: 'usr-waiter',
     createdByName: 'Amit Patel',
-    createdAt: new Date(Date.now() - 55 * 60000).toISOString(),
-    updatedAt: new Date(Date.now() - 15 * 60000).toISOString(),
+    createdAt: new Date(DEMO_BASE_TIME - 55 * 60000).toISOString(),
+    updatedAt: new Date(DEMO_BASE_TIME - 15 * 60000).toISOString(),
     paymentStatus: 'pending',
   },
 ];
@@ -477,8 +480,8 @@ const INITIAL_KITCHEN_TICKETS: KitchenTicket[] = [
     items: [
       { name: 'Artisanal Margherita', quantity: 1, modifiers: ['Crispy Thin Crust'], notes: 'Crispy well-done crust' },
     ],
-    createdAt: new Date(Date.now() - 40 * 60000).toISOString(),
-    startedAt: new Date(Date.now() - 35 * 60000).toISOString(),
+    createdAt: new Date(DEMO_BASE_TIME - 40 * 60000).toISOString(),
+    startedAt: new Date(DEMO_BASE_TIME - 35 * 60000).toISOString(),
   },
   {
     id: 'kt-02',
@@ -489,9 +492,9 @@ const INITIAL_KITCHEN_TICKETS: KitchenTicket[] = [
     station: 'bar',
     status: 'ready',
     items: [{ name: 'Blueberry Basil Smash', quantity: 2, modifiers: [] }],
-    createdAt: new Date(Date.now() - 40 * 60000).toISOString(),
-    startedAt: new Date(Date.now() - 38 * 60000).toISOString(),
-    readyAt: new Date(Date.now() - 30 * 60000).toISOString(),
+    createdAt: new Date(DEMO_BASE_TIME - 40 * 60000).toISOString(),
+    startedAt: new Date(DEMO_BASE_TIME - 38 * 60000).toISOString(),
+    readyAt: new Date(DEMO_BASE_TIME - 30 * 60000).toISOString(),
   },
   {
     id: 'kt-03',
@@ -505,9 +508,9 @@ const INITIAL_KITCHEN_TICKETS: KitchenTicket[] = [
       { name: 'ORDRIVA Prime Smash Burger', quantity: 1, modifiers: ['Extra Cheddar Slice'] },
       { name: 'Truffle Parmesan Fries', quantity: 1, modifiers: ['Truffle Aioli'] },
     ],
-    createdAt: new Date(Date.now() - 17 * 60000).toISOString(),
-    startedAt: new Date(Date.now() - 15 * 60000).toISOString(),
-    readyAt: new Date(Date.now() - 4 * 60000).toISOString(),
+    createdAt: new Date(DEMO_BASE_TIME - 17 * 60000).toISOString(),
+    startedAt: new Date(DEMO_BASE_TIME - 15 * 60000).toISOString(),
+    readyAt: new Date(DEMO_BASE_TIME - 4 * 60000).toISOString(),
   },
 ];
 
@@ -522,7 +525,7 @@ const INITIAL_AUDIT_LOGS: AuditEvent[] = [
     entityType: 'BRANCH',
     entityId: 'br-dt-01',
     details: { gstin: '07AABCO1234F1Z8', currency: 'INR' },
-    timestamp: new Date(Date.now() - 240 * 60000).toISOString(),
+    timestamp: new Date(DEMO_BASE_TIME - 240 * 60000).toISOString(),
   },
   {
     id: 'aud-02',
@@ -534,7 +537,7 @@ const INITIAL_AUDIT_LOGS: AuditEvent[] = [
     entityType: 'ORDER',
     entityId: 'ord-1002',
     details: { orderNumber: 1002, total: 968 },
-    timestamp: new Date(Date.now() - 18 * 60000).toISOString(),
+    timestamp: new Date(DEMO_BASE_TIME - 18 * 60000).toISOString(),
   },
 ];
 

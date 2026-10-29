@@ -26,7 +26,7 @@ export default function SettingsPage() {
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-        <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600">
+        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#3B82F6]">
           <Settings className="w-6 h-6" />
         </div>
         <div>
@@ -42,12 +42,12 @@ export default function SettingsPage() {
       {/* Brand Identity & Logo Showcase */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
         <div className="flex items-center space-x-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-          <Building2 className="w-4 h-4 text-teal-600" />
+          <Building2 className="w-4 h-4 text-[#3B82F6]" />
           <span>Brand Identity & Logo</span>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-6">
-          <div className="bg-[#172554] px-6 py-5 rounded-2xl border border-slate-700/80 shadow-md flex items-center justify-center">
+          <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] px-6 py-5 rounded-2xl border border-[#3B82F6]/30 shadow-md flex items-center justify-center">
             <OrdrivaLogo variant="full" size={42} />
           </div>
 
@@ -64,7 +64,7 @@ export default function SettingsPage() {
       {/* Tax & GST Settings Form */}
       <form onSubmit={handleSaveTaxes} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
         <div className="flex items-center space-x-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-          <Percent className="w-4 h-4 text-teal-600" />
+          <Percent className="w-4 h-4 text-[#3B82F6]" />
           <span>GST & Surcharge Configuration</span>
         </div>
 
@@ -76,7 +76,7 @@ export default function SettingsPage() {
               step="0.1"
               value={cgst}
               onChange={(e) => setCgst(Number(e.target.value))}
-              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-1 focus:ring-teal-500"
+              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
 
@@ -87,7 +87,7 @@ export default function SettingsPage() {
               step="0.1"
               value={sgst}
               onChange={(e) => setSgst(Number(e.target.value))}
-              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-1 focus:ring-teal-500"
+              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
 
@@ -98,7 +98,7 @@ export default function SettingsPage() {
               step="0.5"
               value={serviceCharge}
               onChange={(e) => setServiceCharge(Number(e.target.value))}
-              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-1 focus:ring-teal-500"
+              className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-1 focus:ring-[#3B82F6]"
             />
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function SettingsPage() {
 
           <button
             type="submit"
-            className="px-5 py-2 rounded-xl bg-[#0F766E] hover:bg-[#0D6861] text-white font-bold text-xs flex items-center space-x-1.5 shadow"
+            className="px-5 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-blue-500/20"
           >
             <Save className="w-4 h-4" />
             <span>Save Tax Settings</span>
@@ -128,7 +128,7 @@ export default function SettingsPage() {
       {/* Thermal Printer Settings */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 text-xs">
         <div className="flex items-center space-x-2 text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-          <Printer className="w-4 h-4 text-teal-600" />
+          <Printer className="w-4 h-4 text-[#3B82F6]" />
           <span>Thermal Printer & Receipt Template</span>
         </div>
 

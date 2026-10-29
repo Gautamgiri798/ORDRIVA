@@ -80,7 +80,7 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#3B82F6]">
             <BarChart3 className="w-6 h-6" />
           </div>
           <div>
@@ -146,7 +146,7 @@ export default function ReportsPage() {
           <div className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
             {formatCurrency(aov)}
           </div>
-          <span className="text-xs text-teal-600 font-medium mt-1 inline-block">
+          <span className="text-xs text-[#3B82F6] font-medium mt-1 inline-block">
             Per customer ticket
           </span>
         </div>
@@ -169,9 +169,9 @@ export default function ReportsPage() {
           <h2 className="text-base font-extrabold text-slate-900">Payment Collection Channels</h2>
           <div className="space-y-3">
             {[
-              { label: 'UPI QR Transfers', amount: upiTotal, color: 'bg-teal-500' },
+              { label: 'UPI QR Transfers', amount: upiTotal, color: 'bg-[#3B82F6]' },
               { label: 'Cash Drawer', amount: cashTotal, color: 'bg-emerald-500' },
-              { label: 'Card Terminals (EDC)', amount: cardTotal, color: 'bg-blue-500' },
+              { label: 'Card Terminals (EDC)', amount: cardTotal, color: 'bg-[#A78BFA]' },
             ].map((p, i) => {
               const pct = grossSales > 0 ? Math.round((p.amount / grossSales) * 100) : 0;
               return (
@@ -226,7 +226,7 @@ export default function ReportsPage() {
           </div>
           <button
             onClick={() => window.print()}
-            className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs"
+            className="px-4 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs shadow-md shadow-blue-500/20"
           >
             Print Z-Report
           </button>
@@ -245,7 +245,7 @@ export default function ReportsPage() {
           </div>
           <div>
             <span className="text-slate-400 uppercase text-[10px] font-bold">Total Digital (UPI/Card)</span>
-            <div className="text-xl font-bold mt-0.5 tabular-nums text-teal-300">
+            <div className="text-xl font-bold mt-0.5 tabular-nums text-[#60A5FA]">
               {formatCurrency(upiTotal + cardTotal)}
             </div>
           </div>

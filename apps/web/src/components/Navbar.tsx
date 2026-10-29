@@ -1,22 +1,68 @@
 'use client';
 
-import React from 'react';
-import Image from 'next/image';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { usePosStore } from '@/lib/store';
 import { OrdrivaLogo } from '@/components/OrdrivaLogo';
+import { UserRole } from '@/types';
 import {
   MapPin,
-  UserCheck,
   Wifi,
   WifiOff,
   ShoppingBag,
-  Bell,
   ChefHat,
   ChevronDown,
+  QrCode,
+  Check,
+  Shield,
+  Store,
+  Sparkles,
 } from 'lucide-react';
 
+const getRoleBadgeStyle = (role: UserRole) => {
+  switch (role) {
+    case 'admin':
+      return {
+        badge: 'bg-purple-950/80 text-[#A78BFA] border-purple-500/40',
+        avatarBg: 'bg-gradient-to-br from-purple-500 to-indigo-700 text-white shadow-purple-500/30',
+        label: 'Administrator',
+      };
+    case 'manager':
+      return {
+        badge: 'bg-blue-950/80 text-[#60A5FA] border-[#3B82F6]/50',
+        avatarBg: 'bg-gradient-to-br from-[#3B82F6] to-blue-700 text-white shadow-blue-500/30',
+        label: 'Branch Manager',
+      };
+    case 'cashier':
+      return {
+        badge: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40',
+        avatarBg: 'bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-emerald-500/30',
+        label: 'Cashier / Billing',
+      };
+    case 'waiter':
+      return {
+        badge: 'bg-sky-950/80 text-sky-300 border-sky-500/40',
+        avatarBg: 'bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-sky-500/30',
+        label: 'Captain / Waiter',
+      };
+    case 'kitchen':
+      return {
+        badge: 'bg-amber-950/80 text-amber-300 border-amber-500/40',
+        avatarBg: 'bg-gradient-to-br from-amber-500 to-orange-700 text-white shadow-amber-500/30',
+        label: 'Chef / KDS',
+      };
+    case 'inventory':
+      return {
+        badge: 'bg-indigo-950/80 text-indigo-300 border-indigo-500/40',
+        avatarBg: 'bg-gradient-to-br from-indigo-500 to-purple-700 text-white shadow-indigo-500/30',
+        label: 'Stock & Inventory',
+      };
+  }
+};
+
 export function Navbar() {
+  const pathname = usePathname();
   const {
     currentUser,
     setCurrentUser,
@@ -26,126 +72,358 @@ export function Navbar() {
     availableBranches,
     isOnline,
     kitchenTickets,
-    cartCalculations,
     cart,
   } = usePosStore();
 
-  const pendingTickets = kitchenTickets.filter((kt) => kt.status === 'pending' || kt.status === 'preparing');
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
+
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+  const branchDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        userDropdownRef.current &&
+        !userDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsUserDropdownOpen(false);
+      }
+      if (
+        branchDropdownRef.current &&
+        !branchDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsBranchDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isCustomerPage = pathname?.startsWith('/order');
+
+  // Customer Dine-In Header
+  if (isCustomerPage) {
+    return (
+      <header className="h-16 bg-[#0B1120] text-white flex items-center justify-between px-4 lg:px-8 z-30 shadow-md border-b border-slate-800">
+        {/* Brand & Customer Tag */}
+        <div className="flex items-center space-x-3">
+          <Link href="/order" className="flex items-center hover:opacity-95 transition-opacity">
+            <OrdrivaLogo variant="full" size={34} />
+          </Link>
+          <span className="hidden sm:inline-flex items-center space-x-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-950/80 text-[#60A5FA] border border-[#3B82F6]/40">
+            <Sparkles className="w-3 h-3 text-[#A78BFA]" />
+            <span>Digital Dining Menu</span>
+          </span>
+        </div>
+
+        {/* Middle: Restaurant Branch Info */}
+        <div className="text-center hidden md:block">
+          <div className="text-xs font-bold text-slate-100">{currentBranch.name}</div>
+          <div className="text-[10px] text-[#60A5FA] font-medium tracking-wide">
+            Contactless Table Ordering • Instant KOT Dispatch
+          </div>
+        </div>
+
+        {/* Right: Switch to Staff / Admin POS */}
+        <div className="flex items-center space-x-3">
+          <Link
+            href="/"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-medium border border-slate-700 transition-all"
+          >
+            <span>Staff Portal</span>
+            <span className="text-[#60A5FA] font-bold">&rarr;</span>
+          </Link>
+        </div>
+      </header>
+    );
+  }
+
+  const pendingTickets = kitchenTickets.filter(
+    (kt) => kt.status === 'pending' || kt.status === 'preparing'
+  );
+  const currentRoleStyle = getRoleBadgeStyle(currentUser.role);
 
   return (
-    <header className="h-16 bg-[#172554] text-white flex items-center justify-between px-4 lg:px-6 z-30 shadow-md border-b border-slate-800">
+    <header className="h-16 bg-gradient-to-r from-[#0B1120] via-[#0F172A] to-[#0B1120] text-white flex items-center justify-between px-4 lg:px-6 z-30 shadow-lg border-b border-[#3B82F6]/30 select-none">
       {/* Brand & Logo */}
       <div className="flex items-center space-x-3">
         <Link href="/" className="flex items-center hover:opacity-95 transition-opacity">
-          <OrdrivaLogo variant="full" size={32} />
+          <OrdrivaLogo variant="full" size={34} />
         </Link>
       </div>
 
-      {/* Middle: Branch Selector & Sync State */}
-      <div className="flex items-center space-x-4">
-        {/* Branch Selector */}
-        <div className="hidden md:flex items-center space-x-2 bg-slate-900/60 border border-slate-700/60 rounded-lg px-3 py-1.5 text-xs text-slate-200">
-          <MapPin className="w-3.5 h-3.5 text-teal-400" />
-          <select
-            value={currentBranch.id}
-            onChange={(e) => {
-              const b = availableBranches.find((br) => br.id === e.target.value);
-              if (b) setCurrentBranch(b);
+      {/* Middle: Custom Branch Selector & Sync State */}
+      <div className="flex items-center space-x-3">
+        {/* Custom Branch Selector */}
+        <div className="relative hidden md:block" ref={branchDropdownRef}>
+          <button
+            onClick={() => {
+              setIsBranchDropdownOpen(!isBranchDropdownOpen);
+              setIsUserDropdownOpen(false);
             }}
-            aria-label="Select Restaurant Branch"
-            className="bg-transparent text-slate-200 focus:outline-none cursor-pointer pr-2 font-medium"
+            className={`flex items-center space-x-2 bg-slate-900/90 hover:bg-slate-800 border transition-all rounded-xl px-3 py-1.5 text-xs text-slate-200 shadow-sm ${
+              isBranchDropdownOpen
+                ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/20'
+                : 'border-[#3B82F6]/30 hover:border-[#60A5FA]/60'
+            }`}
           >
-            {availableBranches.map((br) => (
-              <option key={br.id} value={br.id} className="bg-slate-900 text-white">
-                {br.name}
-              </option>
-            ))}
-          </select>
+            <MapPin className="w-3.5 h-3.5 text-[#60A5FA]" />
+            <span className="font-semibold text-slate-100 max-w-[200px] truncate">
+              {currentBranch.name}
+            </span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                isBranchDropdownOpen ? 'rotate-180 text-[#60A5FA]' : ''
+              }`}
+            />
+          </button>
+
+          {/* Branch Dropdown Popover */}
+          {isBranchDropdownOpen && (
+            <div className="absolute left-0 mt-2 w-72 rounded-2xl bg-[#0F172A] border border-[#3B82F6]/40 shadow-2xl backdrop-blur-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-3 py-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase border-b border-slate-800">
+                Operating Branch
+              </div>
+              <div className="py-1 space-y-1">
+                {availableBranches.map((br) => {
+                  const isSelected = br.id === currentBranch.id;
+                  return (
+                    <button
+                      key={br.id}
+                      onClick={() => {
+                        setCurrentBranch(br);
+                        setIsBranchDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
+                        isSelected
+                          ? 'bg-[#3B82F6]/20 border border-[#3B82F6]/50 text-white'
+                          : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                            isSelected
+                              ? 'bg-[#3B82F6] text-white'
+                              : 'bg-slate-800 text-slate-400'
+                          }`}
+                        >
+                          <Store className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold leading-tight">{br.name}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{br.address}</div>
+                        </div>
+                      </div>
+                      {isSelected && <Check className="w-4 h-4 text-[#60A5FA]" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Online / Offline Sync Badge */}
         <div
-          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
             isOnline
-              ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30'
-              : 'bg-amber-950/60 text-amber-300 border-amber-500/30 animate-pulse'
+              ? 'bg-blue-950/60 text-[#60A5FA] border-[#3B82F6]/40 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+              : 'bg-amber-950/60 text-amber-300 border-amber-500/40 animate-pulse'
           }`}
         >
           {isOnline ? (
             <>
-              <Wifi className="w-3 h-3 text-emerald-400" />
-              <span className="hidden sm:inline">Online / Sync</span>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="hidden sm:inline text-[11px] font-bold">Online / Sync</span>
             </>
           ) : (
             <>
               <WifiOff className="w-3 h-3 text-amber-400" />
-              <span>Offline Mode</span>
+              <span className="text-[11px] font-bold">Offline Mode</span>
             </>
           )}
         </div>
       </div>
 
-      {/* Right Controls: Role Switcher & Direct POS Link */}
-      <div className="flex items-center space-x-3">
+      {/* Right Controls: Staff Switcher & Quick Actions */}
+      <div className="flex items-center space-x-2.5">
         {/* Live Kitchen Badge shortcut */}
         <Link
           href="/kitchen"
-          className="relative p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white transition-colors"
-          title="Kitchen Display System"
+          className="relative p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white transition-all border border-slate-700/60"
+          title="Kitchen Display System (KDS)"
         >
-          <ChefHat className="w-5 h-5 text-amber-400" />
+          <ChefHat className="w-4 h-4 text-[#A78BFA]" />
           {pendingTickets.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-sm">
               {pendingTickets.length}
             </span>
           )}
         </Link>
 
+        {/* Customer Menu Link */}
+        <Link
+          href="/order"
+          target="_blank"
+          className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-[#60A5FA] hover:text-white text-xs font-bold border border-[#3B82F6]/30 hover:border-[#60A5FA]/60 transition-all"
+          title="Open Customer QR Ordering Menu in New Tab"
+        >
+          <QrCode className="w-3.5 h-3.5 text-[#60A5FA]" />
+          <span>QR Menu</span>
+        </Link>
+
         {/* Quick POS Terminal Button */}
         <Link
           href="/pos"
-          className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6861] text-white text-xs font-semibold shadow-sm transition-all"
+          className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white text-xs font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.35)] transition-all transform active:scale-95"
         >
           <ShoppingBag className="w-4 h-4" />
           <span className="hidden md:inline">Open POS</span>
           {cart.length > 0 && (
-            <span className="bg-white text-teal-800 text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-1">
+            <span className="bg-white text-[#1D4ED8] text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1 shadow-xs">
               {cart.reduce((s, c) => s + c.quantity, 0)}
             </span>
           )}
         </Link>
 
-        {/* Role & User Switcher */}
-        <div className="flex items-center space-x-2 pl-2 border-l border-slate-700">
-          <div className="w-8 h-8 rounded-full bg-teal-600/30 border border-teal-500/40 flex items-center justify-center text-teal-300 font-bold text-xs uppercase">
-            {currentUser.name.charAt(0)}
-          </div>
-          <div className="hidden lg:block text-left">
-            <div className="text-xs font-semibold text-white leading-tight">{currentUser.name}</div>
-            <div className="text-[10px] text-teal-300 capitalize">{currentUser.role}</div>
-          </div>
-          <div className="relative">
-            <select
-              value={currentUser.id}
-              onChange={(e) => {
-                const u = availableUsers.find((usr) => usr.id === e.target.value);
-                if (u) setCurrentUser(u);
-              }}
-              title="Switch Staff Role"
-              aria-label="Switch Staff Role"
-              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+        {/* Professional Custom Role & Staff Profile Dropdown */}
+        <div className="relative pl-1 border-l border-slate-800" ref={userDropdownRef}>
+          <button
+            onClick={() => {
+              setIsUserDropdownOpen(!isUserDropdownOpen);
+              setIsBranchDropdownOpen(false);
+            }}
+            className={`flex items-center space-x-2.5 p-1.5 pr-2.5 rounded-xl transition-all ${
+              isUserDropdownOpen
+                ? 'bg-slate-800/90 ring-2 ring-[#3B82F6]/40'
+                : 'hover:bg-slate-800/60'
+            }`}
+            aria-label="Staff account menu"
+          >
+            {/* User Avatar with Role Gradient */}
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shadow-sm uppercase ${currentRoleStyle.avatarBg}`}
             >
-              {availableUsers.map((u) => (
-                <option key={u.id} value={u.id} className="bg-slate-900 text-white">
-                  {u.name} ({u.role})
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-          </div>
+              {currentUser.name.charAt(0)}
+            </div>
+
+            {/* User Info Label */}
+            <div className="hidden lg:block text-left leading-tight">
+              <div className="text-xs font-bold text-white tracking-tight">
+                {currentUser.name}
+              </div>
+              <div className="text-[10px] font-semibold text-[#A78BFA] capitalize">
+                {currentUser.role}
+              </div>
+            </div>
+
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                isUserDropdownOpen ? 'rotate-180 text-[#60A5FA]' : ''
+              }`}
+            />
+          </button>
+
+          {/* Custom Popover Staff Switcher (Replaces ugly native OS select) */}
+          {isUserDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#0F172A] border border-[#3B82F6]/40 shadow-2xl backdrop-blur-xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              {/* Header Box with Active User Info */}
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 mb-2">
+                <div className="flex items-center space-x-2.5">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm uppercase shadow-md ${currentRoleStyle.avatarBg}`}
+                  >
+                    {currentUser.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-white truncate">
+                      {currentUser.name}
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate">{currentUser.email}</div>
+                    <span
+                      className={`inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${currentRoleStyle.badge}`}
+                    >
+                      {currentRoleStyle.label}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Title: Switch Staff Role */}
+              <div className="px-2 py-1 text-[11px] font-bold tracking-wider text-slate-400 uppercase flex items-center justify-between">
+                <span>Switch Staff Account</span>
+                <span className="text-[10px] text-[#60A5FA] font-medium">RBAC Switcher</span>
+              </div>
+
+              {/* Staff List */}
+              <div className="py-1 space-y-1 max-h-64 overflow-y-auto">
+                {availableUsers.map((user) => {
+                  const isSelected = user.id === currentUser.id;
+                  const roleStyle = getRoleBadgeStyle(user.role);
+
+                  return (
+                    <button
+                      key={user.id}
+                      onClick={() => {
+                        setCurrentUser(user);
+                        setIsUserDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all ${
+                        isSelected
+                          ? 'bg-[#3B82F6]/20 border border-[#3B82F6]/50 text-white'
+                          : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2.5 min-w-0">
+                        {/* Avatar */}
+                        <div
+                          className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${roleStyle.avatarBg}`}
+                        >
+                          {user.name.charAt(0)}
+                        </div>
+
+                        {/* Name & Role */}
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate">{user.name}</div>
+                          <span
+                            className={`inline-block text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded-md border ${roleStyle.badge}`}
+                          >
+                            {user.role}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Selected Checkmark */}
+                      {isSelected ? (
+                        <Check className="w-4 h-4 text-[#60A5FA] shrink-0 ml-2" />
+                      ) : (
+                        <span className="text-[10px] text-slate-500 font-medium shrink-0 ml-2">
+                          Switch
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Security Footer */}
+              <div className="mt-2 pt-2 border-t border-slate-800 px-2 flex items-center justify-between text-[10px] text-slate-400">
+                <span className="flex items-center space-x-1">
+                  <Shield className="w-3 h-3 text-[#A78BFA]" />
+                  <span>Role-Based Access Control</span>
+                </span>
+                <span className="text-[#60A5FA] font-semibold">Active Session</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 }
-

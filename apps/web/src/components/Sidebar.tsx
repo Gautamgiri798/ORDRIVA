@@ -16,10 +16,16 @@ import {
   ShieldCheck,
   Settings,
   AlertTriangle,
+  QrCode,
 } from 'lucide-react';
 
 export function Sidebar() {
   const pathname = usePathname();
+
+  // Hide sidebar on the customer-facing ordering site
+  if (pathname?.startsWith('/order')) {
+    return null;
+  }
   const { kitchenTickets, inventory, tables } = usePosStore();
 
   const pendingTicketsCount = kitchenTickets.filter(
@@ -55,7 +61,7 @@ export function Sidebar() {
       href: '/tables',
       icon: Grid,
       count: occupiedTablesCount > 0 ? `${occupiedTablesCount}/${tables.length}` : undefined,
-      countColor: 'bg-teal-100 text-teal-800',
+      countColor: 'bg-blue-100 text-[#3B82F6]',
     },
     { label: 'Orders & Bills', href: '/orders', icon: Receipt },
     { label: 'Menu Catalog', href: '/menu', icon: UtensilsCrossed },
@@ -67,6 +73,7 @@ export function Sidebar() {
       countColor: 'bg-rose-500 text-white animate-pulse',
     },
     { label: 'Analytics & GST', href: '/reports', icon: BarChart3 },
+    { label: 'Customer QR Menu', href: '/order', icon: QrCode, badge: 'Guest' },
     { label: 'Audit Trail', href: '/audit', icon: ShieldCheck },
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
@@ -88,7 +95,7 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-teal-50 text-[#0F766E] border-l-4 border-[#0F766E] font-semibold'
+                  ? 'bg-blue-50 text-[#3B82F6] border-l-4 border-[#3B82F6] font-semibold'
                   : item.highlight
                   ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-semibold'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -97,14 +104,14 @@ export function Sidebar() {
               <div className="flex items-center space-x-3">
                 <Icon
                   className={`w-5 h-5 ${
-                    isActive ? 'text-[#0F766E]' : item.highlight ? 'text-teal-600' : 'text-slate-400'
+                    isActive ? 'text-[#3B82F6]' : item.highlight ? 'text-[#60A5FA]' : 'text-slate-400'
                   }`}
                 />
                 <span>{item.label}</span>
               </div>
 
               {item.badge && (
-                <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">
+                <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-100 text-[#A78BFA] border border-purple-200/50">
                   {item.badge}
                 </span>
               )}
@@ -124,8 +131,8 @@ export function Sidebar() {
       {/* Bottom Info / System Status */}
       <div className="p-4 border-t border-slate-100 bg-slate-50/50">
         <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>Engine: Modular Monolith</span>
-          <span className="font-semibold text-slate-700">v1.0 MVP</span>
+          <span>Engine: <strong className="text-[#3B82F6]">Modular Monolith</strong></span>
+          <span className="font-extrabold text-[11px] px-2 py-0.5 rounded bg-purple-50 text-[#A78BFA] border border-purple-200/50">v1.0 MVP</span>
         </div>
         <div className="mt-1 text-[11px] text-slate-400">
           GST Ready (CGST + SGST) • POS 2.0

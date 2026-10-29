@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'ORDRIVA - Restaurant POS & Management System',
   description: 'Enterprise restaurant POS, KDS, inventory, table management and billing.',
   icons: {
-    icon: '/ordriva-mark.svg',
+    icon: '/ordriva-mark-transparent.png',
   },
 };
 
@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col antialiased" suppressHydrationWarning>
         <PosStoreProvider>
           <Navbar />
           <div className="flex flex-1 overflow-hidden">

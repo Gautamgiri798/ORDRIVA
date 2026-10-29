@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 interface LogoProps {
-  variant?: 'full' | 'compact' | 'mark' | 'receipt';
+  variant?: 'full' | 'compact' | 'mark' | 'receipt' | 'hero';
   className?: string;
   size?: number; // base height in px
 }
 
-export function OrdrivaLogo({ variant = 'compact', className = '', size = 36 }: LogoProps) {
+export function OrdrivaLogo({ variant = 'full', className = '', size = 36 }: LogoProps) {
   // 1. Receipt / Monochrome Variant (for thermal printer 80mm bills)
   if (variant === 'receipt') {
     return (
@@ -31,96 +32,55 @@ export function OrdrivaLogo({ variant = 'compact', className = '', size = 36 }: 
           <path d="M 50 14 C 48 10, 52 7, 50 4" stroke="#000" strokeWidth="2.5" strokeLinecap="round" />
           <path d="M 60 16 C 58 12, 62 8, 60 4" stroke="#000" strokeWidth="2" strokeLinecap="round" />
         </svg>
-        <span className="font-extrabold text-base tracking-widest text-black mt-1">ORDRIVA</span>
+        <span className="font-extrabold text-base tracking-widest text-black mt-1 font-serif">ORDRIVA</span>
         <span className="text-[9px] tracking-wider text-black uppercase">Restaurant OS</span>
       </div>
     );
   }
 
-  // 2. Mark Only (Icon / Avatar)
+  // 2. Mark Only (Cloche Icon)
   if (variant === 'mark') {
     return (
-      <div className={`relative inline-block ${className}`} style={{ width: size, height: size }}>
-        <svg
-          viewBox="0 0 120 120"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-sm"
-        >
-          <defs>
-            <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#2DD4BF" />
-              <stop offset="50%" stopColor="#0F766E" />
-              <stop offset="100%" stopColor="#F59E0B" />
-            </linearGradient>
-            <linearGradient id="markDome" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#14B8A6" />
-              <stop offset="100%" stopColor="#0F766E" />
-            </linearGradient>
-            <linearGradient id="markGold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FDE047" />
-              <stop offset="100%" stopColor="#D97706" />
-            </linearGradient>
-          </defs>
-
-          <rect x="4" y="4" width="112" height="112" rx="30" fill="#172554" stroke="url(#markGrad)" strokeWidth="3.5" />
-          <path d="M 30 74 C 30 48, 50 36, 60 36 C 70 36, 90 48, 90 74 Z" fill="url(#markDome)" />
-          <circle cx="60" cy="30" r="6" fill="url(#markGold)" />
-          <rect x="25" y="74" width="70" height="6" rx="3" fill="url(#markGold)" />
-          <path d="M 20 85 L 100 85 C 95 92, 80 94, 60 94 C 40 94, 25 92, 20 85 Z" fill="url(#markDome)" />
-          <path d="M 47 24 C 45 19, 49 14, 47 10" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M 60 21 C 58 16, 62 12, 60 8" stroke="#FDE047" strokeWidth="3" strokeLinecap="round" />
-          <path d="M 73 24 C 71 19, 75 14, 73 10" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
+      <div
+        className={`relative inline-flex items-center justify-center shrink-0 ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <Image
+          src="/ordriva-mark-transparent.png"
+          alt="ORDRIVA Cloche Mark"
+          width={size}
+          height={size}
+          className="w-full h-full object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]"
+          unoptimized
+          priority
+        />
       </div>
     );
   }
 
-  // 3. Compact Variant (Icon + ORDRIVA + POS badge)
+  // 3. Compact Variant (Emblem + Text)
   if (variant === 'compact') {
     return (
-      <div className={`flex items-center space-x-2.5 ${className}`}>
-        {/* Emblem */}
-        <div className="relative shrink-0 flex items-center justify-center" style={{ width: size, height: size }}>
-          <svg
-            viewBox="0 0 120 120"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full drop-shadow-sm"
-          >
-            <defs>
-              <linearGradient id="cptGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#2DD4BF" />
-                <stop offset="50%" stopColor="#0F766E" />
-                <stop offset="100%" stopColor="#F59E0B" />
-              </linearGradient>
-              <linearGradient id="cptDome" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#14B8A6" />
-                <stop offset="100%" stopColor="#0F766E" />
-              </linearGradient>
-              <linearGradient id="cptGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FDE047" />
-                <stop offset="100%" stopColor="#D97706" />
-              </linearGradient>
-            </defs>
-
-            <rect x="4" y="4" width="112" height="112" rx="28" fill="#0F172A" stroke="url(#cptGrad)" strokeWidth="4" />
-            <path d="M 30 74 C 30 48, 50 36, 60 36 C 70 36, 90 48, 90 74 Z" fill="url(#cptDome)" />
-            <circle cx="60" cy="30" r="6" fill="url(#cptGold)" />
-            <rect x="25" y="74" width="70" height="6" rx="3" fill="url(#cptGold)" />
-            <path d="M 20 85 L 100 85 C 95 92, 80 94, 60 94 C 40 94, 25 92, 20 85 Z" fill="url(#cptDome)" />
-            <path d="M 47 24 C 45 19, 49 14, 47 10" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" />
-            <path d="M 60 21 C 58 16, 62 12, 60 8" stroke="#FDE047" strokeWidth="3" strokeLinecap="round" />
-            <path d="M 73 24 C 71 19, 75 14, 73 10" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
+      <div className={`flex items-center space-x-2 shrink-0 ${className}`}>
+        <div
+          className="relative shrink-0 flex items-center justify-center"
+          style={{ width: size, height: size }}
+        >
+          <Image
+            src="/ordriva-mark-transparent.png"
+            alt="ORDRIVA Mark"
+            width={size}
+            height={size}
+            className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+            unoptimized
+            priority
+          />
         </div>
-
-        {/* Wordmark */}
         <div className="flex items-center space-x-1.5">
-          <span className="font-black tracking-wider text-lg text-white">
-            ORDR<span className="text-amber-400">I</span>VA
+          <span className="font-serif font-black tracking-widest text-lg text-amber-200">
+            ORDRIVA
           </span>
-          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-teal-900/80 text-teal-300 border border-teal-500/30 tracking-wider">
+          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-purple-950/80 text-[#A78BFA] border border-[#A78BFA]/40 tracking-wider">
             POS 2.0
           </span>
         </div>
@@ -128,58 +88,51 @@ export function OrdrivaLogo({ variant = 'compact', className = '', size = 36 }: 
     );
   }
 
-  // 4. Full Lockup Variant (with Tagline)
-  return (
-    <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Emblem */}
-      <div className="relative shrink-0 flex items-center justify-center" style={{ width: size * 1.25, height: size * 1.25 }}>
-        <svg
-          viewBox="0 0 120 120"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-md"
-        >
-          <defs>
-            <linearGradient id="fullGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#2DD4BF" />
-              <stop offset="50%" stopColor="#0F766E" />
-              <stop offset="100%" stopColor="#F59E0B" />
-            </linearGradient>
-            <linearGradient id="fullDome" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#14B8A6" />
-              <stop offset="100%" stopColor="#0F766E" />
-            </linearGradient>
-            <linearGradient id="fullGold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FDE047" />
-              <stop offset="100%" stopColor="#D97706" />
-            </linearGradient>
-          </defs>
-
-          <rect x="4" y="4" width="112" height="112" rx="28" fill="#172554" stroke="url(#fullGrad)" strokeWidth="3.5" />
-          <path d="M 30 74 C 30 48, 50 36, 60 36 C 70 36, 90 48, 90 74 Z" fill="url(#fullDome)" />
-          <circle cx="60" cy="30" r="6" fill="url(#fullGold)" />
-          <rect x="25" y="74" width="70" height="6" rx="3" fill="url(#fullGold)" />
-          <path d="M 20 85 L 100 85 C 95 92, 80 94, 60 94 C 40 94, 25 92, 20 85 Z" fill="url(#fullDome)" />
-          <path d="M 47 24 C 45 19, 49 14, 47 10" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M 60 21 C 58 16, 62 12, 60 8" stroke="#FDE047" strokeWidth="3" strokeLinecap="round" />
-          <path d="M 73 24 C 71 19, 75 14, 73 10" stroke="#2DD4BF" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      </div>
-
-      {/* Typography */}
-      <div className="flex flex-col">
-        <div className="flex items-center space-x-2">
-          <span className="font-black text-xl tracking-wider text-white">
-            ORDR<span className="text-amber-400">I</span>VA
-          </span>
-          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/40">
-            PRO
-          </span>
+  // 4. Hero / Vertical Lockup Variant
+  if (variant === 'hero') {
+    return (
+      <div className={`flex flex-col items-center justify-center text-center ${className}`}>
+        <div className="relative" style={{ width: size * 3, height: size * 2 }}>
+          <Image
+            src="/ordriva-logo-transparent.png"
+            alt="ORDRIVA Restaurant System"
+            width={size * 3}
+            height={size * 2}
+            className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+            unoptimized
+            priority
+          />
         </div>
-        <span className="text-[10px] font-semibold text-teal-300 tracking-widest uppercase mt-0.5">
-          Restaurant OS &amp; POS
-        </span>
       </div>
+    );
+  }
+
+  // 5. Full Lockup Variant (Default - Seamless horizontal brand for Navbar & Headers)
+  // Aspect ratio of the horizontal transparent logo is 1407 / 300 = 4.69
+  const horizontalWidth = Math.round(size * 4.69);
+
+  return (
+    <div className={`flex items-center space-x-2 shrink-0 select-none ${className}`}>
+      {/* Authentic Gold Cloche Emblem + Luxury ORDRIVA Typography */}
+      <div
+        className="relative shrink-0 flex items-center"
+        style={{ height: size, width: horizontalWidth }}
+      >
+        <Image
+          src="/ordriva-horizontal-transparent.png"
+          alt="ORDRIVA - Restaurant POS"
+          width={horizontalWidth}
+          height={size}
+          className="h-full w-auto object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]"
+          unoptimized
+          priority
+        />
+      </div>
+
+      {/* Modern POS 2.0 Badge */}
+      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-blue-950/90 text-[#60A5FA] border border-[#3B82F6]/50 shadow-sm">
+        POS 2.0
+      </span>
     </div>
   );
 }

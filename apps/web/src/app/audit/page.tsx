@@ -22,7 +22,7 @@ export default function AuditTrailPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#3B82F6]">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
@@ -43,7 +43,7 @@ export default function AuditTrailPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search action or staff..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
           />
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function AuditTrailPage() {
             <tbody className="divide-y divide-slate-100">
               {filteredLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-slate-50/80 transition-colors text-xs">
-                  <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                  <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap" suppressHydrationWarning>
                     {new Date(log.timestamp).toLocaleString()}
                   </td>
                   <td className="py-3.5 px-4 font-bold text-slate-900">{log.actorName}</td>
@@ -75,7 +75,7 @@ export default function AuditTrailPage() {
                     </span>
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className="font-mono font-bold text-teal-700">{log.action}</span>
+                    <span className="font-mono font-bold text-[#3B82F6]">{log.action}</span>
                   </td>
                   <td className="py-3.5 px-4 text-slate-600 font-medium">
                     {log.entityType} #{log.entityId}

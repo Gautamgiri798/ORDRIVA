@@ -45,12 +45,12 @@ export default function DashboardPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Welcome Banner with ORDRIVA Branding */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#172554] via-[#1e3a8a] to-[#0F766E] text-white p-6 sm:p-8 shadow-lg">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#3B82F6] text-white p-6 sm:p-8 shadow-lg border border-[#3B82F6]/30">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-teal-200">
-              <Sparkles className="w-3.5 h-3.5 text-teal-300" />
-              <span>Next-Gen Restaurant POS & Management</span>
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-[#60A5FA]">
+              <Sparkles className="w-3.5 h-3.5 text-[#A78BFA]" />
+              <span>Next-Gen Restaurant POS &amp; Management</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               Welcome back, {currentUser.name}
@@ -64,24 +64,24 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/pos"
-              className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm shadow-md flex items-center space-x-2 transition-transform transform active:scale-95"
+              className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-[#1E3A8A] font-extrabold text-sm shadow-md flex items-center space-x-2 transition-transform transform active:scale-95"
             >
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4 text-[#3B82F6]" />
               <span>Launch POS Terminal</span>
             </Link>
             <Link
               href="/kitchen"
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 backdrop-blur-sm flex items-center space-x-2 transition-all"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-[#60A5FA]/30 backdrop-blur-sm flex items-center space-x-2 transition-all"
             >
-              <ChefHat className="w-4 h-4 text-amber-300" />
+              <ChefHat className="w-4 h-4 text-[#A78BFA]" />
               <span>Kitchen KDS ({pendingTickets.length})</span>
             </Link>
           </div>
         </div>
 
         {/* Subtle Decorative Logo Watermark */}
-        <div className="absolute right-4 -bottom-6 opacity-20 pointer-events-none w-72 h-36">
-          <Image src="/ordriva-logo.svg" alt="watermark" fill className="object-contain" />
+        <div className="absolute right-4 -bottom-6 opacity-25 pointer-events-none w-72 h-36">
+          <Image src="/ordriva-horizontal-transparent.png" alt="watermark" fill className="object-contain" priority />
         </div>
       </div>
 
@@ -99,7 +99,7 @@ export default function DashboardPage() {
               <span>{completedOrders.length} settled orders</span>
             </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#3B82F6]">
             <DollarSign className="w-6 h-6" />
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/orders"
-              className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center space-x-1"
+              className="text-xs font-bold text-[#3B82F6] hover:text-[#2563EB] flex items-center space-x-1"
             >
               <span>View All</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -221,7 +221,7 @@ export default function DashboardPage() {
                         {order.status}
                       </span>
                     </td>
-                    <td className="py-3 text-right text-xs text-slate-400">
+                    <td className="py-3 text-right text-xs text-slate-400" suppressHydrationWarning>
                       {formatTime(order.createdAt)}
                     </td>
                   </tr>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/tables"
-              className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center space-x-1"
+              className="text-xs font-bold text-[#3B82F6] hover:text-[#2563EB] flex items-center space-x-1"
             >
               <span>Manage</span>
               <ArrowRight className="w-3.5 h-3.5" />
