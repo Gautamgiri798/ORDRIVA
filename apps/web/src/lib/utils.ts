@@ -29,3 +29,4 @@ export function formatDuration(isoString: string): string {
   const remainingMins = mins % 60;
   return `${hours}h ${remainingMins}m`;
 }
+

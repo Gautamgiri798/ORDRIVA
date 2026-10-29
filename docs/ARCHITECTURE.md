@@ -47,3 +47,4 @@
    * Transaction validated -> payment record created -> order status moves to `completed`.
    * Automatic inventory consumption triggered: recipes deducted from raw stock.
    * GST invoice generated for printing or digital receipt.
+

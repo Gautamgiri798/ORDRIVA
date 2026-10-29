@@ -336,3 +336,4 @@ export const SEED_DATA = {
     { id: "inv-10", name: "French Brioche Buns", unit: "pcs", currentStock: 48.0, minReorderLevel: 30.0, costPerUnit: 22.0, category: "Bakery" }
   ]
 };
+

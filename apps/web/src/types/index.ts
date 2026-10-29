@@ -223,3 +223,4 @@ export interface AuditEvent {
   details: Record<string, any>;
   timestamp: string;
 }
+

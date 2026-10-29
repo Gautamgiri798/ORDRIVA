@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { usePosStore } from '@/lib/store';
+import { OrdrivaLogo } from '@/components/OrdrivaLogo';
 import { Settings, Save, CheckCircle2, Printer, Building2, Percent, Sparkles, FileText } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -46,8 +47,8 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-6">
-          <div className="relative w-48 h-28 bg-[#172554] p-3 rounded-2xl border border-slate-300 shadow-md flex items-center justify-center overflow-hidden">
-            <Image src="/ordriva-logo.png" alt="ORDRIVA Logo" fill className="object-contain p-2" priority />
+          <div className="bg-[#172554] px-6 py-5 rounded-2xl border border-slate-700/80 shadow-md flex items-center justify-center">
+            <OrdrivaLogo variant="full" size={42} />
           </div>
 
           <div className="space-y-1 text-xs text-slate-600">
@@ -157,3 +158,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

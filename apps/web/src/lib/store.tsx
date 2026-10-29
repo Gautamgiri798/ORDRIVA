@@ -1165,3 +1165,4 @@ export function usePosStore() {
   }
   return context;
 }
+

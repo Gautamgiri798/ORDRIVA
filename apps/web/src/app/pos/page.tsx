@@ -8,6 +8,7 @@ import { MenuItem, SelectedModifier, PaymentMethod, Order } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
+import { OrdrivaLogo } from '@/components/OrdrivaLogo';
 import {
   Search,
   Plus,
@@ -874,8 +875,8 @@ function PosContent() {
             <div id="printable-receipt" className="space-y-3 font-mono text-xs text-slate-800">
               <div className="text-center space-y-1">
                 {/* ORDRIVA Logo */}
-                <div className="relative h-10 w-28 mx-auto">
-                  <Image src="/ordriva-logo.png" alt="ORDRIVA" fill className="object-contain" />
+                <div className="py-1">
+                  <OrdrivaLogo variant="receipt" size={32} />
                 </div>
                 <div className="font-bold text-sm text-slate-900">{currentBranch.name}</div>
                 <div className="text-[10px] text-slate-500">{currentBranch.address}</div>

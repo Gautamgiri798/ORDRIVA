@@ -16,3 +16,4 @@ The ORDRIVA database runs on PostgreSQL 16 managed via Prisma ORM.
 10. **recipe_items**: Bill of materials mapping menu items to raw inventory consumption.
 11. **audit_events**: Append-only log recording actor, action, timestamp, and metadata for compliance.
 12. **outbox_events**: Guaranteed event delivery pattern for webhooks and real-time broadcasts.
+

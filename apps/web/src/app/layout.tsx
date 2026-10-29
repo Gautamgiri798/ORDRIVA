@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'ORDRIVA - Restaurant POS & Management System',
   description: 'Enterprise restaurant POS, KDS, inventory, table management and billing.',
   icons: {
-    icon: '/ordriva-logo.png',
+    icon: '/ordriva-mark.svg',
   },
 };
 
@@ -33,3 +33,4 @@ export default function RootLayout({
     </html>
   );
 }
+

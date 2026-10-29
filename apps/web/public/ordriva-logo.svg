@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" fill="none">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="ordrivaTealGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2DD4BF" />
+      <stop offset="50%" stop-color="#0F766E" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14B8A6" />
+      <stop offset="100%" stop-color="#0D9488" />
+    </linearGradient>
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="85%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- ICON EMBLEM (Left: Center ~60, 60) -->
+  <g transform="translate(15, 12)">
+    <!-- Hexagonal Background Glow -->
+    <rect x="2" y="2" width="92" height="92" rx="24" fill="#0F766E" fill-opacity="0.25" stroke="url(#ordrivaTealGold)" stroke-width="2.5" />
+    <rect x="6" y="6" width="84" height="84" rx="20" fill="#172554" fill-opacity="0.8" />
+
+    <!-- Cloche Lid Dome -->
+    <path d="M 24 58 C 24 38, 40 28, 48 28 C 56 28, 72 38, 72 58 Z" fill="url(#shieldGrad)" />
+    <!-- Cloche Handle Knob -->
+    <circle cx="48" cy="24" r="5" fill="url(#goldAccent)" />
+    <path d="M 46 27 L 50 27 L 49 30 L 47 30 Z" fill="url(#goldAccent)" />
+    
+    <!-- Cloche Rim Base -->
+    <rect x="20" y="58" width="56" height="5" rx="2.5" fill="url(#goldAccent)" />
+    <!-- Serving Platter -->
+    <path d="M 16 67 L 80 67 C 76 72, 64 74, 48 74 C 32 74, 20 72, 16 67 Z" fill="url(#shieldGrad)" />
+
+    <!-- Steam / Energy Waves -->
+    <path d="M 38 18 C 36 14, 40 10, 38 7" stroke="#2DD4BF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" />
+    <path d="M 48 16 C 46 12, 50 9, 48 6" stroke="#FDE047" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <path d="M 58 18 C 56 14, 60 10, 58 7" stroke="#2DD4BF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8" />
+
+    <!-- Subtle Cutlery Overlay in Silhouette -->
+    <!-- Fork -->
+    <path d="M 36 44 L 36 54 M 34 44 L 34 49 M 38 44 L 38 49" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.9" />
+    <!-- Knife -->
+    <path d="M 60 44 L 60 54 M 60 44 C 63 46, 63 50, 60 52" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.9" />
+  </g>
+
+  <!-- TYPOGRAPHY / WORDMARK (Right) -->
+  <g transform="translate(132, 28)">
+    <!-- Brand Name "ORDRIVA" -->
+    <text x="0" y="44" font-family="'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif" font-weight="900" font-size="46" letter-spacing="4" fill="url(#textGrad)">
+      ORDR<tspan fill="url(#goldAccent)">I</tspan>VA
+    </text>
+
+    <!-- Tagline & Badge -->
+    <text x="3" y="66" font-family="'Inter', -apple-system, system-ui, sans-serif" font-weight="700" font-size="11" letter-spacing="4.5" fill="#2DD4BF">
+      RESTAURANT OS &amp; POS
+    </text>
+
+    <!-- Version Pill -->
+    <rect x="238" y="14" width="70" height="24" rx="6" fill="#0F766E" fill-opacity="0.35" stroke="#14B8A6" stroke-width="1.2" />
+    <text x="273" y="30" font-family="'Inter', system-ui, sans-serif" font-weight="800" font-size="11" letter-spacing="1" fill="#FDE047" text-anchor="middle">
+      2.0 PRO
+    </text>
+  </g>
+</svg>

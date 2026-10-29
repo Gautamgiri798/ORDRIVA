@@ -260,3 +260,4 @@ export interface SalesReportSummary {
     revenue: number;
   }[];
 }
+

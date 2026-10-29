@@ -80,8 +80,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Subtle Decorative Logo Watermark */}
-        <div className="absolute right-4 -bottom-10 opacity-15 pointer-events-none w-64 h-36">
-          <Image src="/ordriva-logo.png" alt="watermark" fill className="object-contain" />
+        <div className="absolute right-4 -bottom-6 opacity-20 pointer-events-none w-72 h-36">
+          <Image src="/ordriva-logo.svg" alt="watermark" fill className="object-contain" />
         </div>
       </div>
 
@@ -299,3 +299,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

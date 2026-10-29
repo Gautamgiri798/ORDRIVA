@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePosStore } from '@/lib/store';
+import { OrdrivaLogo } from '@/components/OrdrivaLogo';
 import {
   MapPin,
   UserCheck,
@@ -35,20 +36,8 @@ export function Navbar() {
     <header className="h-16 bg-[#172554] text-white flex items-center justify-between px-4 lg:px-6 z-30 shadow-md border-b border-slate-800">
       {/* Brand & Logo */}
       <div className="flex items-center space-x-3">
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="relative h-10 w-28 bg-white/10 rounded-lg p-1 flex items-center justify-center overflow-hidden border border-white/20">
-            {/* The Logo from workspace */}
-            <Image
-              src="/ordriva-logo.png"
-              alt="ORDRIVA POS"
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-          <span className="hidden sm:inline-block font-bold tracking-tight text-lg text-white">
-            ORDRIVA <span className="text-teal-400 font-semibold text-xs tracking-wider uppercase ml-1 px-1.5 py-0.5 rounded bg-teal-950/80 border border-teal-500/30">POS 2.0</span>
-          </span>
+        <Link href="/" className="flex items-center hover:opacity-95 transition-opacity">
+          <OrdrivaLogo variant="full" size={32} />
         </Link>
       </div>
 
@@ -159,3 +148,4 @@ export function Navbar() {
     </header>
   );
 }
+

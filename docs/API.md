@@ -38,3 +38,4 @@ Base URL: `/api/v1`
 ## 8. Reports & Audit
 * `GET  /api/v1/reports/sales`: Aggregated sales metrics, tax totals, and top sellers.
 * `GET  /api/v1/audit-events`: Search append-only audit trail.
+

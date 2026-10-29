@@ -14,3 +14,4 @@
 * Strict branch isolation in all database queries prevents cross-branch / cross-tenant data leakage.
 * Parameterized Prisma queries prevent SQL injection.
 * Input validation via Zod schemas across both client and server boundaries.
+

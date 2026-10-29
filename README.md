@@ -136,3 +136,4 @@ Starts PostgreSQL on port `5432`, Redis on `6379`, API on `4000`, and Web on `30
 | **Danger** | `#DC2626` | Low-stock alerts, voids, cancellations |
 | **Surface** | `#F8FAFC` | Page background |
 | **Text** | `#0F172A` | Primary typography (Inter) |
+

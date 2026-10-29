@@ -12,3 +12,4 @@
 | **TC-07** | Order settlement inventory trigger | Raw ingredients deducted based on recipe bill-of-materials |
 | **TC-08** | Refund amount exceeds paid amount | Reversal rejected |
 | **TC-09** | Offline connection lost | UI displays offline warning; cart saved to local storage |
+

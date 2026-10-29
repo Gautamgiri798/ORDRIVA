@@ -38,3 +38,4 @@ ORDRIVA is an enterprise-ready, offline-resilient restaurant operations and Poin
 2. Order items snapshot unit price, tax rate, and modifiers at the moment of order placement.
 3. Order state (`draft` -> `placed` -> `preparing` -> `ready` -> `served` -> `completed`) is independent of payment status.
 4. Financial mutations are idempotent and append-only.
+

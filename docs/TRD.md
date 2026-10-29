@@ -15,3 +15,4 @@
 3. **Idempotency Keys**: All financial transactions and order submissions accept an `Idempotency-Key` header to prevent duplicate charges or double orders on network retries.
 4. **Decoupled Realtime Events**: Database writes commit first, followed by event emission through WebSocket / Socket.IO (Transactional Outbox Pattern).
 5. **Offline Graceful Degradation**: Local storage maintains active carts and offline queues, preventing data loss when connectivity fluctuates.
+
