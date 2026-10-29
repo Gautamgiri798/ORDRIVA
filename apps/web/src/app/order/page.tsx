@@ -46,6 +46,8 @@ import {
   ShieldCheck,
   LayoutGrid,
   Users,
+  Mail,
+  MessageCircle,
 } from 'lucide-react';
 
 interface ClientCartItem {
@@ -83,12 +85,16 @@ function ClientOrderContent() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [vegOnly, setVegOnly] = useState<boolean>(false);
 
-  // Customer Cart
+  // Customer Cart & Details
   const [clientCart, setClientCart] = useState<ClientCartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [guestName, setGuestName] = useState<string>('');
   const [guestPhone, setGuestPhone] = useState<string>('');
+  const [guestEmail, setGuestEmail] = useState<string>('');
   const [guestNotes, setGuestNotes] = useState<string>('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'upi' | 'cash' | 'card' | 'tab'>('upi');
+  const [billToast, setBillToast] = useState<string | null>(null);
+  const [copiedBillId, setCopiedBillId] = useState<string | null>(null);
 
   // Modifier Customizer Modal
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
@@ -106,10 +112,6 @@ function ClientOrderContent() {
   // Invoice / Receipt Modal State
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
 
-  // Table QR Menu Generator State
-  const [qrPreviewTable, setQrPreviewTable] = useState<string>(selectedTable);
-  const [tableMenuQrUrl, setTableMenuQrUrl] = useState<string>('');
-  const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [callStaffNotified, setCallStaffNotified] = useState<boolean>(false);
 
   // Live Tables Seating Filter State
@@ -122,13 +124,8 @@ function ClientOrderContent() {
   useEffect(() => {
     if (tableParam) {
       setSelectedTable(tableParam);
-      setQrPreviewTable(tableParam);
     }
   }, [tableParam]);
-
-  useEffect(() => {
-    setQrPreviewTable(selectedTable);
-  }, [selectedTable]);
 
   // Tracked order for live banner
   const trackedOrder = orders.find((o) => o.id === placedOrderId);
@@ -209,31 +206,6 @@ function ClientOrderContent() {
       return matchesSection && matchesStatus && matchesCap;
     });
   }, [tables, tableSectionFilter, tableStatusFilter, tableCapacityFilter]);
-
-  // Generate dynamic QR Code for the active Table Menu
-  useEffect(() => {
-    const targetTable = qrPreviewTable || selectedTable || 'T-01';
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-    const tableOrderUrl = `${origin}/order?table=${encodeURIComponent(targetTable)}`;
-
-    QRCode.toDataURL(
-      tableOrderUrl,
-      {
-        width: 380,
-        margin: 1,
-        color: {
-          dark: '#0B1120',
-          light: '#FFFFFF',
-        },
-        errorCorrectionLevel: 'H',
-      },
-      (err, url) => {
-        if (!err && url) {
-          setTableMenuQrUrl(url);
-        }
-      }
-    );
-  }, [qrPreviewTable, selectedTable]);
 
   // Generate UPI QR when payment modal is opened
   useEffect(() => {
@@ -394,6 +366,7 @@ function ClientOrderContent() {
       tableLabel: orderType === 'dine_in' ? selectedTable : undefined,
       customerName: guestName || `Guest (${selectedTable})`,
       customerPhone: guestPhone || undefined,
+      customerEmail: guestEmail || undefined,
       items,
       subtotal: totals.subtotal,
       discountTotal: 0,
@@ -402,11 +375,14 @@ function ClientOrderContent() {
       sgst: totals.sgst,
       serviceChargeTotal: totals.serviceCharge,
       grandTotal: totals.grandTotal,
-      notes: guestNotes || 'Digital QR Order',
+      notes: guestNotes
+        ? `${guestNotes} • Payment: ${selectedPaymentMethod.toUpperCase()}`
+        : `Digital QR Order • Payment: ${selectedPaymentMethod.toUpperCase()}`,
       createdBy: 'customer-qr',
       createdByName: guestName || `Guest (${selectedTable})`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      paymentMethod: selectedPaymentMethod === 'tab' ? 'cash' : selectedPaymentMethod,
       paymentStatus: 'pending',
     };
 
@@ -489,38 +465,221 @@ function ClientOrderContent() {
     setClientCart([]);
     setIsCartOpen(false);
     confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+
+    if (selectedPaymentMethod === 'upi') {
+      setPayingOrder(newOrder);
+      setShowUpiModal(true);
+    } else if (selectedPaymentMethod === 'cash') {
+      setBillToast(`Order #${nextOrderNum} confirmed! Please pay ₹${newOrder.grandTotal} in cash to your server when served.`);
+      setTimeout(() => setBillToast(null), 5000);
+    } else if (selectedPaymentMethod === 'card') {
+      setBillToast(`Order #${nextOrderNum} confirmed! Our server will bring the wireless card terminal to Table ${selectedTable}.`);
+      setTimeout(() => setBillToast(null), 5000);
+    } else {
+      setBillToast(`Order #${nextOrderNum} confirmed! Added ₹${newOrder.grandTotal} to Table ${selectedTable} running tab.`);
+      setTimeout(() => setBillToast(null), 5000);
+    }
+  };
+
+  // Helper: Format formatted text receipt for downloading & copying
+  const formatOrderBillText = (order: Order) => {
+    const line = '========================================';
+    const sep = '----------------------------------------';
+    const now = new Date(order.createdAt);
+    const itemsText = order.items
+      .map((item) => {
+        const modStr =
+          item.modifiers && item.modifiers.length > 0
+            ? `\n   + ${item.modifiers.map((m) => m.name).join(', ')}`
+            : '';
+        const notesStr = item.notes ? `\n   Note: "${item.notes}"` : '';
+        return `${item.quantity}x ${item.name.padEnd(24)} ₹${item.itemTotal.toFixed(2)}${modStr}${notesStr}`;
+      })
+      .join('\n');
+
+    return `${line}
+            ${currentBranch.name.toUpperCase()}
+       ${currentBranch.address}
+Phone: ${currentBranch.phone || '+91 98765 43210'} | GSTIN: ${currentBranch.gstin || '27AABCU9603R1ZM'}
+${line}
+TAX INVOICE & ORDER RECEIPT
+Invoice No : INV-${order.orderNumber}
+Order Ref  : #${order.orderNumber}
+Table      : ${order.tableLabel || 'Direct Order'}
+Date & Time: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+Customer   : ${order.customerName || 'Dining Guest'}
+Phone      : ${order.customerPhone || 'N/A'}
+Service    : Digital QR Self-Service
+${sep}
+ITEM                     QTY      AMOUNT
+${sep}
+${itemsText}
+${sep}
+Food Subtotal                    ₹${order.subtotal.toFixed(2)}
+CGST (${currentBranch.taxRates.cgst}%)                         ₹${(order.cgst || 0).toFixed(2)}
+SGST (${currentBranch.taxRates.sgst}%)                         ₹${(order.sgst || 0).toFixed(2)}
+Service Charge (${currentBranch.taxRates.serviceCharge}%)               ₹${(order.serviceChargeTotal || 0).toFixed(2)}
+${line}
+TOTAL PAYABLE                    ₹${order.grandTotal.toFixed(2)}
+${line}
+Payment Method : ${(order.paymentMethod || 'upi').toUpperCase()}
+Payment Status : ${order.paymentStatus === 'succeeded' ? 'PAID IN FULL (UPI/CARD)' : 'PAYMENT PENDING AT TABLE'}
+${line}
+Thank you for dining with us at ${currentBranch.name}!
+Visit again soon!
+${line}`;
+  };
+
+  const formatTableTabBillText = () => {
+    const line = '========================================';
+    const sep = '----------------------------------------';
+    const now = new Date();
+
+    const roundsText = tableOrders
+      .map((ord, idx) => {
+        const rNum = tableOrders.length - idx;
+        const itemsList = ord.items
+          .map((it) => `   ${it.quantity}x ${it.name} (₹${it.itemTotal})`)
+          .join('\n');
+        return `ROUND ${rNum} - Order #${ord.orderNumber} (${ord.paymentStatus === 'succeeded' ? 'PAID' : 'UNPAID'}):
+${itemsList}
+   Round Subtotal: ₹${ord.subtotal} | Round Total: ₹${ord.grandTotal}`;
+      })
+      .join('\n\n');
+
+    return `${line}
+            ${currentBranch.name.toUpperCase()}
+       ${currentBranch.address}
+Phone: ${currentBranch.phone || '+91 98765 43210'} | GSTIN: ${currentBranch.gstin || '27AABCU9603R1ZM'}
+${line}
+COMPLETE TABLE DINING STATEMENT
+Table      : Table ${selectedTable}
+Rounds     : ${tableSummary.roundsCount} Rounds Placed
+Total Items: ${tableSummary.totalItemsCount} Dishes
+Generated  : ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+${sep}
+ORDER ROUNDS BREAKDOWN:
+${roundsText}
+${sep}
+Session Food Subtotal            ₹${tableSummary.subtotal.toFixed(2)}
+Total Taxes (CGST + SGST)        ₹${tableSummary.taxTotal.toFixed(2)}
+Service Charge Total             ₹${tableSummary.serviceChargeTotal.toFixed(2)}
+${line}
+SESSION NET GRAND TOTAL          ₹${tableSummary.grandTotal.toFixed(2)}
+Total Settled (Paid)             ₹${tableSummary.paidTotal.toFixed(2)}
+Outstanding Balance Due          ₹${tableSummary.pendingTotal.toFixed(2)}
+${line}
+Payment Status : ${tableSummary.hasPending ? 'BALANCE PENDING' : 'ALL ROUNDS FULLY SETTLED'}
+Thank you for dining at ${currentBranch.name}!
+${line}`;
+  };
+
+  const downloadTextFile = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadOrderBill = (order: Order) => {
+    const text = formatOrderBillText(order);
+    downloadTextFile(`ORDRIVA-Bill-Table-${order.tableLabel || 'Direct'}-Order-${order.orderNumber}.txt`, text);
+    setBillToast(`Downloaded receipt for Order #${order.orderNumber}!`);
+    setTimeout(() => setBillToast(null), 3500);
+  };
+
+  const handleDownloadTableTab = () => {
+    const text = formatTableTabBillText();
+    downloadTextFile(`ORDRIVA-Statement-Table-${selectedTable}.txt`, text);
+    setBillToast(`Downloaded full session statement for Table ${selectedTable}!`);
+    setTimeout(() => setBillToast(null), 3500);
+  };
+
+  const handleShareWhatsAppOrder = (order: Order) => {
+    const itemsList = order.items.map((i) => `• ${i.quantity}x ${i.name} - ₹${i.itemTotal}`).join('%0A');
+    const isPaid = order.paymentStatus === 'succeeded';
+    const waText = `🍽️ *${encodeURIComponent(currentBranch.name)}*%0A` +
+      `🧾 *Bill for Table ${order.tableLabel || 'Guest'} - Order %23${order.orderNumber}*%0A` +
+      `📅 *Date:* ${encodeURIComponent(new Date(order.createdAt).toLocaleString())}%0A` +
+      `👤 *Customer:* ${encodeURIComponent(order.customerName || 'Dining Guest')}%0A` +
+      `----------------------------------------%0A` +
+      `*Dishes Ordered:*%0A${itemsList}%0A` +
+      `----------------------------------------%0A` +
+      `*Subtotal:* ₹${order.subtotal}%0A` +
+      `*Taxes & Charges:* ₹${((order.taxTotal || 0) + (order.serviceChargeTotal || 0)).toFixed(2)}%0A` +
+      `*Net Total:* ₹${order.grandTotal}%0A` +
+      `*Status:* ${isPaid ? '✅ PAID IN FULL' : '⏳ PAYMENT PENDING AT TABLE'}%0A%0A` +
+      `Thank you for dining with us!`;
+
+    window.open(`https://wa.me/?text=${waText}`, '_blank');
+  };
+
+  const handleShareWhatsAppTab = () => {
+    const isPaid = !tableSummary.hasPending && tableOrders.length > 0;
+    const roundsList = tableOrders
+      .map((o, idx) => `Round ${tableOrders.length - idx} (Order %23${o.orderNumber}): ₹${o.grandTotal}`)
+      .join('%0A');
+    const waText = `🍽️ *${encodeURIComponent(currentBranch.name)}*%0A` +
+      `🧾 *Table ${selectedTable} - Dining Statement*%0A` +
+      `Total Rounds: ${tableSummary.roundsCount} | Dishes: ${tableSummary.totalItemsCount}%0A` +
+      `----------------------------------------%0A` +
+      `${roundsList}%0A` +
+      `----------------------------------------%0A` +
+      `*Food Subtotal:* ₹${tableSummary.subtotal}%0A` +
+      `*Taxes & Svc:* ₹${(tableSummary.taxTotal + tableSummary.serviceChargeTotal).toFixed(2)}%0A` +
+      `*Session Grand Total:* ₹${tableSummary.grandTotal}%0A` +
+      `*Outstanding Balance:* ₹${tableSummary.pendingTotal}%0A` +
+      `*Status:* ${isPaid ? '✅ ALL ROUNDS PAID' : '⏳ BALANCE DUE'}%0A%0A` +
+      `Thank you for dining at ${encodeURIComponent(currentBranch.name)}!`;
+
+    window.open(`https://wa.me/?text=${waText}`, '_blank');
+  };
+
+  const handleCopyOrderBill = (order: Order) => {
+    const text = formatOrderBillText(order);
+    navigator.clipboard.writeText(text);
+    setCopiedBillId(order.id);
+    setBillToast(`Copied receipt for Order #${order.orderNumber} to clipboard!`);
+    setTimeout(() => {
+      setCopiedBillId(null);
+      setBillToast(null);
+    }, 3000);
+  };
+
+  const handleCopyTableTab = () => {
+    const text = formatTableTabBillText();
+    navigator.clipboard.writeText(text);
+    setCopiedBillId('table-tab');
+    setBillToast(`Copied Table ${selectedTable} statement to clipboard!`);
+    setTimeout(() => {
+      setCopiedBillId(null);
+      setBillToast(null);
+    }, 3000);
+  };
+
+  const handleShareNativeOrder = (order: Order) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    if (navigator.share) {
+      navigator
+        .share({
+          title: `ORDRIVA Bill - Table ${order.tableLabel} (Order #${order.orderNumber})`,
+          text: `Bill of ₹${order.grandTotal} for Table ${order.tableLabel} at ${currentBranch.name}. Status: ${
+            order.paymentStatus === 'succeeded' ? 'Paid' : 'Pending'
+          }.`,
+          url: `${origin}/order?table=${encodeURIComponent(order.tableLabel || selectedTable)}`,
+        })
+        .catch(() => {});
+    } else {
+      handleShareWhatsAppOrder(order);
+    }
   };
 
   const totalCartCount = clientCart.reduce((sum, ci) => sum + ci.quantity, 0);
-
-  // Copy QR Link to clipboard
-  const handleCopyLink = () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-    const targetUrl = `${origin}/order?table=${encodeURIComponent(qrPreviewTable || selectedTable)}`;
-    navigator.clipboard.writeText(targetUrl);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
-  };
-
-  // Share via Web Share API or WhatsApp
-  const handleShare = () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-    const targetUrl = `${origin}/order?table=${encodeURIComponent(qrPreviewTable || selectedTable)}`;
-    if (navigator.share) {
-      navigator.share({
-        title: `ORDRIVA Digital Menu - Table ${qrPreviewTable || selectedTable}`,
-        text: `View our live digital menu and order food directly from Table ${qrPreviewTable || selectedTable} at ${currentBranch.name}:`,
-        url: targetUrl,
-      });
-    } else {
-      window.open(
-        `https://wa.me/?text=${encodeURIComponent(
-          `View our digital menu and order for Table ${qrPreviewTable || selectedTable}: ${targetUrl}`
-        )}`,
-        '_blank'
-      );
-    }
-  };
 
   // Settle Payment Handler
   const handleConfirmUpiPayment = () => {
@@ -567,7 +726,6 @@ function ClientOrderContent() {
                 value={selectedTable}
                 onChange={(e) => {
                   setSelectedTable(e.target.value);
-                  setQrPreviewTable(e.target.value);
                 }}
                 className="bg-slate-900/90 text-white font-black text-xs px-3 py-1.5 rounded-xl border border-[#3B82F6]/50 focus:outline-none focus:border-[#60A5FA] cursor-pointer"
                 aria-label="Dining Table Number"
@@ -687,6 +845,14 @@ function ClientOrderContent() {
         </div>
       </nav>
 
+      {/* Universal Floating Bill Toast */}
+      {billToast && (
+        <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-2.5 border border-slate-700 animate-fadeIn max-w-sm">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="text-xs font-bold leading-snug">{billToast}</span>
+        </div>
+      )}
+
       {/* Staff Notified Banner Toast */}
       {callStaffNotified && (
         <div className="max-w-5xl mx-auto px-4 mt-3 animate-fadeIn">
@@ -722,79 +888,221 @@ function ClientOrderContent() {
           ========================================================================= */}
       {activeTab === 'menu' && (
         <>
-          {/* Active Live Order Tracker Banner */}
+          {/* 1. SCANNED TABLE QR CONNECTED BANNER */}
+          <div className="max-w-5xl mx-auto px-4 mt-4">
+            <div className="bg-gradient-to-r from-[#0B1120] via-[#111C38] to-[#1E3A8A] text-white p-4 sm:p-5 rounded-3xl border border-[#3B82F6]/30 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center space-x-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      ● Table QR Connected
+                    </span>
+                    <h2 className="font-extrabold text-base sm:text-lg text-white">
+                      Table {selectedTable}
+                    </h2>
+                    <span className="text-xs text-slate-300">
+                      ({tables.find((t) => t.label === selectedTable)?.section || 'Main Dining'}, {tables.find((t) => t.label === selectedTable)?.capacity || 4} Guests)
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Welcome! QR verified. Add dishes to cart, enter your details to order, and view, download, or share your bill anytime.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 shrink-0">
+                <button
+                  onClick={() => setActiveTab('tables')}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all flex items-center space-x-1.5"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-[#60A5FA]" />
+                  <span>Switch Table</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('bills')}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs shadow transition-all flex items-center space-x-1.5"
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>View Table Bill</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. ACTIVE LIVE ORDER TRACKER & BILL CARD */}
           {trackedOrder && (
             <div className="max-w-5xl mx-auto px-4 mt-4">
-              <div className="bg-white rounded-2xl border-2 border-[#3B82F6] shadow-md p-4 sm:p-5 space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="bg-white rounded-3xl border-2 border-[#3B82F6] shadow-xl p-5 sm:p-6 space-y-5 animate-fadeIn">
+                {/* Order Top Banner */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                   <div>
                     <div className="flex items-center space-x-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                      <h2 className="font-extrabold text-base text-slate-900">
+                      <h2 className="font-black text-base sm:text-lg text-slate-900">
                         Active Order #{trackedOrder.orderNumber}
                       </h2>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-[#1D4ED8] font-black border border-blue-200">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-[#1D4ED8] font-black border border-blue-200">
                         Table {trackedOrder.tableLabel}
                       </span>
+                      <span
+                        className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                          trackedOrder.paymentStatus === 'succeeded'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}
+                      >
+                        {trackedOrder.paymentStatus === 'succeeded' ? '✓ Paid' : 'Payment Pending'}
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Placed at{' '}
+                    <p className="text-xs text-slate-500 mt-1">
+                      Placed by <strong className="text-slate-800 font-bold">{trackedOrder.customerName}</strong> at{' '}
                       {new Date(trackedOrder.createdAt).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}{' '}
-                      • Est. wait time: 15–20 mins
+                      • Est. kitchen wait time: 15–20 mins
                     </p>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  {/* Immediate Action Buttons */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {trackedOrder.paymentStatus !== 'succeeded' && (
+                      <button
+                        onClick={() => {
+                          setPayingOrder(trackedOrder);
+                          setShowUpiModal(true);
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-extrabold text-xs flex items-center space-x-1.5 shadow transition-all active:scale-95"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Pay Bill ({formatCurrency(trackedOrder.grandTotal)})</span>
+                      </button>
+                    )}
+
+                    {/* Download Bill Button */}
                     <button
-                      onClick={() => {
-                        setPayingOrder(trackedOrder);
-                        setShowUpiModal(true);
-                      }}
-                      className="px-3.5 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs flex items-center space-x-1.5 shadow"
+                      onClick={() => handleDownloadOrderBill(trackedOrder)}
+                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center space-x-1.5 border border-slate-200 transition-colors"
+                      title="Download Formatted Receipt (.txt)"
                     >
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Pay Bill ({formatCurrency(trackedOrder.grandTotal)})</span>
+                      <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
+                      <span>Download Bill</span>
                     </button>
+
+                    {/* Share on WhatsApp */}
                     <button
-                      onClick={() => {
-                        setSelectedInvoiceOrder(trackedOrder);
-                      }}
-                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center space-x-1.5 border border-slate-200"
+                      onClick={() => handleShareWhatsAppOrder(trackedOrder)}
+                      className="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center space-x-1.5 border border-emerald-200 transition-colors"
+                      title="Share Bill on WhatsApp"
                     >
-                      <FileText className="w-3.5 h-3.5 text-slate-600" />
-                      <span>E-Receipt</span>
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Share</span>
+                    </button>
+
+                    {/* Copy Bill Summary */}
+                    <button
+                      onClick={() => handleCopyOrderBill(trackedOrder)}
+                      className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center space-x-1 border border-slate-200 transition-colors"
+                      title="Copy Bill to Clipboard"
+                    >
+                      {copiedBillId === trackedOrder.id ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      )}
+                    </button>
+
+                    {/* Full GST Tax Invoice Modal */}
+                    <button
+                      onClick={() => setSelectedInvoiceOrder(trackedOrder)}
+                      className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center space-x-1.5 shadow transition-colors"
+                      title="View Official GST Invoice"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#60A5FA]" />
+                      <span>Tax Invoice</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Step Progress Tracker */}
-                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                <div className="grid grid-cols-4 gap-2 text-center text-xs bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
                   <div className="space-y-1">
-                    <div className="w-8 h-8 mx-auto rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold">
+                    <div className="w-7 h-7 mx-auto rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs">
                       ✓
                     </div>
                     <div className="font-bold text-slate-900 text-[11px]">Received</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="w-8 h-8 mx-auto rounded-full bg-amber-500 text-white flex items-center justify-center font-bold animate-pulse">
-                      <Flame className="w-4 h-4" />
+                    <div className="w-7 h-7 mx-auto rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs animate-pulse">
+                      <Flame className="w-3.5 h-3.5" />
                     </div>
                     <div className="font-bold text-amber-700 text-[11px]">In Kitchen</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="w-8 h-8 mx-auto rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold">
+                    <div className="w-7 h-7 mx-auto rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs">
                       3
                     </div>
                     <div className="text-slate-400 text-[11px]">Ready</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="w-8 h-8 mx-auto rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold">
+                    <div className="w-7 h-7 mx-auto rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-xs">
                       4
                     </div>
                     <div className="text-slate-400 text-[11px]">Served</div>
+                  </div>
+                </div>
+
+                {/* Itemized Live Bill Summary */}
+                <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/90 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <span className="font-extrabold text-xs text-slate-800 flex items-center space-x-1.5">
+                      <Receipt className="w-3.5 h-3.5 text-[#3B82F6]" />
+                      <span>Itemized Bill Summary</span>
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      {trackedOrder.items.reduce((s, i) => s + i.quantity, 0)} items ordered
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs">
+                    {trackedOrder.items.map((it, idx) => (
+                      <div key={idx} className="flex justify-between items-start text-xs">
+                        <div>
+                          <span className="font-bold text-slate-800">
+                            {it.quantity}x {it.name}
+                          </span>
+                          {it.modifiers && it.modifiers.length > 0 && (
+                            <span className="text-[10px] text-blue-700 block">
+                              + {it.modifiers.map((m) => m.name).join(', ')}
+                            </span>
+                          )}
+                          {it.notes && (
+                            <span className="text-[10px] text-slate-400 italic block">
+                              &ldquo;{it.notes}&rdquo;
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-extrabold text-slate-900 tabular-nums">
+                          {formatCurrency(it.itemTotal)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Financial Breakdown */}
+                  <div className="pt-2.5 border-t border-slate-200/90 flex flex-wrap items-center justify-between text-xs gap-2">
+                    <div className="text-slate-500 text-[11px]">
+                      Subtotal {formatCurrency(trackedOrder.subtotal)} + GST (5%) {formatCurrency(trackedOrder.taxTotal)} + Svc (5%) {formatCurrency(trackedOrder.serviceChargeTotal || 0)}
+                    </div>
+                    <div className="font-black text-slate-900 text-sm">
+                      Total Bill:{' '}
+                      <span className="text-[#1D4ED8] tabular-nums">
+                        {formatCurrency(trackedOrder.grandTotal)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -983,20 +1291,54 @@ function ClientOrderContent() {
                   <span className="text-xs text-slate-400 italic">No orders recorded yet</span>
                 )}
 
-                {tableSummary.hasPending && (
-                  <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {tableSummary.hasPending && (
                     <button
                       onClick={() => {
                         setPayingOrder(null);
                         setShowUpiModal(true);
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black text-xs flex items-center space-x-2 shadow-lg transition-transform active:scale-95"
+                      className="px-4 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black text-xs flex items-center space-x-2 shadow-lg transition-transform active:scale-95"
                     >
                       <QrCode className="w-4 h-4" />
                       <span>Pay Balance with UPI (₹{tableSummary.pendingTotal})</span>
                     </button>
-                  </div>
-                )}
+                  )}
+
+                  {tableOrders.length > 0 && (
+                    <>
+                      <button
+                        onClick={handleDownloadTableTab}
+                        className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center space-x-1.5 border border-white/20 transition-all"
+                        title="Download Statement (.txt)"
+                      >
+                        <Download className="w-3.5 h-3.5 text-[#60A5FA]" />
+                        <span>Download Statement</span>
+                      </button>
+
+                      <button
+                        onClick={handleShareWhatsAppTab}
+                        className="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-xs flex items-center space-x-1.5 border border-emerald-500/40 transition-all"
+                        title="Share Statement on WhatsApp"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Share on WhatsApp</span>
+                      </button>
+
+                      <button
+                        onClick={handleCopyTableTab}
+                        className="px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center space-x-1 border border-white/20 transition-all"
+                        title="Copy Statement to Clipboard"
+                      >
+                        {copiedBillId === 'table-tab' ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 text-slate-300" />
+                        )}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1121,13 +1463,47 @@ function ClientOrderContent() {
                         </div>
 
                         {/* Round Actions */}
-                        <div className="flex items-center space-x-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {/* Download Bill */}
+                          <button
+                            onClick={() => handleDownloadOrderBill(ord)}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center space-x-1 border border-slate-200 transition-colors"
+                            title="Download Receipt"
+                          >
+                            <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
+                            <span className="hidden sm:inline">Download</span>
+                          </button>
+
+                          {/* Share on WhatsApp */}
+                          <button
+                            onClick={() => handleShareWhatsAppOrder(ord)}
+                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center space-x-1 border border-emerald-200 transition-colors"
+                            title="Share on WhatsApp"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="hidden sm:inline">Share</span>
+                          </button>
+
+                          {/* Copy Receipt */}
+                          <button
+                            onClick={() => handleCopyOrderBill(ord)}
+                            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 transition-colors"
+                            title="Copy Receipt"
+                          >
+                            {copiedBillId === ord.id ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+
+                          {/* GST Tax Invoice */}
                           <button
                             onClick={() => setSelectedInvoiceOrder(ord)}
-                            className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center space-x-1.5 border border-slate-200 transition-colors"
+                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center space-x-1.5 border border-slate-200 transition-colors"
                           >
                             <FileText className="w-3.5 h-3.5 text-slate-600" />
-                            <span>GST Tax Invoice</span>
+                            <span>Tax Invoice</span>
                           </button>
 
                           {!isSettled && (
@@ -1136,7 +1512,7 @@ function ClientOrderContent() {
                                 setPayingOrder(ord);
                                 setShowUpiModal(true);
                               }}
-                              className="px-3.5 py-1.5 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm transition-all"
+                              className="px-3.5 py-1.5 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm transition-all active:scale-95"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
                               <span>Pay Round ({formatCurrency(ord.grandTotal)})</span>
@@ -1488,7 +1864,6 @@ function ClientOrderContent() {
                         <button
                           onClick={() => {
                             setSelectedTable(tbl.label);
-                            setQrPreviewTable(tbl.label);
                             setActiveTab('menu');
                             setTableSwitchedToast(
                               `You have selected Table ${tbl.label}! Browse our menu to send food to the kitchen.`
@@ -1786,31 +2161,152 @@ function ClientOrderContent() {
                 </div>
               ))}
 
-              <div className="pt-2 border-t border-slate-200 space-y-2 text-xs">
-                <span className="font-bold text-slate-800">Guest Information (Optional)</span>
-                <div className="grid grid-cols-2 gap-2">
+              {/* Guest Information & Payment Details Form */}
+              <div className="pt-3 border-t border-slate-200 space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 text-xs flex items-center space-x-1.5">
+                    <User className="w-3.5 h-3.5 text-[#3B82F6]" />
+                    <span>Guest Details &amp; E-Bill Delivery</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400">Step 3: Details &amp; Payment</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        placeholder="e.g. Gautam / Guest"
+                        className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                      Mobile (WhatsApp E-Bill) *
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                      <input
+                        type="tel"
+                        value={guestPhone}
+                        onChange={(e) => setGuestPhone(e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                    Email Address (For Tax Invoice Copy)
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                    <input
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      placeholder="guest@example.com (optional)"
+                      className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                    Special Cooking / Chef Instructions
+                  </label>
                   <input
                     type="text"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    placeholder="Your Name"
-                    className="p-2 border border-slate-300 rounded-lg bg-slate-50 text-xs"
-                  />
-                  <input
-                    type="text"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    placeholder="Mobile Number"
-                    className="p-2 border border-slate-300 rounded-lg bg-slate-50 text-xs"
+                    value={guestNotes}
+                    onChange={(e) => setGuestNotes(e.target.value)}
+                    placeholder="e.g. Less spicy, dressing on side, bring extra napkins..."
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                   />
                 </div>
-                <input
-                  type="text"
-                  value={guestNotes}
-                  onChange={(e) => setGuestNotes(e.target.value)}
-                  placeholder="Order notes for service staff or kitchen..."
-                  className="w-full p-2 border border-slate-300 rounded-lg bg-slate-50 text-xs"
-                />
+
+                {/* Payment Method Selector */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="font-extrabold text-slate-900 text-xs flex items-center space-x-1.5">
+                    <CreditCard className="w-3.5 h-3.5 text-[#3B82F6]" />
+                    <span>Select Payment Option:</span>
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentMethod('upi')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        selectedPaymentMethod === 'upi'
+                          ? 'bg-blue-50 border-[#3B82F6] ring-1 ring-[#3B82F6] text-[#1D4ED8]'
+                          : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-1.5 font-bold text-xs">
+                        <QrCode className="w-3.5 h-3.5 text-[#3B82F6]" />
+                        <span>⚡ Instant UPI</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">GPay, PhonePe, Paytm QR</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentMethod('cash')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        selectedPaymentMethod === 'cash'
+                          ? 'bg-blue-50 border-[#3B82F6] ring-1 ring-[#3B82F6] text-[#1D4ED8]'
+                          : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-1.5 font-bold text-xs">
+                        <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>💵 Cash at Table</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Pay waiter when served</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentMethod('card')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        selectedPaymentMethod === 'card'
+                          ? 'bg-blue-50 border-[#3B82F6] ring-1 ring-[#3B82F6] text-[#1D4ED8]'
+                          : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-1.5 font-bold text-xs">
+                        <CreditCard className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>💳 Card at Table</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Wireless machine at table</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPaymentMethod('tab')}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        selectedPaymentMethod === 'tab'
+                          ? 'bg-blue-50 border-[#3B82F6] ring-1 ring-[#3B82F6] text-[#1D4ED8]'
+                          : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-1.5 font-bold text-xs">
+                        <Receipt className="w-3.5 h-3.5 text-amber-600" />
+                        <span>🧾 Table Tab</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Settle all before leaving</p>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl space-y-1.5 text-xs">
@@ -2089,20 +2585,52 @@ function ClientOrderContent() {
             </div>
 
             {/* Modal Bottom Actions */}
-            <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
-              <button
-                onClick={() => setSelectedInvoiceOrder(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-1.5 shadow"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print Tax Invoice</span>
-              </button>
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center space-x-1.5">
+                <button
+                  onClick={() => handleDownloadOrderBill(selectedInvoiceOrder)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs flex items-center space-x-1 transition-colors"
+                  title="Download File (.txt)"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
+                  <span>Download</span>
+                </button>
+                <button
+                  onClick={() => handleShareWhatsAppOrder(selectedInvoiceOrder)}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs flex items-center space-x-1 transition-colors"
+                  title="Share on WhatsApp"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() => handleCopyOrderBill(selectedInvoiceOrder)}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs flex items-center space-x-1 transition-colors"
+                  title="Copy Text"
+                >
+                  {copiedBillId === selectedInvoiceOrder.id ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setSelectedInvoiceOrder(null)}
+                  className="px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-1.5 shadow"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Tax Invoice</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

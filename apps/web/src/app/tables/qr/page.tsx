@@ -9,14 +9,9 @@ import QRCode from 'qrcode';
 import {
   QrCode,
   Printer,
-  Copy,
-  ExternalLink,
-  Check,
   Download,
-  Grid,
   Users,
   MapPin,
-  Sparkles,
   ArrowLeft,
   Info,
   Layers,
@@ -29,7 +24,6 @@ export default function TableQrStandsAdminPage() {
     tables.length > 0 ? tables[0].label : 'T-01'
   );
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
-  const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [batchMode, setBatchMode] = useState<boolean>(false);
   const [batchQrs, setBatchQrs] = useState<{ [label: string]: string }>({});
 
@@ -87,14 +81,6 @@ export default function TableQrStandsAdminPage() {
       );
     });
   }, [tables]);
-
-  const handleCopyLink = () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-    const targetUrl = `${origin}/order?table=${encodeURIComponent(selectedTable)}`;
-    navigator.clipboard.writeText(targetUrl);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
-  };
 
   const handleDownloadQrPng = () => {
     if (!qrCodeDataUrl) return;
@@ -220,42 +206,6 @@ export default function TableQrStandsAdminPage() {
                 </div>
               </div>
             )}
-
-            {/* Table Destination URL & Actions */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 block">
-                Destination QR Ordering Link:
-              </label>
-              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-between text-xs font-mono text-slate-600">
-                <span className="truncate pr-2">
-                  {typeof window !== 'undefined'
-                    ? `${window.location.origin}/order?table=${encodeURIComponent(selectedTable)}`
-                    : `/order?table=${selectedTable}`}
-                </span>
-                <div className="flex items-center space-x-1 shrink-0">
-                  <button
-                    onClick={handleCopyLink}
-                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors"
-                    title="Copy Link"
-                  >
-                    {copiedLink ? (
-                      <Check className="w-4 h-4 text-emerald-600" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                  </button>
-                  <a
-                    href={`/order?table=${encodeURIComponent(selectedTable)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-600 transition-colors"
-                    title="Open Live Guest Menu"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            </div>
 
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-3 pt-2">

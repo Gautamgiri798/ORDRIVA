@@ -270,17 +270,6 @@ export function Navbar() {
           )}
         </Link>
 
-        {/* Customer Menu Link */}
-        <Link
-          href="/order"
-          target="_blank"
-          className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-[#60A5FA] hover:text-white text-xs font-bold border border-[#3B82F6]/30 hover:border-[#60A5FA]/60 transition-all"
-          title="Open Customer QR Ordering Menu in New Tab"
-        >
-          <QrCode className="w-3.5 h-3.5 text-[#60A5FA]" />
-          <span>QR Menu</span>
-        </Link>
-
         {/* Quick POS Terminal Button */}
         <Link
           href="/pos"

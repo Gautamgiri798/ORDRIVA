@@ -79,7 +79,6 @@ export function Sidebar() {
       countColor: 'bg-rose-500 text-white animate-pulse',
     },
     { label: 'Analytics & GST', href: '/reports', icon: BarChart3 },
-    { label: 'Customer QR Menu', href: '/order', icon: QrCode, badge: 'Guest' },
     { label: 'Audit Trail', href: '/audit', icon: ShieldCheck },
     { label: 'Settings', href: '/settings', icon: Settings },
   ];

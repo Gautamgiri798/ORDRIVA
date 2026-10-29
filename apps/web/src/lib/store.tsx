@@ -601,6 +601,9 @@ interface PosStoreContextType {
   updateOrderStatus: (orderId: string, newStatus: Order['status']) => void;
   updateKitchenTicketStatus: (ticketId: string, newStatus: KitchenTicket['status']) => void;
   toggleItemAvailability: (itemId: string) => void;
+  addMenuItem: (item: Omit<MenuItem, 'id' | 'branchId'> & Partial<Pick<MenuItem, 'id' | 'branchId'>>) => MenuItem;
+  deleteMenuItem: (itemId: string) => void;
+  updateMenuItem: (itemId: string, updates: Partial<MenuItem>) => void;
   updateTableStatus: (tableId: string, status: DiningTable['status'], orderId?: string) => void;
   logStockAdjustment: (itemId: string, delta: number, type: StockMovement['movementType'], reason: string) => void;
   addAuditEvent: (action: string, entityType: string, entityId: string, details?: Record<string, any>) => void;
@@ -1059,6 +1062,42 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addMenuItem = (
+    itemData: Omit<MenuItem, 'id' | 'branchId'> & Partial<Pick<MenuItem, 'id' | 'branchId'>>
+  ): MenuItem => {
+    const newItem: MenuItem = {
+      ...itemData,
+      id: itemData.id || `item-${Date.now()}`,
+      branchId: itemData.branchId || currentBranch.id,
+      isAvailable: itemData.isAvailable ?? true,
+      taxRate: itemData.taxRate ?? 5,
+    };
+    setMenuItems((prev) => [newItem, ...prev]);
+    addAuditEvent('MENU_ITEM_ADDED', 'MENU_ITEM', newItem.id, {
+      name: newItem.name,
+      price: newItem.price,
+      category: newItem.categoryId,
+    });
+    return newItem;
+  };
+
+  const deleteMenuItem = (itemId: string) => {
+    const item = menuItems.find((i) => i.id === itemId);
+    setMenuItems((prev) => prev.filter((i) => i.id !== itemId));
+    if (item) {
+      addAuditEvent('MENU_ITEM_DELETED', 'MENU_ITEM', itemId, {
+        name: item.name,
+      });
+    }
+  };
+
+  const updateMenuItem = (itemId: string, updates: Partial<MenuItem>) => {
+    setMenuItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, ...updates } : i))
+    );
+    addAuditEvent('MENU_ITEM_UPDATED', 'MENU_ITEM', itemId, updates);
+  };
+
   const updateTableStatus = (tableId: string, status: DiningTable['status'], orderId?: string) => {
     setTables((prev) =>
       prev.map((t) =>
@@ -1150,6 +1189,9 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
         updateOrderStatus,
         updateKitchenTicketStatus,
         toggleItemAvailability,
+        addMenuItem,
+        deleteMenuItem,
+        updateMenuItem,
         updateTableStatus,
         logStockAdjustment,
         addAuditEvent,
