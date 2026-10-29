@@ -15,6 +15,8 @@ import {
   BookmarkCheck,
   Ban,
   Sparkles,
+  QrCode,
+  Printer,
 } from 'lucide-react';
 
 export default function TablesPage() {
@@ -75,8 +77,8 @@ export default function TablesPage() {
           </div>
         </div>
 
-        {/* Section Tabs */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Section Tabs & QR Stand Print Action */}
+        <div className="flex flex-wrap items-center gap-3">
           <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
             <button
               onClick={() => setSelectedSection('all')}
@@ -98,6 +100,14 @@ export default function TablesPage() {
               </button>
             ))}
           </div>
+
+          <Link
+            href="/tables/qr"
+            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-1.5 shadow-sm transition-all"
+          >
+            <QrCode className="w-4 h-4 text-[#60A5FA]" />
+            <span>Print Table QR Stands</span>
+          </Link>
         </div>
       </div>
 

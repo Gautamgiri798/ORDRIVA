@@ -367,6 +367,20 @@ export function Navbar() {
                 </div>
 
                 <Link
+                  href="/tables/qr"
+                  onClick={() => setIsUserDropdownOpen(false)}
+                  className="flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all group"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#60A5FA] group-hover:bg-[#3B82F6] group-hover:text-white transition-colors">
+                      <QrCode className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Print Table QR Stands</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 group-hover:text-[#60A5FA]">&rarr;</span>
+                </Link>
+
+                <Link
                   href="/settings"
                   onClick={() => setIsUserDropdownOpen(false)}
                   className="flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all group"

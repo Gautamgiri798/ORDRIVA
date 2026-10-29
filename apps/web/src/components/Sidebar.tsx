@@ -63,6 +63,12 @@ export function Sidebar() {
       count: occupiedTablesCount > 0 ? `${occupiedTablesCount}/${tables.length}` : undefined,
       countColor: 'bg-blue-100 text-[#3B82F6]',
     },
+    {
+      label: 'Table QR Stands',
+      href: '/tables/qr',
+      icon: QrCode,
+      badge: 'Print',
+    },
     { label: 'Orders & Bills', href: '/orders', icon: Receipt },
     { label: 'Menu Catalog', href: '/menu', icon: UtensilsCrossed },
     {

@@ -210,20 +210,25 @@ erDiagram
 
 ## 📱 Customer Dining Portal (`/order`)
 
-The customer-facing application is organized into 4 intuitive tabs with full mobile responsiveness:
+The mobile-first digital dining portal for restaurant patrons scanning table QR codes:
 
 | Tab | Feature Set | Technical Capabilities |
 | :--- | :--- | :--- |
 | 🍽️ **Food &amp; Drinks Menu** | Interactive Catalog | Category filter carousel, search autocomplete, pure veg toggle, modal-based modifiers (crusts, toppings, spice levels), and floating cart drawer. |
 | 🧾 **Table Bill &amp; Receipts** | Running Tab &amp; GST Invoices | Live table financial statement, chronological order round history (R1, R2...), instant UPI payment QR, and printable GST Tax Invoice modal. |
-| 📱 **Table QR Menu &amp; Stand** | Contactless QR Generator | Dynamic high-res QR code for active table, companion sharing via WhatsApp/Web Share, and printable 4×6" acrylic table tent stand mockup. |
 | 🪑 **Live Tables &amp; Seating** | Real-Time Seating Map | Floor status counters (Vacant vs. Occupied vs. Reserved), section and capacity filters, and one-tap **"Sit at Table &amp; Order"** quick-seat action. |
 
 ---
 
 ## ⚡ Core Operating Modules
 
-### 1. 🖥️ Touch Cashier POS Terminal (`/pos`)
+### 1. 🖨️ Table QR Stands &amp; Print Studio (`/tables/qr`)
+* **Admin-Exclusive Print Studio:** Designed specifically for restaurant managers to print high-resolution 4×6" acrylic table tent cards and table stickers.
+* **Single &amp; Batch Print Modes:** Preview any individual table stand or one-click **Batch Print All 10 Tables** for instant floor deployment.
+* **Luxury Table Stand Template:** Dark obsidian and gold cloche branding with framed scan corners, clear guest instructions ("Scan to Order &amp; Pay"), and direct destination links.
+* **PNG Export:** Direct high-res QR code PNG image download for custom vinyl table stickers or acrylic fabricators.
+
+### 2. 🖥️ Touch Cashier POS Terminal (`/pos`)
 * **Ergonomic Counter Workflow:** Large 44px touch-friendly targets built for peak counter rush hours.
 * **Denomination Shortcuts:** Fast cash tender buttons (₹500, ₹1000, ₹2000, Exact) with real-time Change Calculation.
 * **Dynamic UPI QR Engine:** On-the-fly NPCI UPI QR code generation compatible with Google Pay, PhonePe, and Paytm.
@@ -388,6 +393,7 @@ docker-compose up -d
 | **Kitchen Display System (KDS)** | [http://localhost:3000/kitchen](http://localhost:3000/kitchen) | Kitchen Line / Head Chef |
 | **Customer QR Portal** | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01) |
 | **Floor Plan &amp; Table Management** | [http://localhost:3000/tables](http://localhost:3000/tables) | Host / Floor Manager |
+| **Table QR Stands &amp; Print Studio** | [http://localhost:3000/tables/qr](http://localhost:3000/tables/qr) | Admin / Restaurant Manager |
 | **Menu Catalog &amp; Customization** | [http://localhost:3000/menu](http://localhost:3000/menu) | Head Chef / Manager |
 | **Inventory &amp; Recipe BoM** | [http://localhost:3000/inventory](http://localhost:3000/inventory) | Stock &amp; Inventory Manager |
 | **GST &amp; Sales Reports** | [http://localhost:3000/reports](http://localhost:3000/reports) | Accountant / Auditor |
