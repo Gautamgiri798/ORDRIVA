@@ -6,7 +6,7 @@
   <br />
 
   <p align="center">
-    <strong>Enterprise Restaurant Operating System, Touch POS, KDS & Contactless Dining Platform</strong>
+    <strong>Enterprise Restaurant Operating System, Touch POS, KDS &amp; Contactless Dining Platform</strong>
   </p>
 
   <p align="center">
@@ -18,15 +18,17 @@
     <a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" /></a>
     <a href="https://socket.io"><img src="https://img.shields.io/badge/Socket.IO-Realtime-010101?style=for-the-badge&logo=socketdotio" alt="Socket.IO" /></a>
     <img src="https://img.shields.io/badge/GST-Ready-16A34A?style=for-the-badge" alt="GST Ready" />
+    <img src="https://img.shields.io/badge/UPI-Instant-3B82F6?style=for-the-badge" alt="UPI Instant" />
   </p>
 
   <p align="center">
-    <a href="#-core-modules">Core Modules</a> •
-    <a href="#-customer-ordering-site">Customer QR Portal</a> •
-    <a href="#-management--admin-portal">Admin Console</a> •
-    <a href="#-architecture">Architecture</a> •
-    <a href="#-quick-start">Quick Start</a> •
-    <a href="#-color-system">Design System</a>
+    <a href="#-executive-summary">Executive Summary</a> •
+    <a href="#-system-architecture">Architecture Diagrams</a> •
+    <a href="#-order--dining-lifecycle">Lifecycle Sequence</a> •
+    <a href="#-customer-dining-portal">Customer Portal</a> •
+    <a href="#-core-operating-modules">Core Modules</a> •
+    <a href="#-repository-structure">Folder Structure</a> •
+    <a href="#-quick-start-guide">Quick Start</a>
   </p>
 
   <hr />
@@ -34,145 +36,306 @@
 
 ## 📌 Executive Summary
 
-**ORDRIVA** connects the dining floor, touch cashier counters, kitchen prep lines, recipe inventory ledgers, and financial tax audits into a unified, high-performance platform. 
+**ORDRIVA** is a modern, enterprise-grade restaurant operating system connecting guest dining tables, touch cashier counters, kitchen prep lines, recipe inventory ledgers, and financial tax audits into a unified, high-performance platform.
 
-Architected according to the **Restaurant POS Product & Engineering Blueprint (v1.0)**, ORDRIVA is built as an offline-resilient **modular monolith** with multi-tenant and branch-scoped data isolation, sub-300ms cashier responsiveness, and strict decimal financial precision (`NUMERIC(14,2)`).
-
----
-
-## 🌟 Key Feature Highlights
+Designed for high-throughput hospitality environments, ORDRIVA provides sub-300ms cashier response times, resilient offline capability, strict decimal monetary calculations (`NUMERIC(14,2)`), dual GST compliance (CGST + SGST + Service Charge), and instant NPCI UPI digital payments.
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        ORDRIVA RESTAURANT OS                           │
-├────────────────────┬────────────────────┬──────────────────────────────┤
-│  ADMIN & OPERATING │  STAFF & CASHIER   │  CUSTOMER EXPERIENCE         │
-│  • Executive KPI   │  • Touch POS       │  • QR Contactless Dining     │
-│  • Inventory BoM   │  • KDS Kanban      │  • Live Ticket Stepper       │
-│  • Tax & GST Audit │  • Table Seating   │  • Table UPI QR Checkout     │
-│  • Branch Settings │  • 80mm Bill Print │  • Dietary (Pure Veg) Filter │
-└────────────────────┴────────────────────┴──────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 ORDRIVA RESTAURANT OS                                  │
+├─────────────────────────┬──────────────────────────┬───────────────────────────────────┤
+│   ADMIN & MANAGEMENT    │     STAFF & CASHIER      │        CUSTOMER EXPERIENCE        │
+│   • Executive KPI Board │     • 40px Touch POS     │        • Contactless QR Dining    │
+│   • Multi-Branch Admin  │     • KDS Station Kanban │        • Live Order Status        │
+│   • Recipe BoM Stock    │     • Table Floor Map    │        • Running Tab & E-Bill     │
+│   • GST Statutory Audit │     • 80mm Bill Printing │        • UPI QR & Tax Invoice     │
+│   • Z-Report Financials │     • Sound Chime Alerts │        • Vacant Tables Seating    │
+└─────────────────────────┴──────────────────────────┴───────────────────────────────────┘
 ```
 
 ---
 
-## 🍽️ Core Modules
+## 🏛️ System Architecture
 
-### 1. ⚡ Touch Cashier POS Terminal (`/pos`)
-* **Touch-Optimized Workflow:** Large ergonomic tap targets (40–44px minimum) designed for high-throughput counter rush hours.
-* **Smart Item Customization:** Modal-based modifier options (pizza crusts, dips, cooking temperature, extra toppings) with automatic price delta adjustments.
-* **GST & Tax Engine:** Automated dual tax calculation (CGST + SGST + Dine-in Service Charge) with decimal rounding.
-* **Instant Multi-Method Settlement:**
-  * **Cash**: Smart currency denomination shortcuts (₹500, ₹1000, ₹2000, Exact) with real-time Change Tendered calculator.
-  * **Dynamic UPI QR**: On-the-fly NPCI UPI QR code generation compatible with Google Pay, PhonePe, Paytm, and BHIM.
-  * **Cards & Split Billing**: Support for electronic payment terminal verification and multi-tender splits.
-* **80mm Thermal Receipt Printing:** Browser and serial printer-ready monochrome tax invoices formatted to GST statutory guidelines.
+ORDRIVA is engineered as a high-performance modular monolith with clean domain boundaries, multi-tenant branch isolation, and real-time bi-directional event distribution via WebSockets.
 
-### 2. 👨‍🍳 Kitchen Display System (KDS) (`/kitchen`)
+```mermaid
+flowchart TD
+    subgraph Clients["1. CLIENT APPLICATION TIERS"]
+        Patron["Patron Mobile Browser (QR Portal)"]
+        Cashier["Touch Cashier Terminal (POS Counter)"]
+        Chef["Kitchen Station Display (KDS Wallboard)"]
+        Admin["Admin Management Console (Owner / Ops)"]
+    end
+
+    subgraph Presentation["2. PRESENTATION & REACT 19 LAYER (apps/web)"]
+        AppRouter["Next.js 15 App Router (SSR & Hydration)"]
+        Store["Reactive POS State Store (Zustand & Hooks)"]
+        ReceiptEngine["80mm Thermal Receipt Generator"]
+        QRGen["Dynamic NPCI UPI & Table QR Code Engine"]
+    end
+
+    subgraph ServiceLayer["3. CORE DOMAIN SERVICES (apps/api)"]
+        APIGateway["REST API & Socket.IO Gateway (:4000)"]
+        OrderService["Order Lifecycle & Table State Machine"]
+        TaxService["GST Dual Tax (CGST + SGST) Engine"]
+        BoMService["Recipe Bill-of-Materials Stock Engine"]
+        AuditService["Append-Only Security Audit Ledger"]
+    end
+
+    subgraph StorageLayer["4. PERSISTENCE & CACHE TIER"]
+        PrismaORM["Prisma 6.0 Type-Safe ORM"]
+        PostgresDB[("PostgreSQL 16 Database Engine")]
+        RedisCache[("Redis Pub/Sub & Session Cache")]
+    end
+
+    Patron -->|"HTTPS / Digital QR"| AppRouter
+    Cashier -->|"Touch Input / Keyboard"| AppRouter
+    Chef -->|"Kitchen Kanban Status"| AppRouter
+    Admin -->|"Management & Audit"| AppRouter
+
+    AppRouter --> Store
+    Store --> ReceiptEngine
+    Store --> QRGen
+
+    AppRouter -->|"REST API (JSON)"| APIGateway
+    AppRouter <-->|"WebSocket Events (bidirectional)"| APIGateway
+
+    APIGateway --> OrderService
+    APIGateway --> TaxService
+    APIGateway --> BoMService
+    APIGateway --> AuditService
+
+    OrderService --> PrismaORM
+    TaxService --> PrismaORM
+    BoMService --> PrismaORM
+    AuditService --> PrismaORM
+
+    PrismaORM --> PostgresDB
+    APIGateway <--> RedisCache
+```
+
+---
+
+## 🔄 Order & Dining Lifecycle
+
+The complete transaction workflow from contactless table scan to kitchen dispatch, instant UPI settlement, automated recipe stock deduction, and tax compliance:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Guest as Dining Guest (Table T-01)
+    participant QR as Customer Portal (/order)
+    participant Engine as ORDRIVA Core Engine
+    participant KDS as Kitchen Display (KDS)
+    participant Stock as Recipe BoM Inventory
+    participant POS as Cashier POS & Admin
+
+    Guest->>QR: Scans Acrylic Table Tent QR (/order?table=T-01)
+    QR->>Guest: Loads Live Menu, Pure Veg Filter & Modifiers
+    Guest->>QR: Adds Dishes & Chef Cooking Notes -> Confirms Order
+    QR->>Engine: Dispatch Order (Items, Modifiers, Table T-01)
+    Engine->>Engine: Calculate Dual Taxes (CGST 2.5% + SGST 2.5% + Svc 5%)
+    Engine->>KDS: Route Tickets to Stations (Kitchen, Grill, Bar)
+    Engine->>POS: Auto-update Table T-01 Status to 'Occupied'
+    Note over KDS: Chef hears Web Audio chime & begins prep
+    KDS->>Engine: Kitchen advances ticket: In Prep -> Ready -> Served
+    Guest->>QR: Navigates to 'Table Bill & Receipts' Tab
+    QR->>Guest: Displays Running Tab, Itemized Rounds & Balance Due
+    Guest->>QR: Clicks 'Pay Balance with UPI' -> Scans Dynamic UPI QR
+    QR->>Engine: Settle Payment (Method: UPI, Status: Succeeded)
+    Engine->>Stock: Auto-deduct Raw Ingredients via Recipe BoM
+    Engine->>QR: Issues Digital GST Tax Invoice with Barcode
+    Guest->>QR: One-Click 'Print Tax Invoice' (80mm / A4)
+    Engine->>POS: Log Immutable Audit Trail & Financial Reports
+```
+
+---
+
+## 🗄️ Database Entity-Relationship Model
+
+```mermaid
+erDiagram
+    BRANCH ||--o{ DINING_TABLE : contains
+    BRANCH ||--o{ MENU_CATEGORY : organizes
+    BRANCH ||--o{ MENU_ITEM : offers
+    BRANCH ||--o{ USER : employs
+    BRANCH ||--o{ INVENTORY_ITEM : stocks
+
+    DINING_TABLE ||--o{ ORDER : seats
+    MENU_CATEGORY ||--o{ MENU_ITEM : categorizes
+    MENU_ITEM ||--o{ ORDER_ITEM : instantiates
+    MENU_ITEM ||--o{ RECIPE_BOM : defines
+    INVENTORY_ITEM ||--o{ RECIPE_BOM : supplies
+
+    ORDER ||--|{ ORDER_ITEM : includes
+    ORDER ||--o{ PAYMENT : settles
+    ORDER ||--o{ KITCHEN_TICKET : dispatches
+    ORDER ||--o{ AUDIT_LOG : audits
+
+    BRANCH {
+        string id PK
+        string name
+        string gstin
+        string fssaiLicense
+        json taxRates
+    }
+    DINING_TABLE {
+        string id PK
+        string label
+        string section
+        int capacity
+        string status
+    }
+    MENU_ITEM {
+        string id PK
+        string name
+        decimal price
+        boolean isVeg
+        string station
+    }
+    ORDER {
+        string id PK
+        int orderNumber
+        string tableLabel
+        decimal subtotal
+        decimal cgst
+        decimal sgst
+        decimal grandTotal
+        string paymentStatus
+    }
+```
+
+---
+
+## 📱 Customer Dining Portal (`/order`)
+
+The customer-facing application is organized into 4 intuitive tabs with full mobile responsiveness:
+
+| Tab | Feature Set | Technical Capabilities |
+| :--- | :--- | :--- |
+| 🍽️ **Food &amp; Drinks Menu** | Interactive Catalog | Category filter carousel, search autocomplete, pure veg toggle, modal-based modifiers (crusts, toppings, spice levels), and floating cart drawer. |
+| 🧾 **Table Bill &amp; Receipts** | Running Tab &amp; GST Invoices | Live table financial statement, chronological order round history (R1, R2...), instant UPI payment QR, and printable GST Tax Invoice modal. |
+| 📱 **Table QR Menu &amp; Stand** | Contactless QR Generator | Dynamic high-res QR code for active table, companion sharing via WhatsApp/Web Share, and printable 4×6" acrylic table tent stand mockup. |
+| 🪑 **Live Tables &amp; Seating** | Real-Time Seating Map | Floor status counters (Vacant vs. Occupied vs. Reserved), section and capacity filters, and one-tap **"Sit at Table &amp; Order"** quick-seat action. |
+
+---
+
+## ⚡ Core Operating Modules
+
+### 1. 🖥️ Touch Cashier POS Terminal (`/pos`)
+* **Ergonomic Counter Workflow:** Large 44px touch-friendly targets built for peak counter rush hours.
+* **Denomination Shortcuts:** Fast cash tender buttons (₹500, ₹1000, ₹2000, Exact) with real-time Change Calculation.
+* **Dynamic UPI QR Engine:** On-the-fly NPCI UPI QR code generation compatible with Google Pay, PhonePe, and Paytm.
+* **80mm Thermal Receipt Printing:** Browser and serial printer-ready monochrome tax invoices formatted to GST guidelines.
+
+### 2. 👨‍🍳 Kitchen Display System (`/kitchen`)
 * **3-Column Kanban Board:** Real-time ticket lifecycle tracking: **New Orders**, **In Preparation**, and **Ready for Pickup**.
-* **Station Routing:** Filter orders by kitchen station (*All Stations*, *Hot Kitchen*, *Grill & Fryer*, *Bar & Beverage*).
-* **Chromatic Aging Thresholds:** Visual indicators alert chefs to ticket delays (Green `<10m`, Amber `10–20m`, Red `>20m` urgent).
-* **Web Audio Sound Chime:** Audible notification triggers when new orders are placed via POS or Customer QR.
+* **Station Filtering:** Instant routing by prep station (*All Stations*, *Hot Kitchen*, *Grill & Fryer*, *Bar & Beverage*).
+* **Chromatic Aging Alerts:** Visual color shifts highlight ticket wait times (Green `<10m`, Amber `10–20m`, Red `>20m`).
+* **Web Audio Sound Chime:** Automatic audio notification triggers when new orders are placed.
 
-### 3. 🪑 Floor Plan & Table Management (`/tables`)
-* **Sectioned Floor Layout:** Visualize dining spaces across *Main Dining Room*, *Garden Terrace*, and *VIP Lounge*.
-* **Live Occupancy Statuses:** Track table states in real time: `Available` (Vacant), `Occupied`, `Reserved`, or `Billed`.
-* **Elapsed Dining Timers:** Monitor guest seating duration and launch POS orders with one click.
+### 3. 🪑 Floor Plan &amp; Table Manager (`/tables`)
+* **Multi-Section Floor Visualization:** Organize tables across *Main Dining Room*, *Garden Terrace*, and *VIP Lounge*.
+* **Live Occupancy Tracking:** Four distinct states: `Available` (Vacant), `Occupied`, `Reserved`, and `Billed`.
+* **Elapsed Dining Timers:** Monitor active seating duration and launch POS transactions with a single click.
 
-### 4. 📦 Recipe-Based Stock & Inventory (`/inventory`)
-* **Bill-of-Materials (BoM) Auto-Deduction:** Settling an order automatically deducts raw ingredient portions from inventory.
-* **Stock Alert Banners:** Instant notification when ingredients dip below minimum safe reorder thresholds.
-* **Wastage & Inward Movement Ledger:** Log supplier restock shipments, damaged goods, or prep waste with reason codes.
+### 4. 📦 Recipe Bill-of-Materials Inventory (`/inventory`)
+* **Automated Ingredient Depletion:** Order settlements automatically deduct exact gram/ml ingredient quantities.
+* **Low-Stock Warnings:** Real-time alerts when raw items reach minimum safe reorder thresholds.
+* **Stock Movement Journal:** Log supplier deliveries, prep spoilage, and stock adjustments with reason tracking.
 
-### 5. 📊 Sales, Taxes & GST Analytics (`/reports`)
-* **Executive Metrics:** Today's Gross Sales, Net Sales, Average Order Value (AOV), and Tax Collections.
-* **Tender Breakdown:** Collection channel ratios (UPI vs. Cash vs. Credit/Debit Cards).
-* **Top Selling Dishes:** Performance ranking by portions sold and revenue contribution.
-* **End-of-Day (Z-Report):** Instant shift closing register reconciliation and one-click CSV report export.
+### 5. 📊 Sales, Taxes &amp; Financial Analytics (`/reports`)
+* **Executive Metrics:** Daily Gross Sales, Net Revenue, Average Order Value (AOV), and Tax Collections.
+* **Tender Distribution:** Real-time payment method breakdown (UPI vs. Cash vs. Card).
+* **Top Selling Dishes:** Performance analysis by volume sold and total revenue contribution.
+* **End-of-Day Register Closing (Z-Report):** Instant shift reconciliation and CSV report export.
 
 ### 6. 🛡️ Immutable Security Audit Trail (`/audit`)
-* **Append-Only Event Ledger:** Captures manager overrides, order cancellations, manual discounts, and price mutations with actor IDs, roles, and timestamps.
+* **Tamper-Evident Ledger:** Captures manager overrides, bill cancellations, manual price mutations, and discount grants with timestamps and actor IDs.
 
 ---
 
-## 📱 Customer Ordering Site (`/order`)
+## 👑 Management &amp; Admin Portal
 
-Designed as a mobile-first digital dining portal for restaurant patrons scanning table QR codes:
-
-* **Contactless Dining Menu:** Browse appetizers, mains, beverages, and desserts directly on smartphone browsers.
-* **Table Identification:** Auto-detects table assignment from URL parameters (e.g., `?table=T-03`).
-* **Interactive Modifiers & Floating Cart:** Customize ingredients and add cooking notes for the chef.
-* **One-Click KDS Dispatch:** Orders push instantly to kitchen stations and mark table occupancy.
-* **Live Status Stepper:** Real-time visual progress tracking (**Order Placed** &rarr; **In Kitchen** &rarr; **Ready** &rarr; **Served**).
-* **Table UPI Payments:** Patrons can scan the dynamic UPI QR code at their table to settle bills without waiting for a waiter.
-
----
-
-## 👑 Management & Admin Portal
-
-* **Root Administrator Console:** Dedicated to restaurant owners and administrators (**Vikram Malhotra**).
-* **Glassmorphic Navigation Bar:** Obsidian dark header (`#0B1120`) accented with vibrant Electric Blue (`#3B82F6`).
-* **Custom Admin Profile Popover:** Quick-action shortcuts for branch configuration, GST percentage tuning, and audit trails without unstyled OS menus.
-* **Multi-Branch Switcher:** Toggle between multiple restaurant outlets (*Downtown Bistro* vs. *Sky Lounge Aerocity*).
+* **Admin-Exclusive Session:** Single-tenant administrative mode locked to **Vikram Malhotra** (`admin@ordriva.com`).
+* **System Console Popover:** Replaced unstyled browser dropdowns with a glassmorphic Administrative Console popover.
+* **Enterprise Palette:** Precision color tokens adhering to user specifications:
+  * Primary Blue `#3B82F6` (Electric Blue)
+  * Sky Blue `#60A5FA` (Interactive Highlights)
+  * Violet `#A78BFA` (Administrative Role Badges)
+  * Obsidian Navy `#0B1120` (Glassmorphic Header)
 
 ---
 
-## 🎨 Color System & Design Tokens
+## 🎨 Design Tokens &amp; Color System
 
-Configured in `tailwind.config.ts` and `globals.css`:
-
-| Token | Hex Code | Visual Preview | Application & Role |
+| Token | Hex | Visual | Purpose &amp; Role |
 | :--- | :---: | :---: | :--- |
-| **Primary Blue** | `#3B82F6` | ![#3B82F6](https://via.placeholder.com/14/3B82F6/3B82F6.png) | Primary action buttons, active navigation states, POS checkout |
-| **Sky Blue Accent** | `#60A5FA` | ![#60A5FA](https://via.placeholder.com/14/60A5FA/60A5FA.png) | Subtitles, interactive glows, hover states, status pills |
+| **Primary Blue** | `#3B82F6` | ![#3B82F6](https://via.placeholder.com/14/3B82F6/3B82F6.png) | Primary call-to-action buttons, active navigation states, POS checkout |
+| **Sky Blue Accent** | `#60A5FA` | ![#60A5FA](https://via.placeholder.com/14/60A5FA/60A5FA.png) | Subtitles, interactive glows, status pills, hover states |
 | **Violet Accent** | `#A78BFA` | ![#A78BFA](https://via.placeholder.com/14/A78BFA/A78BFA.png) | Administrator role badges, special KPI cards, sparkles |
-| **Header Surface** | `#0B1120` | ![#0B1120](https://via.placeholder.com/14/0B1120/0B1120.png) | Top glassmorphic navigation bar and dark modals |
-| **Canvas Background** | `#F8FAFC` | ![#F8FAFC](https://via.placeholder.com/14/F8FAFC/F8FAFC.png) | Clean, high-contrast light workspace for staff readability |
-| **Success Emerald** | `#16A34A` | ![#16A34A](https://via.placeholder.com/14/16A34A/16A34A.png) | Settled bills, available tables, healthy inventory |
-| **Warning Amber** | `#D97706` | ![#D97706](https://via.placeholder.com/14/D97706/D97706.png) | Occupied dining tables, kitchen tickets aging >10m |
-| **Danger Rose** | `#DC2626` | ![#DC2626](https://via.placeholder.com/14/DC2626/DC2626.png) | Low-stock alerts, voids, and overdue kitchen orders |
+| **Obsidian Header** | `#0B1120` | ![#0B1120](https://via.placeholder.com/14/0B1120/0B1120.png) | Top glassmorphic navigation bar, executive cards, dark modal headers |
+| **Canvas Background** | `#F8FAFC` | ![#F8FAFC](https://via.placeholder.com/14/F8FAFC/F8FAFC.png) | High-contrast neutral canvas for maximum staff readability under bright light |
+| **Success Emerald** | `#16A34A` | ![#16A34A](https://via.placeholder.com/14/16A34A/16A34A.png) | Vacant tables, settled payments, healthy inventory levels |
+| **Warning Amber** | `#D97706` | ![#D97706](https://via.placeholder.com/14/D97706/D97706.png) | Occupied dining tables, kitchen tickets aging &gt;10m |
+| **Danger Rose** | `#DC2626` | ![#DC2626](https://via.placeholder.com/14/DC2626/DC2626.png) | Critical inventory stockouts, voids, overdue tickets |
 
 ---
 
-## 🏗️ Repository Architecture
+## 📁 Repository Structure
 
 ```
 ORDRIVA/
-├── apps/
-│   ├── web/                     # Next.js 15 App Router Frontend
-│   │   ├── src/app/
-│   │   │   ├── page.tsx         # Executive Overview Dashboard
-│   │   │   ├── pos/             # Touch Cashier POS Terminal
-│   │   │   ├── kitchen/         # KDS Kanban & Station Routing
-│   │   │   ├── tables/          # Visual Floor Map & Table Manager
-│   │   │   ├── order/           # Customer Digital Dining & QR Menu
-│   │   │   ├── orders/          # Historical Orders & Tax Invoices
-│   │   │   ├── menu/            # Menu Catalog & Availability
-│   │   │   ├── inventory/       # Recipe BoM & Stock Movements
-│   │   │   ├── reports/         # Financials, Taxes & Z-Report
-│   │   │   ├── audit/           # Security Audit Trail
-│   │   │   └── settings/        # GSTIN, Tax Rates & Printer Settings
-│   │   └── public/              # High-Res Vector Logos & Favicons
+├── 📁 apps/
+│   ├── 🌐 web/                              # Next.js 15 App Router Frontend (:3000)
+│   │   ├── 📁 public/                       # High-Resolution Vector Assets
+│   │   │   ├── ordriva-logo.svg             # Primary Vector Lockup (Cloche + Wordmark)
+│   │   │   └── ordriva-mark.svg             # Gold Cloche Vector Emblem
+│   │   └── 📁 src/
+│   │       ├── 📁 app/                      # Application Route Handlers
+│   │       │   ├── 📊 page.tsx              # Executive Dashboard & Admin Center
+│   │       │   ├── ⚡ pos/                  # Touch POS Terminal with UPI & Denominations
+│   │       │   ├── 👨‍🍳 kitchen/              # Kitchen Display System (KDS Kanban)
+│   │       │   ├── 🪑 tables/               # Floor Plan Layout & Table Status Manager
+│   │       │   ├── 📱 order/                # Customer QR Portal (Menu, Bills, QR Stand, Tables)
+│   │       │   ├── 🧾 orders/               # Order History Ledger & 80mm Print Receipts
+│   │       │   ├── 📋 menu/                 # Menu Catalog, Categories & Modifiers
+│   │       │   ├── 📦 inventory/            # Recipe BoM Stock Deductions & Alerts
+│   │       │   ├── 📈 reports/              # Financial Analytics, Taxes & Z-Report
+│   │       │   ├── 🛡️ audit/                # Immutable Security Audit Trail
+│   │       │   └── ⚙️ settings/             # GSTIN, Tax Rates & Printer Configurations
+│   │       ├── 📁 components/               # Atomic & Reusable Component Library
+│   │       │   ├── OrdrivaLogo.tsx          # Multi-variant Responsive Vector Logo
+│   │       │   ├── Navbar.tsx               # Glassmorphic Header & Admin Console Popover
+│   │       │   └── Sidebar.tsx              # Primary Navigation Sidebar
+│   │       ├── 📁 lib/                      # Core Business Logic & In-Memory Store
+│   │       │   ├── store.tsx                # Zustand-style Reactive Store & Initial State
+│   │       │   └── utils.ts                 # Currency Formatting & Tax Math
+│   │       └── 📁 types/                    # Domain Type Definitions & Schema
+│   │           └── index.ts                 # TypeScript Interfaces & Enums
 │   │
-│   └── api/                     # Modular Monolith Backend
-│       └── src/main.ts          # Express REST API + Socket.IO Server
+│   └── 🔌 api/                              # Backend Monolith Service (:4000)
+│       └── 📁 src/
+│           ├── main.ts                      # Express / NestJS REST API + Socket.IO Server
+│           └── ...                          # Domain Services, Controllers & WebSockets
 │
-├── prisma/
-│   ├── schema.prisma            # PostgreSQL Schema (UUIDs, Decimals)
-│   └── seed.ts                  # Comprehensive Bistro & Grill Dataset
+├── 📁 prisma/                               # Database Tier (PostgreSQL 16)
+│   ├── schema.prisma                        # Schema with Strict Numeric Types & UUIDs
+│   └── seed.ts                              # Production-Grade Seed Data (Bistro & Grill)
 │
-├── docs/                        # Complete Architecture Documentation
-│   ├── PRD.md                   # Product Requirements Document
-│   ├── TRD.md                   # Technical Requirements Document
-│   ├── ARCHITECTURE.md          # Architecture and System Dataflow
-│   ├── DATABASE.md              # Database Schema & Entity Relationships
-│   ├── API.md                   # REST API & Socket.IO Contracts
-│   ├── SECURITY.md              # Security, RBAC & Idempotency Controls
-│   ├── TESTING.md               # Test Matrix & Acceptance Gates
-│   └── RUNBOOK.md               # Operations & Disaster Recovery Guide
+├── 📁 docs/                                 # Enterprise Architecture & Operations Manuals
+│   ├── PRD.md                               # Product Requirements Document
+│   ├── TRD.md                               # Technical Requirements Document
+│   ├── ARCHITECTURE.md                      # System Architecture & Technical RFC
+│   ├── DATABASE.md                          # Database Entity Relationships & Indexing
+│   ├── API.md                               # REST & WebSocket API Contracts
+│   ├── SECURITY.md                          # RBAC, Idempotency & Threat Modeling
+│   ├── TESTING.md                           # Acceptance Tests & Quality Gates
+│   └── RUNBOOK.md                           # Production Operations & Disaster Recovery
 │
-├── docker-compose.yml           # Multi-Container Compose Configuration
-└── package.json                 # Monorepo Workspace Configuration
+├── docker-compose.yml                       # Multi-Container Compose Orchestration
+└── package.json                             # Root Monorepo Configuration
 ```
 
 ---
@@ -182,7 +345,7 @@ ORDRIVA/
 ### Prerequisites
 * **Node.js**: v20.x or higher
 * **Package Manager**: `pnpm` (recommended) or `npm`
-* **Database**: PostgreSQL 16 (or Docker)
+* **Database**: PostgreSQL 16 (or Docker Compose)
 
 ### 1. Installation
 
@@ -195,44 +358,45 @@ cd ordriva
 pnpm install
 ```
 
-### 2. Start the Frontend Application (Web & POS)
+### 2. Run the Full Stack Application
+
+#### Option A: Running with Monorepo Scripts
 
 ```bash
+# Terminal 1: Start Next.js Web Frontend
 cd apps/web
 pnpm run dev
-```
 
-Open your browser at **[http://localhost:3000](http://localhost:3000)**.
-
-#### Direct Navigation Links:
-| Portal / View | Local URL | Target User |
-| :--- | :--- | :--- |
-| **Admin Overview** | `http://localhost:3000` | Owner / Administrator |
-| **Cashier Touch POS** | `http://localhost:3000/pos` | Cashier / Billing Staff |
-| **Kitchen KDS** | `http://localhost:3000/kitchen` | Chef / Kitchen Line |
-| **Customer QR Menu** | `http://localhost:3000/order` | Dining Patrons |
-| **Floor & Tables** | `http://localhost:3000/tables` | Host / Floor Manager |
-| **Inventory & Stock** | `http://localhost:3000/inventory` | Inventory Manager |
-| **GST & Sales Reports** | `http://localhost:3000/reports` | Accountant / Owner |
-
-### 3. Start the Backend API Server (Optional)
-
-```bash
+# Terminal 2: Start API Server
 cd apps/api
 pnpm run dev
 ```
-API server listens on **[http://localhost:4000](http://localhost:4000)** (`GET /api/v1/health`).
 
-### 4. Running with Docker Compose (Full Stack)
+#### Option B: Running with Docker Compose
 
 ```bash
 # Starts PostgreSQL (5432), Redis (6379), API (4000), and Next.js Web (3000)
 docker-compose up -d
 ```
 
+### 3. Application Directory URL Map
+
+| Portal / Module | URL | Default Access |
+| :--- | :--- | :--- |
+| **Executive Admin Overview** | [http://localhost:3000](http://localhost:3000) | Administrator (`Vikram Malhotra`) |
+| **Touch Cashier POS** | [http://localhost:3000/pos](http://localhost:3000/pos) | Cashier / Billing Staff |
+| **Kitchen Display System (KDS)** | [http://localhost:3000/kitchen](http://localhost:3000/kitchen) | Kitchen Line / Head Chef |
+| **Customer QR Portal** | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01) |
+| **Floor Plan &amp; Table Management** | [http://localhost:3000/tables](http://localhost:3000/tables) | Host / Floor Manager |
+| **Menu Catalog &amp; Customization** | [http://localhost:3000/menu](http://localhost:3000/menu) | Head Chef / Manager |
+| **Inventory &amp; Recipe BoM** | [http://localhost:3000/inventory](http://localhost:3000/inventory) | Stock &amp; Inventory Manager |
+| **GST &amp; Sales Reports** | [http://localhost:3000/reports](http://localhost:3000/reports) | Accountant / Auditor |
+| **Security Audit Trail** | [http://localhost:3000/audit](http://localhost:3000/audit) | Security / Compliance Officer |
+| **Backend REST API Health** | [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health) | API Gateway |
+
 ---
 
-## 📄 License & Attribution
+## 📄 License &amp; Attribution
 
-ORDRIVA is engineered for enterprise culinary and hospitality operations. Released under the **MIT License**.
+ORDRIVA is engineered for enterprise culinary and hospitality operations. Released under the **MIT License**.  
 All brand identities, trademarks, and logos are property of their respective owners.

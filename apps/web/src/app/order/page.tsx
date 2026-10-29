@@ -44,6 +44,8 @@ import {
   Smartphone,
   Info,
   ShieldCheck,
+  LayoutGrid,
+  Users,
 } from 'lucide-react';
 
 interface ClientCartItem {
@@ -54,7 +56,7 @@ interface ClientCartItem {
   itemTotal: number;
 }
 
-type CustomerTab = 'menu' | 'bills' | 'qr_menu';
+type CustomerTab = 'menu' | 'bills' | 'qr_menu' | 'tables';
 
 function ClientOrderContent() {
   const searchParams = useSearchParams();
@@ -109,6 +111,12 @@ function ClientOrderContent() {
   const [tableMenuQrUrl, setTableMenuQrUrl] = useState<string>('');
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [callStaffNotified, setCallStaffNotified] = useState<boolean>(false);
+
+  // Live Tables Seating Filter State
+  const [tableSectionFilter, setTableSectionFilter] = useState<string>('all');
+  const [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'vacant' | 'occupied' | 'reserved'>('all');
+  const [tableCapacityFilter, setTableCapacityFilter] = useState<string>('all');
+  const [tableSwitchedToast, setTableSwitchedToast] = useState<string | null>(null);
 
   // Keep selectedTable synced with URL parameter if present
   useEffect(() => {
@@ -167,6 +175,40 @@ function ClientOrderContent() {
       hasPending: pendingTotal > 0,
     };
   }, [tableOrders]);
+
+  // Live Tables Floor Calculations
+  const vacantTablesCount = useMemo(() => tables.filter((t) => t.status === 'available').length, [tables]);
+  const occupiedTablesCount = useMemo(() => tables.filter((t) => t.status === 'occupied').length, [tables]);
+  const reservedTablesCount = useMemo(
+    () => tables.filter((t) => t.status === 'reserved' || t.status === 'billed').length,
+    [tables]
+  );
+
+  const uniqueSections = useMemo(() => {
+    return Array.from(new Set(tables.map((t) => t.section))).filter(Boolean);
+  }, [tables]);
+
+  const filteredSeatingTables = useMemo(() => {
+    return tables.filter((t) => {
+      const isVacant = t.status === 'available';
+      const isOccupied = t.status === 'occupied';
+      const isReserved = t.status === 'reserved' || t.status === 'billed';
+
+      const matchesSection = tableSectionFilter === 'all' || t.section === tableSectionFilter;
+
+      let matchesStatus = true;
+      if (tableStatusFilter === 'vacant') matchesStatus = isVacant;
+      else if (tableStatusFilter === 'occupied') matchesStatus = isOccupied;
+      else if (tableStatusFilter === 'reserved') matchesStatus = isReserved;
+
+      let matchesCap = true;
+      if (tableCapacityFilter === '2') matchesCap = t.capacity <= 2;
+      else if (tableCapacityFilter === '4') matchesCap = t.capacity === 4;
+      else if (tableCapacityFilter === '6+') matchesCap = t.capacity >= 6;
+
+      return matchesSection && matchesStatus && matchesCap;
+    });
+  }, [tables, tableSectionFilter, tableStatusFilter, tableCapacityFilter]);
 
   // Generate dynamic QR Code for the active Table Menu
   useEffect(() => {
@@ -623,6 +665,28 @@ function ClientOrderContent() {
                 Scan &amp; Share
               </span>
             </button>
+
+            {/* Tab 4: Live Tables & Seating */}
+            <button
+              onClick={() => setActiveTab('tables')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap relative ${
+                activeTab === 'tables'
+                  ? 'bg-[#3B82F6] text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4 text-[#A78BFA]" />
+              <span>Live Tables &amp; Seating</span>
+              <span
+                className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                  activeTab === 'tables'
+                    ? 'bg-white text-[#1D4ED8]'
+                    : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                }`}
+              >
+                {vacantTablesCount} Vacant
+              </span>
+            </button>
           </div>
 
           {/* Quick Call Waiter Button */}
@@ -648,6 +712,21 @@ function ClientOrderContent() {
               <span>Server notified for Table {selectedTable}! A team member is arriving shortly.</span>
             </div>
             <button onClick={() => setCallStaffNotified(false)} className="text-slate-300 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Table Switched Banner Toast */}
+      {tableSwitchedToast && (
+        <div className="max-w-5xl mx-auto px-4 mt-3 animate-fadeIn">
+          <div className="bg-emerald-900 text-white p-3 rounded-xl shadow flex items-center justify-between text-xs font-semibold border border-emerald-700">
+            <div className="flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+              <span>{tableSwitchedToast}</span>
+            </div>
+            <button onClick={() => setTableSwitchedToast(null)} className="text-slate-300 hover:text-white">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -1394,6 +1473,385 @@ function ClientOrderContent() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 4: LIVE TABLES & SEATING AVAILABILITY ("TABLES PART")
+          ========================================================================= */}
+      {activeTab === 'tables' && (
+        <div className="max-w-5xl mx-auto px-4 mt-6 space-y-8">
+          {/* Header Summary Banner */}
+          <div className="bg-gradient-to-br from-[#0B1120] via-[#111C38] to-[#1E3A8A] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-[#3B82F6]/30">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/10">
+              <div className="space-y-1.5 max-w-xl">
+                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-[#60A5FA]">
+                  <LayoutGrid className="w-3.5 h-3.5 text-[#A78BFA]" />
+                  <span>Live Restaurant Floor Status</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+                  Dining Tables &amp; Seating Map
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  View real-time table availability at <strong className="text-white font-bold">{currentBranch.name}</strong>. Select any vacant table to start dining and place orders directly to the kitchen.
+                </p>
+              </div>
+
+              {/* Current Active Table Indicator */}
+              <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 flex flex-col items-start md:items-end text-left md:text-right">
+                <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                  Your Current Table
+                </span>
+                <span className="text-2xl font-black text-amber-300">
+                  Table {selectedTable}
+                </span>
+                <span className="text-[11px] text-[#60A5FA] font-medium mt-0.5">
+                  Ordering &amp; Billing Linked
+                </span>
+              </div>
+            </div>
+
+            {/* Stat Counters */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 text-xs">
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="text-slate-300 font-bold text-xs uppercase tracking-wider">
+                    Vacant
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-emerald-400 mt-1 block">
+                  {vacantTablesCount} Tables
+                </span>
+                <span className="text-[11px] text-slate-300">Available for seating</span>
+              </div>
+
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                  <span className="text-slate-300 font-bold text-xs uppercase tracking-wider">
+                    Occupied
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-rose-400 mt-1 block">
+                  {occupiedTablesCount} Tables
+                </span>
+                <span className="text-[11px] text-slate-300">Guests currently dining</span>
+              </div>
+
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                  <span className="text-slate-300 font-bold text-xs uppercase tracking-wider">
+                    Reserved
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-purple-300 mt-1 block">
+                  {reservedTablesCount} Tables
+                </span>
+                <span className="text-[11px] text-slate-300">Pre-booked &amp; billing</span>
+              </div>
+
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#60A5FA]"></span>
+                  <span className="text-slate-300 font-bold text-xs uppercase tracking-wider">
+                    Total Tables
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-[#60A5FA] mt-1 block">
+                  {tables.length} Total
+                </span>
+                <span className="text-[11px] text-slate-300">Across all dining areas</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Bar: Status, Section, and Capacity */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              {/* Status Filter Chips */}
+              <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1 text-xs font-bold">
+                <button
+                  onClick={() => setTableStatusFilter('all')}
+                  className={`px-3.5 py-1.5 rounded-xl transition-all whitespace-nowrap ${
+                    tableStatusFilter === 'all'
+                      ? 'bg-[#0B1120] text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  All Tables ({tables.length})
+                </button>
+
+                <button
+                  onClick={() => setTableStatusFilter('vacant')}
+                  className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all whitespace-nowrap border ${
+                    tableStatusFilter === 'vacant'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <span>Vacant Only ({vacantTablesCount})</span>
+                </button>
+
+                <button
+                  onClick={() => setTableStatusFilter('occupied')}
+                  className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all whitespace-nowrap border ${
+                    tableStatusFilter === 'occupied'
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                      : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                  <span>Occupied Only ({occupiedTablesCount})</span>
+                </button>
+
+                <button
+                  onClick={() => setTableStatusFilter('reserved')}
+                  className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl transition-all whitespace-nowrap border ${
+                    tableStatusFilter === 'reserved'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+                  <span>Reserved ({reservedTablesCount})</span>
+                </button>
+              </div>
+
+              {/* Section & Capacity Dropdowns */}
+              <div className="flex items-center space-x-2">
+                <select
+                  value={tableSectionFilter}
+                  onChange={(e) => setTableSectionFilter(e.target.value)}
+                  className="bg-slate-50 border border-slate-300 text-xs font-bold px-3 py-1.5 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                  aria-label="Filter by Dining Section"
+                >
+                  <option value="all">All Sections</option>
+                  {uniqueSections.map((sec) => (
+                    <option key={sec} value={sec}>
+                      {sec}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={tableCapacityFilter}
+                  onChange={(e) => setTableCapacityFilter(e.target.value)}
+                  className="bg-slate-50 border border-slate-300 text-xs font-bold px-3 py-1.5 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                  aria-label="Filter by Table Capacity"
+                >
+                  <option value="all">Any Capacity</option>
+                  <option value="2">2 Guests (Couples)</option>
+                  <option value="4">4 Guests (Standard)</option>
+                  <option value="6+">6+ Guests (Family / Group)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Tables Seating Grid */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-base text-slate-900 flex items-center space-x-2">
+                <LayoutGrid className="w-4 h-4 text-[#3B82F6]" />
+                <span>Available Floor Seating ({filteredSeatingTables.length} tables shown)</span>
+              </h3>
+              <div className="flex items-center space-x-3 text-xs text-slate-500">
+                <span className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>Vacant</span>
+                </span>
+                <span className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span>Occupied</span>
+                </span>
+                <span className="flex items-center space-x-1.5">
+                  <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                  <span>Reserved</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {filteredSeatingTables.map((tbl) => {
+                const isSelected = tbl.label.toLowerCase() === selectedTable.toLowerCase();
+                const isVacant = tbl.status === 'available';
+                const isOccupied = tbl.status === 'occupied';
+                const isReserved = tbl.status === 'reserved';
+
+                return (
+                  <div
+                    key={tbl.id}
+                    className={`bg-white rounded-3xl border transition-all p-5 flex flex-col justify-between space-y-4 shadow-xs hover:shadow-md relative overflow-hidden ${
+                      isSelected
+                        ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/30 bg-blue-50/20'
+                        : isVacant
+                        ? 'border-emerald-200/90 hover:border-emerald-400'
+                        : isOccupied
+                        ? 'border-rose-200/80 bg-rose-50/10'
+                        : 'border-slate-200'
+                    }`}
+                  >
+                    {/* Top Status Banner & Current Table Marker */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-serif font-black text-xl text-slate-900 tracking-wide">
+                          Table {tbl.label}
+                        </span>
+
+                        {isSelected ? (
+                          <span className="px-2.5 py-1 rounded-full bg-[#3B82F6] text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                            Your Table
+                          </span>
+                        ) : isVacant ? (
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] font-black uppercase tracking-wider">
+                            <span className="relative flex h-2 w-2 mr-0.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span>Vacant</span>
+                          </span>
+                        ) : isOccupied ? (
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-black uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-0.5"></span>
+                            <span>Occupied</span>
+                          </span>
+                        ) : isReserved ? (
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-purple-50 text-purple-800 border border-purple-200 text-[10px] font-black uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-0.5"></span>
+                            <span>Reserved</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-0.5"></span>
+                            <span>Billing</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Section & Capacity Metadata */}
+                      <div className="space-y-1.5 text-xs text-slate-600">
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-3.5 h-3.5 text-[#3B82F6]" />
+                          <span className="font-semibold text-slate-800">{tbl.section}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Users className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-slate-600">
+                            Capacity: <strong className="font-bold text-slate-900">{tbl.capacity} Guests</strong>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Live Table Narrative */}
+                      <div className="mt-3 pt-3 border-t border-slate-100 text-[11px]">
+                        {isVacant ? (
+                          <p className="text-emerald-700 font-medium">
+                            ✓ Sanitized &amp; ready for immediate seating
+                          </p>
+                        ) : isOccupied ? (
+                          <p className="text-rose-700 font-medium">
+                            Guests dining • Placed round active
+                          </p>
+                        ) : isReserved ? (
+                          <p className="text-purple-700 font-medium">
+                            Booked for reserved party
+                          </p>
+                        ) : (
+                          <p className="text-amber-700 font-medium">
+                            Bill settling • Expected free soon
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Table Interactive Actions */}
+                    <div className="pt-2">
+                      {isVacant ? (
+                        <button
+                          onClick={() => {
+                            setSelectedTable(tbl.label);
+                            setQrPreviewTable(tbl.label);
+                            setActiveTab('menu');
+                            setTableSwitchedToast(
+                              `You have selected Table ${tbl.label}! Browse our menu to send food to the kitchen.`
+                            );
+                            setTimeout(() => setTableSwitchedToast(null), 4000);
+                          }}
+                          className="w-full py-2.5 px-3 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow transition-all active:scale-95"
+                        >
+                          <Utensils className="w-3.5 h-3.5" />
+                          <span>Sit at Table &amp; Order</span>
+                        </button>
+                      ) : isSelected ? (
+                        <button
+                          onClick={() => setActiveTab('bills')}
+                          className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow"
+                        >
+                          <Receipt className="w-3.5 h-3.5 text-[#60A5FA]" />
+                          <span>View Your Table Bill</span>
+                        </button>
+                      ) : (
+                        <div className="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs text-center border border-slate-200">
+                          {isOccupied ? 'Currently Seated' : isReserved ? 'Reserved' : 'Clearing Soon'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {filteredSeatingTables.length === 0 && (
+              <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+                  <LayoutGrid className="w-6 h-6" />
+                </div>
+                <h4 className="font-extrabold text-sm text-slate-800">
+                  No tables match the selected filters
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Try clearing your section or capacity filters to view all restaurant tables.
+                </p>
+                <button
+                  onClick={() => {
+                    setTableStatusFilter('all');
+                    setTableSectionFilter('all');
+                    setTableCapacityFilter('all');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold"
+                >
+                  Reset Table Filters
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Help & Walk-in Seating Card */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/70 rounded-3xl p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2 text-blue-900 font-extrabold text-sm">
+                <Users className="w-4 h-4 text-[#3B82F6]" />
+                <span>Large Group or Special Seating Request?</span>
+              </div>
+              <p className="text-xs text-blue-800/90 leading-relaxed max-w-xl">
+                Need a private dining room, high chair, or table combination for 8+ people? Our host team is happy to accommodate your party right away.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setCallStaffNotified(true);
+                setTimeout(() => setCallStaffNotified(false), 3500);
+              }}
+              className="px-5 py-2.5 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-extrabold text-xs shadow-sm flex items-center justify-center space-x-2 shrink-0 transition-transform active:scale-95"
+            >
+              <Phone className="w-4 h-4" />
+              <span>Call Host for Table</span>
+            </button>
           </div>
         </div>
       )}
