@@ -81,7 +81,7 @@ export default function DashboardPage() {
 
         {/* Subtle Decorative Logo Watermark */}
         <div className="absolute right-4 -bottom-6 opacity-25 pointer-events-none w-72 h-36">
-          <Image src="/ordriva-horizontal-transparent.png" alt="watermark" fill className="object-contain" priority />
+          <Image src="/ordriva-logo.svg" alt="watermark" fill className="object-contain" priority />
         </div>
       </div>
 

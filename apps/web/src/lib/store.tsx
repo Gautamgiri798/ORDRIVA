@@ -610,7 +610,7 @@ interface PosStoreContextType {
 const PosStoreContext = createContext<PosStoreContextType | null>(null);
 
 export function PosStoreProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[2]); // Default Cashier
+  const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[0]); // Locked to Admin (Vikram Malhotra)
   const [currentBranch, setCurrentBranch] = useState<Branch>(INITIAL_BRANCHES[0]);
   const [categories, setCategories] = useState<MenuCategory[]>(INITIAL_CATEGORIES);
   const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
@@ -1114,7 +1114,7 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser,
-        availableUsers: INITIAL_USERS,
+        availableUsers: [INITIAL_USERS[0]], // Admin only
         currentBranch,
         setCurrentBranch,
         availableBranches: INITIAL_BRANCHES,

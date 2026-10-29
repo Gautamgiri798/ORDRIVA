@@ -16,6 +16,9 @@ import {
   QrCode,
   Check,
   Shield,
+  ShieldCheck,
+  Settings,
+  BarChart3,
   Store,
   Sparkles,
 } from 'lucide-react';
@@ -110,7 +113,7 @@ export function Navbar() {
         {/* Brand & Customer Tag */}
         <div className="flex items-center space-x-3">
           <Link href="/order" className="flex items-center hover:opacity-95 transition-opacity">
-            <OrdrivaLogo variant="full" size={34} />
+            <OrdrivaLogo variant="full" size={42} />
           </Link>
           <span className="hidden sm:inline-flex items-center space-x-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-950/80 text-[#60A5FA] border border-[#3B82F6]/40">
             <Sparkles className="w-3 h-3 text-[#A78BFA]" />
@@ -150,7 +153,7 @@ export function Navbar() {
       {/* Brand & Logo */}
       <div className="flex items-center space-x-3">
         <Link href="/" className="flex items-center hover:opacity-95 transition-opacity">
-          <OrdrivaLogo variant="full" size={34} />
+          <OrdrivaLogo variant="full" size={42} />
         </Link>
       </div>
 
@@ -292,7 +295,7 @@ export function Navbar() {
           )}
         </Link>
 
-        {/* Professional Custom Role & Staff Profile Dropdown */}
+        {/* Dedicated Admin Account Profile */}
         <div className="relative pl-1 border-l border-slate-800" ref={userDropdownRef}>
           <button
             onClick={() => {
@@ -301,124 +304,118 @@ export function Navbar() {
             }}
             className={`flex items-center space-x-2.5 p-1.5 pr-2.5 rounded-xl transition-all ${
               isUserDropdownOpen
-                ? 'bg-slate-800/90 ring-2 ring-[#3B82F6]/40'
+                ? 'bg-slate-800/90 ring-2 ring-[#A78BFA]/40 shadow-sm'
                 : 'hover:bg-slate-800/60'
             }`}
-            aria-label="Staff account menu"
+            aria-label="Admin account menu"
           >
-            {/* User Avatar with Role Gradient */}
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shadow-sm uppercase ${currentRoleStyle.avatarBg}`}
-            >
-              {currentUser.name.charAt(0)}
+            {/* Admin Avatar */}
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shadow-md uppercase bg-gradient-to-br from-[#A78BFA] via-purple-600 to-indigo-800 text-white">
+              V
             </div>
 
-            {/* User Info Label */}
+            {/* Admin Info Label */}
             <div className="hidden lg:block text-left leading-tight">
-              <div className="text-xs font-bold text-white tracking-tight">
-                {currentUser.name}
+              <div className="text-xs font-bold text-white tracking-tight flex items-center space-x-1">
+                <span>Vikram Malhotra</span>
+                <Shield className="w-3 h-3 text-[#A78BFA]" />
               </div>
-              <div className="text-[10px] font-semibold text-[#A78BFA] capitalize">
-                {currentUser.role}
+              <div className="text-[10px] font-extrabold text-[#A78BFA] tracking-wide uppercase">
+                Administrator
               </div>
             </div>
 
             <ChevronDown
               className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                isUserDropdownOpen ? 'rotate-180 text-[#60A5FA]' : ''
+                isUserDropdownOpen ? 'rotate-180 text-[#A78BFA]' : ''
               }`}
             />
           </button>
 
-          {/* Custom Popover Staff Switcher (Replaces ugly native OS select) */}
+          {/* Admin Dedicated Console Popover */}
           {isUserDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#0F172A] border border-[#3B82F6]/40 shadow-2xl backdrop-blur-xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-              {/* Header Box with Active User Info */}
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 mb-2">
-                <div className="flex items-center space-x-2.5">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm uppercase shadow-md ${currentRoleStyle.avatarBg}`}
-                  >
-                    {currentUser.name.charAt(0)}
+            <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#0F172A] border border-[#A78BFA]/40 shadow-2xl backdrop-blur-xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+              {/* Admin Profile Header */}
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-purple-950/40 via-slate-900 to-slate-900 border border-[#A78BFA]/30 mb-3 shadow-inner">
+                <div className="flex items-center space-x-3">
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center font-black text-base uppercase bg-gradient-to-br from-[#A78BFA] via-purple-600 to-indigo-800 text-white shadow-lg shadow-purple-500/25">
+                    V
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-white truncate">
-                      {currentUser.name}
+                    <div className="text-sm font-extrabold text-white truncate flex items-center space-x-1.5">
+                      <span>Vikram Malhotra</span>
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     </div>
-                    <div className="text-[11px] text-slate-400 truncate">{currentUser.email}</div>
-                    <span
-                      className={`inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${currentRoleStyle.badge}`}
-                    >
-                      {currentRoleStyle.label}
-                    </span>
+                    <div className="text-[11px] text-slate-400 truncate">admin@ordriva.com</div>
+                    <div className="mt-1.5 inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-purple-950/90 text-[#A78BFA] border border-[#A78BFA]/40 tracking-wider">
+                      <ShieldCheck className="w-3 h-3 text-[#A78BFA]" />
+                      <span>Root Administrator</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Title: Switch Staff Role */}
-              <div className="px-2 py-1 text-[11px] font-bold tracking-wider text-slate-400 uppercase flex items-center justify-between">
-                <span>Switch Staff Account</span>
-                <span className="text-[10px] text-[#60A5FA] font-medium">RBAC Switcher</span>
+              {/* System Privileges Notice */}
+              <div className="px-2 pb-2 text-[11px] text-slate-400 leading-snug">
+                Operating with <strong className="text-white font-bold">Full Admin Privileges</strong>. Full access to restaurant operations, KDS, POS, GST configuration, and financial reports.
               </div>
 
-              {/* Staff List */}
-              <div className="py-1 space-y-1 max-h-64 overflow-y-auto">
-                {availableUsers.map((user) => {
-                  const isSelected = user.id === currentUser.id;
-                  const roleStyle = getRoleBadgeStyle(user.role);
+              {/* Admin Quick Action Shortcuts */}
+              <div className="space-y-1 pt-1.5 border-t border-slate-800">
+                <div className="px-2 py-1 text-[10px] font-extrabold tracking-wider text-slate-400 uppercase">
+                  Admin System Controls
+                </div>
 
-                  return (
-                    <button
-                      key={user.id}
-                      onClick={() => {
-                        setCurrentUser(user);
-                        setIsUserDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all ${
-                        isSelected
-                          ? 'bg-[#3B82F6]/20 border border-[#3B82F6]/50 text-white'
-                          : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2.5 min-w-0">
-                        {/* Avatar */}
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${roleStyle.avatarBg}`}
-                        >
-                          {user.name.charAt(0)}
-                        </div>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsUserDropdownOpen(false)}
+                  className="flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all group"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#3B82F6] group-hover:bg-[#3B82F6] group-hover:text-white transition-colors">
+                      <Settings className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Branch &amp; GST Configuration</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 group-hover:text-[#60A5FA]">&rarr;</span>
+                </Link>
 
-                        {/* Name & Role */}
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-white truncate">{user.name}</div>
-                          <span
-                            className={`inline-block text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded-md border ${roleStyle.badge}`}
-                          >
-                            {user.role}
-                          </span>
-                        </div>
-                      </div>
+                <Link
+                  href="/audit"
+                  onClick={() => setIsUserDropdownOpen(false)}
+                  className="flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all group"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-[#A78BFA] group-hover:bg-[#A78BFA] group-hover:text-slate-950 transition-colors">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Security &amp; Audit Trail</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 group-hover:text-[#60A5FA]">&rarr;</span>
+                </Link>
 
-                      {/* Selected Checkmark */}
-                      {isSelected ? (
-                        <Check className="w-4 h-4 text-[#60A5FA] shrink-0 ml-2" />
-                      ) : (
-                        <span className="text-[10px] text-slate-500 font-medium shrink-0 ml-2">
-                          Switch
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                <Link
+                  href="/reports"
+                  onClick={() => setIsUserDropdownOpen(false)}
+                  className="flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all group"
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors">
+                      <BarChart3 className="w-3.5 h-3.5" />
+                    </div>
+                    <span>Financials &amp; Tax Ledgers</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 group-hover:text-[#60A5FA]">&rarr;</span>
+                </Link>
               </div>
 
               {/* Security Footer */}
-              <div className="mt-2 pt-2 border-t border-slate-800 px-2 flex items-center justify-between text-[10px] text-slate-400">
+              <div className="mt-2.5 pt-2 border-t border-slate-800 px-2 flex items-center justify-between text-[10px] text-slate-400">
                 <span className="flex items-center space-x-1">
                   <Shield className="w-3 h-3 text-[#A78BFA]" />
-                  <span>Role-Based Access Control</span>
+                  <span>Admin Console</span>
                 </span>
-                <span className="text-[#60A5FA] font-semibold">Active Session</span>
+                <span className="text-emerald-400 font-bold">Secure Root Access</span>
               </div>
             </div>
           )}

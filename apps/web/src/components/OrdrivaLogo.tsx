@@ -9,7 +9,7 @@ interface LogoProps {
   size?: number; // base height in px
 }
 
-export function OrdrivaLogo({ variant = 'full', className = '', size = 36 }: LogoProps) {
+export function OrdrivaLogo({ variant = 'full', className = '', size = 40 }: LogoProps) {
   // 1. Receipt / Monochrome Variant (for thermal printer 80mm bills)
   if (variant === 'receipt') {
     return (
@@ -21,24 +21,36 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 36 }: Log
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
+          <circle cx="50" cy="18" r="5" fill="#000" />
+          <path d="M 47 22 L 53 22 L 51 26 L 49 26 Z" fill="#000" />
           <path
-            d="M 25 65 C 25 40, 42 28, 50 28 C 58 28, 75 40, 75 65 Z"
-            fill="#000"
+            d="M 18 68 C 18 42, 32 26, 50 26 C 68 26, 82 42, 82 68 Z"
+            fill="none"
+            stroke="#000"
+            strokeWidth="5"
           />
-          <circle cx="50" cy="22" r="5" fill="#000" />
-          <rect x="20" y="65" width="60" height="5" rx="2.5" fill="#000" />
-          <path d="M 15 74 L 85 74 C 80 80, 68 82, 50 82 C 32 82, 20 80, 15 74 Z" fill="#000" />
-          <path d="M 40 16 C 38 12, 42 8, 40 4" stroke="#000" strokeWidth="2" strokeLinecap="round" />
-          <path d="M 50 14 C 48 10, 52 7, 50 4" stroke="#000" strokeWidth="2.5" strokeLinecap="round" />
-          <path d="M 60 16 C 58 12, 62 8, 60 4" stroke="#000" strokeWidth="2" strokeLinecap="round" />
+          <ellipse
+            cx="47"
+            cy="56"
+            rx="14"
+            ry="17"
+            fill="none"
+            stroke="#000"
+            strokeWidth="4"
+            transform="rotate(-12 47 56)"
+          />
+          <path d="M 35 64 Q 50 59, 70 36" fill="none" stroke="#000" strokeWidth="4" />
+          <path d="M 70 36 L 60 37 L 66 43 Z" fill="#000" />
+          <rect x="12" y="69" width="76" height="5" rx="2.5" fill="#000" />
+          <rect x="16" y="77" width="68" height="4" rx="2" fill="#000" />
         </svg>
         <span className="font-extrabold text-base tracking-widest text-black mt-1 font-serif">ORDRIVA</span>
-        <span className="text-[9px] tracking-wider text-black uppercase">Restaurant OS</span>
+        <span className="text-[9px] tracking-wider text-black uppercase font-bold">Restaurant Management</span>
       </div>
     );
   }
 
-  // 2. Mark Only (Cloche Icon)
+  // 2. Mark Only (Precision Vector Cloche Icon)
   if (variant === 'mark') {
     return (
       <div
@@ -46,41 +58,39 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 36 }: Log
         style={{ width: size, height: size }}
       >
         <Image
-          src="/ordriva-mark-transparent.png"
+          src="/ordriva-mark.svg"
           alt="ORDRIVA Cloche Mark"
           width={size}
           height={size}
-          className="w-full h-full object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]"
-          unoptimized
+          className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
           priority
         />
       </div>
     );
   }
 
-  // 3. Compact Variant (Emblem + Text)
+  // 3. Compact Variant (Emblem + Wordmark)
   if (variant === 'compact') {
     return (
-      <div className={`flex items-center space-x-2 shrink-0 ${className}`}>
+      <div className={`flex items-center space-x-2.5 shrink-0 ${className}`}>
         <div
           className="relative shrink-0 flex items-center justify-center"
           style={{ width: size, height: size }}
         >
           <Image
-            src="/ordriva-mark-transparent.png"
+            src="/ordriva-mark.svg"
             alt="ORDRIVA Mark"
             width={size}
             height={size}
-            className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
-            unoptimized
+            className="w-full h-full object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
             priority
           />
         </div>
         <div className="flex items-center space-x-1.5">
-          <span className="font-serif font-black tracking-widest text-lg text-amber-200">
+          <span className="font-serif font-black tracking-widest text-lg text-amber-200 drop-shadow-sm">
             ORDRIVA
           </span>
-          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-purple-950/80 text-[#A78BFA] border border-[#A78BFA]/40 tracking-wider">
+          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-950/90 text-[#60A5FA] border border-[#3B82F6]/50 shadow-sm tracking-wider">
             POS 2.0
           </span>
         </div>
@@ -88,18 +98,17 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 36 }: Log
     );
   }
 
-  // 4. Hero / Vertical Lockup Variant
+  // 4. Hero / Large Vertical Lockup Variant
   if (variant === 'hero') {
     return (
       <div className={`flex flex-col items-center justify-center text-center ${className}`}>
-        <div className="relative" style={{ width: size * 3, height: size * 2 }}>
+        <div className="relative" style={{ width: size * 3.5, height: size * 2.2 }}>
           <Image
-            src="/ordriva-logo-transparent.png"
+            src="/ordriva-logo.svg"
             alt="ORDRIVA Restaurant System"
-            width={size * 3}
-            height={size * 2}
-            className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
-            unoptimized
+            width={size * 3.5}
+            height={size * 2.2}
+            className="w-full h-full object-contain filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
             priority
           />
         </div>
@@ -107,32 +116,25 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 36 }: Log
     );
   }
 
-  // 5. Full Lockup Variant (Default - Seamless horizontal brand for Navbar & Headers)
-  // Aspect ratio of the horizontal transparent logo is 1407 / 300 = 4.69
-  const horizontalWidth = Math.round(size * 4.69);
+  // 5. Full Lockup Variant (Default - Ultra-sharp Precision Vector Brand for Navbar & Headers)
+  // Aspect ratio is 540 / 100 = 5.4
+  const horizontalWidth = Math.round(size * 5.4);
 
   return (
-    <div className={`flex items-center space-x-2 shrink-0 select-none ${className}`}>
-      {/* Authentic Gold Cloche Emblem + Luxury ORDRIVA Typography */}
+    <div className={`flex items-center shrink-0 select-none ${className}`}>
       <div
         className="relative shrink-0 flex items-center"
         style={{ height: size, width: horizontalWidth }}
       >
         <Image
-          src="/ordriva-horizontal-transparent.png"
+          src="/ordriva-logo.svg"
           alt="ORDRIVA - Restaurant POS"
           width={horizontalWidth}
           height={size}
-          className="h-full w-auto object-contain filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]"
-          unoptimized
+          className="h-full w-auto object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
           priority
         />
       </div>
-
-      {/* Modern POS 2.0 Badge */}
-      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-blue-950/90 text-[#60A5FA] border border-[#3B82F6]/50 shadow-sm">
-        POS 2.0
-      </span>
     </div>
   );
 }

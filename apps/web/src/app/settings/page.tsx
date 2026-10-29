@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] px-6 py-5 rounded-2xl border border-[#3B82F6]/30 shadow-md flex items-center justify-center">
-            <OrdrivaLogo variant="full" size={42} />
+            <OrdrivaLogo variant="full" size={48} />
           </div>
 
           <div className="space-y-1 text-xs text-slate-600">
