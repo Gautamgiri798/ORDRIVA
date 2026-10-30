@@ -38,18 +38,19 @@
 
 **ORDRIVA** is a modern, enterprise-grade restaurant operating system connecting guest dining tables, touch cashier counters, kitchen prep lines, recipe inventory ledgers, and financial tax audits into a unified, high-performance platform.
 
-Designed for high-throughput hospitality environments, ORDRIVA provides sub-300ms cashier response times, resilient offline capability, strict decimal monetary calculations (`NUMERIC(14,2)`), dual GST compliance (CGST + SGST + Service Charge), and instant NPCI UPI digital payments.
+Designed for high-throughput hospitality environments, ORDRIVA provides sub-300ms cashier response times, resilient offline capability, strict decimal monetary calculations (`NUMERIC(14,2)`), dual GST compliance (CGST + SGST + Service Charge), instant NPCI UPI digital payments, drag-and-drop culinary media management, and an isolated high-resolution table stand print engine.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                                 ORDRIVA RESTAURANT OS                                  │
 ├─────────────────────────┬──────────────────────────┬───────────────────────────────────┤
 │   ADMIN & MANAGEMENT    │     STAFF & CASHIER      │        CUSTOMER EXPERIENCE        │
-│   • Executive KPI Board │     • 40px Touch POS     │        • Contactless QR Dining    │
-│   • Multi-Branch Admin  │     • KDS Station Kanban │        • Live Order Status        │
-│   • Recipe BoM Stock    │     • Table Floor Map    │        • Running Tab & E-Bill     │
-│   • GST Statutory Audit │     • 80mm Bill Printing │        • UPI QR & Tax Invoice     │
-│   • Z-Report Financials │     • Sound Chime Alerts │        • Vacant Tables Seating    │
+│   • Executive KPI Board │     • 44px Touch POS     │        • Contactless QR Dining    │
+│   • Multi-Branch Admin  │     • KDS Station Kanban │        • Multi-Item Quantity Stepper│
+│   • Media Drag & Drop   │     • Architectural Map  │        • Live Order Round History │
+│   • Recipe BoM Stock    │     • 80mm Bill Printing │        • Running Tab & E-Bill     │
+│   • GST Statutory Audit │     • Sound Chime Alerts │        • Instant UPI QR & Invoice │
+│   • Z-Report Financials │     • Isolated Print QR  │        • Real-Time Table Seating  │
 └─────────────────────────┴──────────────────────────┴───────────────────────────────────┘
 ```
 
@@ -62,16 +63,17 @@ ORDRIVA is engineered as a high-performance modular monolith with clean domain b
 ```mermaid
 flowchart TD
     subgraph Clients["1. CLIENT APPLICATION TIERS"]
-        Patron["Patron Mobile Browser (QR Portal)"]
-        Cashier["Touch Cashier Terminal (POS Counter)"]
-        Chef["Kitchen Station Display (KDS Wallboard)"]
-        Admin["Admin Management Console (Owner / Ops)"]
+        Patron["Patron Mobile Browser (QR Portal /order)"]
+        Cashier["Touch Cashier Terminal (POS Counter /pos)"]
+        Chef["Kitchen Station Display (KDS Wallboard /kitchen)"]
+        Admin["Admin Management Console (Owner / Ops /menu, /tables)"]
     end
 
     subgraph Presentation["2. PRESENTATION & REACT 19 LAYER (apps/web)"]
         AppRouter["Next.js 15 App Router (SSR & Hydration)"]
         Store["Reactive POS State Store (Zustand & Hooks)"]
-        ReceiptEngine["80mm Thermal Receipt Generator"]
+        MediaEngine["Drag & Drop Base64 Media Pipeline"]
+        PrintEngine["Sandboxed Isolated Iframe Print Engine"]
         QRGen["Dynamic NPCI UPI & Table QR Code Engine"]
     end
 
@@ -92,10 +94,11 @@ flowchart TD
     Patron -->|"HTTPS / Digital QR"| AppRouter
     Cashier -->|"Touch Input / Keyboard"| AppRouter
     Chef -->|"Kitchen Kanban Status"| AppRouter
-    Admin -->|"Management & Audit"| AppRouter
+    Admin -->|"Media Upload / Table Config"| AppRouter
 
     AppRouter --> Store
-    Store --> ReceiptEngine
+    Store --> MediaEngine
+    Store --> PrintEngine
     Store --> QRGen
 
     AppRouter -->|"REST API (JSON)"| APIGateway
@@ -119,7 +122,7 @@ flowchart TD
 
 ## 🔄 Order & Dining Lifecycle
 
-The complete transaction workflow from contactless table scan to kitchen dispatch, instant UPI settlement, automated recipe stock deduction, and tax compliance:
+The complete transaction workflow from contactless table scan to kitchen dispatch, multi-item customization, instant UPI settlement, automated recipe stock deduction, and tax compliance:
 
 ```mermaid
 sequenceDiagram
@@ -133,8 +136,9 @@ sequenceDiagram
 
     Guest->>QR: Scans Acrylic Table Tent QR (/order?table=T-01)
     QR->>Guest: Loads Live Menu, Pure Veg Filter & Modifiers
-    Guest->>QR: Adds Dishes & Chef Cooking Notes -> Confirms Order
-    QR->>Engine: Dispatch Order (Items, Modifiers, Table T-01)
+    Guest->>QR: Selects Dishes, Adjusts Multi-Qty Stepper & Customizes Dips
+    Guest->>QR: Enters Special Cooking Notes -> Confirms Order Dispatch
+    QR->>Engine: Dispatch Order (Items, Multi-Qty, Modifiers, Table T-01)
     Engine->>Engine: Calculate Dual Taxes (CGST 2.5% + SGST 2.5% + Svc 5%)
     Engine->>KDS: Route Tickets to Stations (Kitchen, Grill, Bar)
     Engine->>POS: Auto-update Table T-01 Status to 'Occupied'
@@ -186,6 +190,7 @@ erDiagram
         string section
         int capacity
         string status
+        decimal activeTotal
     }
     MENU_ITEM {
         string id PK
@@ -193,6 +198,7 @@ erDiagram
         decimal price
         boolean isVeg
         string station
+        string imageUrl
     }
     ORDER {
         string id PK
@@ -214,49 +220,79 @@ The mobile-first digital dining portal for restaurant patrons scanning table QR 
 
 | Tab | Feature Set | Technical Capabilities |
 | :--- | :--- | :--- |
-| 🍽️ **Food &amp; Drinks Menu** | Interactive Catalog | Category filter carousel, search autocomplete, pure veg toggle, modal-based modifiers (crusts, toppings, spice levels), and floating cart drawer. |
+| 🍽️ **Food &amp; Drinks Menu** | Interactive Catalog with Multi-Item Stepper | Category filter carousel, search autocomplete, pure veg toggle, modal-based modifiers (dips, crusts, toppings, spice levels), **inline multi-item quantity steppers (`[-] Qty [+]`)**, and live total price computation. |
 | 🧾 **Table Bill &amp; Receipts** | Running Tab &amp; GST Invoices | Live table financial statement, chronological order round history (R1, R2...), instant UPI payment QR, and printable GST Tax Invoice modal. |
 | 🪑 **Live Tables &amp; Seating** | Real-Time Seating Map | Floor status counters (Vacant vs. Occupied vs. Reserved), section and capacity filters, and one-tap **"Sit at Table &amp; Order"** quick-seat action. |
+
+### How a Customer Accesses and Orders:
+1. **QR Scan**: Guest scans the QR stand on their table (e.g. `http://localhost:3000/order?table=T-01`).
+2. **Multi-Item Selection**: 
+   - Tap **"+ Add to Order"** directly on any dish card to increment quantity instantly with inline counters.
+   - For customizable dishes (e.g. *Truffle Parmesan Fries*), the modal opens with a dedicated quantity stepper and choices for artisanal dips (+₹40 Truffle Aioli, +₹30 Peri Peri Mayo, +₹60 Melted Cheddar).
+3. **Instant Kitchen Dispatch**: Guest submits order with custom chef notes. Tickets route in real-time to KDS prep lines.
+4. **Live Running Tab**: Guest can re-order in rounds (R1 appetizers, R2 mains). The running bill updates instantaneously.
+5. **Contactless UPI Settlement**: Guest scans the dynamic UPI QR directly from the screen, pays via any UPI app (GPay, PhonePe, Paytm), and receives a verified GST tax invoice.
 
 ---
 
 ## ⚡ Core Operating Modules
 
 ### 1. 🖨️ Table QR Stands &amp; Print Studio (`/tables/qr`)
-* **Admin-Exclusive Print Studio:** Designed specifically for restaurant managers to print high-resolution 4×6" acrylic table tent cards and table stickers.
-* **Single &amp; Batch Print Modes:** Preview any individual table stand or one-click **Batch Print All 10 Tables** for instant floor deployment.
-* **Luxury Table Stand Template:** Dark obsidian and gold cloche branding with framed scan corners, clear guest instructions ("Scan to Order &amp; Pay"), and direct destination links.
-* **PNG Export:** Direct high-res QR code PNG image download for custom vinyl table stickers or acrylic fabricators.
+* **Isolated Direct Print Engine:** Uses sandboxed, offscreen iframes (`executePrintStand` & `executePrintBatchStands`) with custom CSS `@page { size: 4in 6in; margin: 0; }` to eliminate browser layout interference and ensure flawless single and multi-page printing.
+* **Dual Aesthetic Themes:**
+  * **🌙 Dark Acrylic (Luxury Obsidian):** Rich obsidian background (`#0B1120`), gold accents, gold cloche vector badge, and high-contrast white QR matrix with gold corner targets. Ideal for fine dining, rooftop lounges, and cocktail bars.
+  * **☀️ Clean White (Minimalist Crisp):** Ultra-clean white background with sharp dark borders and high-contrast scan matrix. Ideal for bright cafes, bakeries, and high-volume lunch bistros.
+* **Batch Print All Stands:** One-click batch generation prints all 10 floor tables in a single print job with automated page breaks.
+* **High-Res PNG Export:** Client-side canvas rasterization allows instant PNG download for custom acrylic fabricators and vinyl sticker printers.
 
-### 2. 🖥️ Touch Cashier POS Terminal (`/pos`)
+### 2. 📋 Menu &amp; Catalog Management (`/menu`)
+* **Drag &amp; Drop Media Uploader:** Direct file drag-and-drop zone with instant local file browsing (`FileReader.readAsDataURL`). Automatically encodes food photos into embedded Base64 data URLs with instant visual preview and one-click removal.
+* **Preset Photo Quick-Selectors:** One-click shortcuts for high-definition culinary stock photos across all categories (Pizza, Burger, Fries, Salmon, Pasta, Crostini, Mocktail, Cold Brew, Cake, Tiramisu).
+* **16:9 Full-Bleed Showcase Cards:** Modern hero image presentation with floating glassmorphic dietary tags (`Pure Veg` / `Non-Veg`), kitchen station badges (`Kitchen`, `Grill`, `Bar`), and live stock status toggles (`In Stock` / `Out of Stock`).
+* **Catalog Analytics Ribbon:** Real-time metrics bar displaying Total Active Dishes, Veg vs. Non-Veg split, Kitchen/Grill/Bar station distribution, and Stock Readiness percentage.
+* **Elevated "+ Add New Dish" Card:** Prominent dashed hero card on the grid for quick, frictionless catalog expansion.
+
+### 3. 🪑 Floor Plan &amp; Architectural Table Manager (`/tables`)
+* **Realistic Seating Geometries:**
+  * **2-Guest Bistro Tables:** Circular tables (`rounded-full`) with dual perimeter chair indicators.
+  * **4-Guest Booths:** Square dining tables (`rounded-2xl`) with four-corner seating indicators.
+  * **6 to 10-Guest Banquets:** Elongated rectangular tables with distributed multi-seat chair markers.
+* **Live Occupancy Analytics Ribbon:**
+  * Total floor capacity counter (`34 Seats`).
+  * Live occupancy rate percentage with interactive progress bar.
+  * Real-time running floor billing tab sum (₹).
+  * Active seated dining parties count.
+* **Four Real-Time Table States:**
+  * `Available` (Emerald `#10B981`): Ready to seat new guests.
+  * `Occupied` (Amber `#F59E0B`): Seated with live order ID, guest name, running bill, and dining duration timer.
+  * `Reserved` (Blue `#6366F1`): Booked for upcoming parties.
+  * `Billed` (Purple `#8B5CF6`): Final check presented, awaiting payment clearance.
+* **Quick POS & Seating Integration:** One-tap "Take Order" / "Manage" launches cashier workflow directly linked to the table.
+
+### 4. 🖥️ Touch Cashier POS Terminal (`/pos`)
 * **Ergonomic Counter Workflow:** Large 44px touch-friendly targets built for peak counter rush hours.
 * **Denomination Shortcuts:** Fast cash tender buttons (₹500, ₹1000, ₹2000, Exact) with real-time Change Calculation.
 * **Dynamic UPI QR Engine:** On-the-fly NPCI UPI QR code generation compatible with Google Pay, PhonePe, and Paytm.
-* **80mm Thermal Receipt Printing:** Browser and serial printer-ready monochrome tax invoices formatted to GST guidelines.
+* **80mm Thermal Receipt Printing:** Browser and serial printer-ready monochrome tax invoices formatted to statutory GST guidelines.
 
-### 2. 👨‍🍳 Kitchen Display System (`/kitchen`)
+### 5. 👨‍🍳 Kitchen Display System (`/kitchen`)
 * **3-Column Kanban Board:** Real-time ticket lifecycle tracking: **New Orders**, **In Preparation**, and **Ready for Pickup**.
 * **Station Filtering:** Instant routing by prep station (*All Stations*, *Hot Kitchen*, *Grill & Fryer*, *Bar & Beverage*).
 * **Chromatic Aging Alerts:** Visual color shifts highlight ticket wait times (Green `<10m`, Amber `10–20m`, Red `>20m`).
 * **Web Audio Sound Chime:** Automatic audio notification triggers when new orders are placed.
 
-### 3. 🪑 Floor Plan &amp; Table Manager (`/tables`)
-* **Multi-Section Floor Visualization:** Organize tables across *Main Dining Room*, *Garden Terrace*, and *VIP Lounge*.
-* **Live Occupancy Tracking:** Four distinct states: `Available` (Vacant), `Occupied`, `Reserved`, and `Billed`.
-* **Elapsed Dining Timers:** Monitor active seating duration and launch POS transactions with a single click.
-
-### 4. 📦 Recipe Bill-of-Materials Inventory (`/inventory`)
+### 6. 📦 Recipe Bill-of-Materials Inventory (`/inventory`)
 * **Automated Ingredient Depletion:** Order settlements automatically deduct exact gram/ml ingredient quantities.
 * **Low-Stock Warnings:** Real-time alerts when raw items reach minimum safe reorder thresholds.
 * **Stock Movement Journal:** Log supplier deliveries, prep spoilage, and stock adjustments with reason tracking.
 
-### 5. 📊 Sales, Taxes &amp; Financial Analytics (`/reports`)
+### 7. 📊 Sales, Taxes &amp; Financial Analytics (`/reports`)
 * **Executive Metrics:** Daily Gross Sales, Net Revenue, Average Order Value (AOV), and Tax Collections.
 * **Tender Distribution:** Real-time payment method breakdown (UPI vs. Cash vs. Card).
 * **Top Selling Dishes:** Performance analysis by volume sold and total revenue contribution.
 * **End-of-Day Register Closing (Z-Report):** Instant shift reconciliation and CSV report export.
 
-### 6. 🛡️ Immutable Security Audit Trail (`/audit`)
+### 8. 🛡️ Immutable Security Audit Trail (`/audit`)
 * **Tamper-Evident Ledger:** Captures manager overrides, bill cancellations, manual price mutations, and discount grants with timestamps and actor IDs.
 
 ---
@@ -265,6 +301,7 @@ The mobile-first digital dining portal for restaurant patrons scanning table QR 
 
 * **Admin-Exclusive Session:** Single-tenant administrative mode locked to **Vikram Malhotra** (`admin@ordriva.com`).
 * **System Console Popover:** Replaced unstyled browser dropdowns with a glassmorphic Administrative Console popover.
+* **Stabilized Navigation:** Fixed viewport layout (`h-screen overflow-hidden`) with dedicated scrolling modules and stabilized sidebar navigation with active indicator bar (`w-1 bg-[#3B82F6] rounded-r-full`).
 * **Enterprise Palette:** Precision color tokens adhering to user specifications:
   * Primary Blue `#3B82F6` (Electric Blue)
   * Sky Blue `#60A5FA` (Interactive Highlights)
@@ -303,9 +340,10 @@ ORDRIVA/
 │   │       │   ├── ⚡ pos/                  # Touch POS Terminal with UPI & Denominations
 │   │       │   ├── 👨‍🍳 kitchen/              # Kitchen Display System (KDS Kanban)
 │   │       │   ├── 🪑 tables/               # Floor Plan Layout & Table Status Manager
-│   │       │   ├── 📱 order/                # Customer QR Portal (Menu, Bills, QR Stand, Tables)
+│   │       │   │   └── 🖨️ qr/               # Isolated Table QR Stand Print Studio
+│   │       │   ├── 📱 order/                # Customer QR Portal (Menu, Multi-Qty, Bills, Tables)
 │   │       │   ├── 🧾 orders/               # Order History Ledger & 80mm Print Receipts
-│   │       │   ├── 📋 menu/                 # Menu Catalog, Categories & Modifiers
+│   │       │   ├── 📋 menu/                 # Menu Catalog, Drag & Drop Media & Modifiers
 │   │       │   ├── 📦 inventory/            # Recipe BoM Stock Deductions & Alerts
 │   │       │   ├── 📈 reports/              # Financial Analytics, Taxes & Z-Report
 │   │       │   ├── 🛡️ audit/                # Immutable Security Audit Trail
@@ -313,7 +351,7 @@ ORDRIVA/
 │   │       ├── 📁 components/               # Atomic & Reusable Component Library
 │   │       │   ├── OrdrivaLogo.tsx          # Multi-variant Responsive Vector Logo
 │   │       │   ├── Navbar.tsx               # Glassmorphic Header & Admin Console Popover
-│   │       │   └── Sidebar.tsx              # Primary Navigation Sidebar
+│   │       │   └── Sidebar.tsx              # Stabilized Navigation Sidebar with Inset Badges
 │   │       ├── 📁 lib/                      # Core Business Logic & In-Memory Store
 │   │       │   ├── store.tsx                # Zustand-style Reactive Store & Initial State
 │   │       │   └── utils.ts                 # Currency Formatting & Tax Math
@@ -394,7 +432,7 @@ docker-compose up -d
 | **Customer QR Portal** | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01) |
 | **Floor Plan &amp; Table Management** | [http://localhost:3000/tables](http://localhost:3000/tables) | Host / Floor Manager |
 | **Table QR Stands &amp; Print Studio** | [http://localhost:3000/tables/qr](http://localhost:3000/tables/qr) | Admin / Restaurant Manager |
-| **Menu Catalog &amp; Customization** | [http://localhost:3000/menu](http://localhost:3000/menu) | Head Chef / Manager |
+| **Menu Catalog &amp; Media Management** | [http://localhost:3000/menu](http://localhost:3000/menu) | Head Chef / Manager |
 | **Inventory &amp; Recipe BoM** | [http://localhost:3000/inventory](http://localhost:3000/inventory) | Stock &amp; Inventory Manager |
 | **GST &amp; Sales Reports** | [http://localhost:3000/reports](http://localhost:3000/reports) | Accountant / Auditor |
 | **Security Audit Trail** | [http://localhost:3000/audit](http://localhost:3000/audit) | Security / Compliance Officer |
