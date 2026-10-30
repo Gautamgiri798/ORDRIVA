@@ -28,6 +28,7 @@ import {
   Phone,
   MessageSquare,
   Sparkles,
+  ShoppingBag,
 } from 'lucide-react';
 
 function PosContent() {

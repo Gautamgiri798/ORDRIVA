@@ -551,7 +551,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Luxury Chart Canvas with Benchmark Grid & Slender Columns */}
-          <div className="pt-2 sm:pt-4 pb-2 px-0 sm:px-1 overflow-x-auto">
+          <div className="pt-3 sm:pt-5 pb-2 px-0 sm:px-1 overflow-x-auto">
             {dailyBreakdown.length > 7 && (
               <div className="sm:hidden flex items-center justify-between text-[11px] font-bold text-blue-700 bg-blue-50/80 px-3 py-1.5 rounded-xl border border-blue-200/60 mb-2">
                 <span>← Swipe horizontally to explore full {dailyBreakdown.length}-day timeline →</span>
@@ -597,12 +597,28 @@ export default function AdminDashboardPage() {
 
                       {/* Bars Flex Strip */}
                       <div className="flex-1 flex items-end justify-between gap-1 sm:gap-4 relative z-10 pb-2">
-                        {dailyBreakdown.map((day) => {
+                        {dailyBreakdown.map((day, idx) => {
                           const heightPercent = Math.max(
                             8,
                             Math.min(100, Math.round((day.grossRevenue / gridCeil) * 100))
                           );
                           const isSelected = selectedDayKey === day.key;
+
+                          const isSingleOrSmall = dailyBreakdown.length <= 4;
+                          const isNearLeft = !isSingleOrSmall && idx < 2;
+                          const isNearRight = !isSingleOrSmall && idx >= dailyBreakdown.length - 2;
+
+                          const tooltipAlignClasses = isNearLeft
+                            ? 'left-0 translate-x-0'
+                            : isNearRight
+                            ? 'right-0 translate-x-0'
+                            : 'left-1/2 -translate-x-1/2';
+
+                          const arrowAlignClasses = isNearLeft
+                            ? 'left-4 sm:left-5'
+                            : isNearRight
+                            ? 'right-4 sm:right-5'
+                            : 'left-1/2 -translate-x-1/2';
 
                           return (
                             <div
@@ -610,8 +626,10 @@ export default function AdminDashboardPage() {
                               onClick={() => setSelectedDayKey(isSelected ? null : day.key)}
                               className="flex-1 flex flex-col items-center group cursor-pointer relative"
                             >
-                              {/* Rich Floating Luxury Tooltip on Hover */}
-                              <div className="absolute -top-32 z-30 hidden group-hover:flex flex-col pointer-events-none whitespace-nowrap bg-slate-950/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-slate-700/80 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">
+                              {/* Rich Floating Luxury Tooltip on Hover (Positioned cleanly below the badge to prevent overflow clipping) */}
+                              <div
+                                className={`absolute top-6 sm:top-7 z-30 hidden group-hover:flex flex-col pointer-events-none whitespace-nowrap bg-slate-950/95 backdrop-blur-md text-white p-2.5 sm:p-3 rounded-2xl shadow-2xl border border-slate-700/80 min-w-[170px] sm:min-w-[185px] animate-in fade-in zoom-in-95 duration-150 ${tooltipAlignClasses}`}
+                              >
                                 <div className="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[10px]">
                                   <span className="font-extrabold text-slate-300">{day.dayName}, {day.displayDate}</span>
                                   {day.isPeak ? (
@@ -626,7 +644,7 @@ export default function AdminDashboardPage() {
                                   <div className="text-sm font-black text-white tabular-nums tracking-tight">
                                     {formatCurrency(day.grossRevenue)}
                                   </div>
-                                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9.5px] text-slate-400 pt-1 border-t border-slate-800/60 mt-1">
+                                  <div className="grid grid-cols-2 gap-x-2.5 gap-y-0.5 text-[9.5px] text-slate-400 pt-1 border-t border-slate-800/60 mt-1">
                                     <div>Net: <span className="text-slate-200 font-bold">{formatCurrency(day.netSales)}</span></div>
                                     <div>GST: <span className="text-slate-200 font-bold">{formatCurrency(day.tax)}</span></div>
                                     <div>Bills: <span className="text-slate-200 font-bold">{day.orderCount}</span></div>
@@ -636,7 +654,7 @@ export default function AdminDashboardPage() {
                                     Click bar to inspect in ledger
                                   </div>
                                 </div>
-                                <div className="w-2.5 h-2.5 bg-slate-950 border-r border-b border-slate-700 rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+                                <div className={`w-2.5 h-2.5 bg-slate-950 border-l border-t border-slate-700 rotate-45 absolute -top-1.5 ${arrowAlignClasses}`} />
                               </div>
 
                               {/* Floating Value Pill Badge Above Bar */}

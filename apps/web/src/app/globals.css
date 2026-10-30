@@ -77,14 +77,28 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* When printing an isolated receipt slip modal, hide all main background views */
+  /* When printing with an open receipt modal, hide all background application views and only print the single receipt */
+  body:has(#printable-receipt) {
+    overflow: hidden !important;
+  }
+
   body:has(#printable-receipt) header,
   body:has(#printable-receipt) aside,
   body:has(#printable-receipt) nav,
-  body:has(#printable-receipt) main,
   body:has(#printable-receipt) footer,
-  body:has(#printable-receipt) button {
+  body:has(#printable-receipt) button,
+  body:has(#printable-receipt) table,
+  body:has(#printable-receipt) .print\:hidden {
     display: none !important;
+  }
+
+  body:has(#printable-receipt) *:not(#printable-receipt):not(#printable-receipt *) {
+    visibility: hidden;
+  }
+
+  body:has(#printable-receipt) #printable-receipt,
+  body:has(#printable-receipt) #printable-receipt * {
+    visibility: visible !important;
   }
 
   /* Standard print: Hide application shells, chrome bars, navigation and action buttons */

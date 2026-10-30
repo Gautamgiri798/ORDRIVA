@@ -36,7 +36,7 @@
     <a href="#-system-architecture">Architecture</a> •
     <a href="#-order--dining-lifecycle">Lifecycle Sequence</a> •
     <a href="#-omni-device--mobile-first-architecture">Mobile Design</a> •
-    <a href="#-core-operating-modules">11 Core Modules</a> •
+    <a href="#-core-operating-modules">12 Core Modules</a> •
     <a href="#-usability-heuristics--design-system">Design System</a> •
     <a href="#-quick-start-guide">Quick Start</a>
   </p>
@@ -75,6 +75,8 @@ Built with a modular monolith architecture, ORDRIVA eliminates third-party aggre
 | **Offline Resilience**          | Full local order capture | **100% Offline-capable** (IndexedDB / LocalStore) | Partial / Crashes    |
 | **Touch Ergonomics**            | Min 44×44px hit-box      | **100% WCAG 2.1 AA** compliant targets            | Inconsistent         |
 | **Table Tent Print Resolution** | 300 DPI vector PDF/HTML  | **Zero layout shift** (Isolated Print Iframe)     | Distorted preview    |
+| **Thermal & A4 Print Engine**   | Single-page isolation    | **100% Zero-Page-Split** (`receiptPrinter.ts`)    | Page sliced in half  |
+| **Mobile Viewport Scaling**     | 360px – 430px phones     | **100% Visible** (Dual Card & Pinned Table Mode)  | Truncated columns    |
 | **GST Tax Precision**           | 4 decimal internal math  | **`NUMERIC(14,2)`** zero-roundoff error           | Float precision bugs |
 
 ---
@@ -230,9 +232,21 @@ ORDRIVA is purpose-built to deliver an ergonomic touch experience across any scr
   $$\text{🛒 View Order Cart (}N\text{ items) • ₹Total } \rightarrow$$
 - Retains a side-by-side dual-pane terminal on desktop displays (`lg:flex`).
 
-### 4. Horizontal Scroll Containment
+### 4. Full-Width 7-Day Revenue Progression Scaling
 
-- Data tables across **Orders & Bills**, **Inventory Ledgers**, and **Security Audit Trails** utilize an `overflow-x-auto` wrapper with `.no-scrollbar` styling to eliminate horizontal screen blowout on phones.
+- The **Day-by-Day Revenue Progression Chart** dynamically switches between viewport modes:
+  - **7-Day Period (Week View)**: Adopts `w-full min-w-0` with slender architectural columns (`w-7 sm:w-11`), compact Y-axis labels (`w-9 sm:w-12`), and proportional gaps. **All 7 trading days (Sat through Fri) render side-by-side on any mobile phone (360px–430px) with zero cutoffs or overflow.**
+  - **30-Day Period (Month View)**: Activates smooth horizontal scrolling (`min-w-[700px]`) accompanied by a persistent mobile swipe affordance banner (`← Swipe horizontally to explore full 30-day timeline →`).
+
+### 5. Mobile Dual-View Ledger & Orders (Compact Cards vs. Pinned Table Mode)
+
+- To eliminate table squishing, column clipping, and ellipsis truncation (`G... (5...)`) on smartphones:
+  - **Compact Cards View (Default on Mobile)**: Renders each trading day and order bill as a dedicated, high-density card featuring a structured 2×2 metric grid (Gross Revenue, Net Food Sales, GST 5%, AOV, Dominant Payment Channel, and Status Badges). 100% of the figures are legible without horizontal scrolling.
+  - **Table View**: Enforces `min-w-[760px]`, `whitespace-nowrap`, and a **sticky pinned first column** (`sticky left-0 bg-white z-10 shadow-xs`) so dates stay in view while swiping through all 8 columns smoothly.
+
+### 6. Horizontal Scroll Containment
+
+- Data tables across **Orders & Bills**, **Inventory Ledgers**, and **Security Audit Trails** enforce explicit minimum widths (`min-w-[760px]`, `min-w-[850px]`) with `.no-scrollbar` styling and mobile swipe indicators to guarantee zero data loss.
 
 ---
 
@@ -295,32 +309,37 @@ erDiagram
 
 ---
 
-## ⚡ 11 Core Operating Modules
+## ⚡ 12 Core Operating Modules
 
 ### 1. 📊 Executive Dashboard &amp; Admin Command Center (`/`)
 
-- **Real-Time KPI Cards**: Daily Gross Sales, Live Active Orders, Dining Floor Occupancy Rate, and Critical Stock Alerts.
-- **Live Orders Quick Table**: Instant view of recent orders with items summary, live state semaphores, and timestamps.
-- **Mini Architectural Floor Map**: High-level floor plan preview showing active table states and guest counts.
+- **Real-Time KPI Board**: Daily Gross Sales, Net Food Revenue, Dual GST Statutory Tax Collection (CGST 2.5% + SGST 2.5%), Live Active Orders, and Dining Floor Occupancy Rate.
+- **Day-by-Day Revenue Progression Chart**: Architectural slender columns with luxury multi-stop gradients, dynamic Y-axis currency benchmark levels (`₹20k`, `₹15k`, `₹10k`, `₹5k`), peak volume flame animations, frosted-glass tooltips, and an interactive drill-down inspection drawer.
+- **Day-by-Day Historical Ledger**: Dual-mode presentation featuring **Mobile Compact Cards** (2×2 complete metric grid per day with zero cutoffs) and **Pinned Table Mode** (`min-w-[760px]`, `sticky left-0`).
+- **Orders &amp; Bills Quick Ledger**: Real-time search, category tabs (`All`, `Paid`, `Unpaid Tabs`, `Dine-In`, `Takeaway`), and mobile card/table view toggles.
 
 ### 2. 🖥️ Touch Cashier POS Terminal (`/pos`)
 
 - **Sub-300ms Touch Response**: 44px touch targets designed for high-throughput peak counter rush hours.
+- **Empty State & Ergonomics**: Polished empty cart state with clean iconography and guided microcopy.
+- **Customer Ribbon**: Fast-capture guest name, contact phone (+91), and custom kitchen instructions directly above the catalog.
 - **Cash Tender Shortcuts**: One-tap cash buttons (₹500, ₹1000, ₹2000, Exact) with real-time change calculation.
 - **Dynamic UPI QR Engine**: Instant on-screen NPCI UPI QR code generation compatible with Google Pay, PhonePe, and Paytm.
-- **80mm Thermal Receipt Printing**: Clean monochrome bills formatted to statutory Indian GST regulations.
+- **Isolated Receipt Printing**: Direct client-side generation and off-screen iframe dispatch for 80mm thermal receipts and A4 tax invoices without browser URL clutter.
 
-### 3. 🧾 Orders &amp; Bills Ledger (`/orders`)
+### 3. 🧾 Orders History &amp; Tax Invoices Ledger (`/orders`)
 
-- **Full Lifecycle Audit**: Centralized repository of all dine-in, takeaway, and QR online orders with real-time settlement badges.
-- **80mm Thermal Receipt Generator**: Instant client-side generation and direct printer dispatch for 80mm GST customer tax receipts.
+- **Full Lifecycle Audit**: Centralized repository of all dine-in, takeaway, and QR online orders with real-time settlement badges and timestamped placement audits (`Date & Time Placed` column with weekday badges).
+- **Date & Status Filtering**: Instant querying by period (`Today`, `Yesterday`, `7 Days`, `30 Days`, `Custom Date`) and payment states.
 - **Instant Bill Settlement Modal**: Split-second payment recording across UPI, Debit/Credit Card, and Cash with change computation.
-- **Search & Multi-Filter Querying**: Filter instantly by guest name, order number, table, or settlement status (Paid vs. Running Tab).
+- **Dual Format Print Studio**: One-tap isolated generation of **80mm Thermal Receipt Slips** and **A4 Corporate GST Tax Invoices**.
+- **Print Sprawl Safeguard**: Scoped `@media print` rules and off-screen iframes ensure that printing an individual bill outputs strictly to 1 page, preventing 20-page background table spill.
+- **Void & Refund Processing**: Formal refund authorization workflow with audit logging and balance validation.
 
 ### 4. 🪑 Floor Plan &amp; Architectural Table Manager (`/tables`)
 
-- **2D Architectural Blueprint Geometry**: Circular 2-tops, rounded square 4-tops, and elongated banquet conference layouts with perimeter chair dots.
-- **Dynamic State Illumination**:
+- **Proportional $N$-Capacity Seating Geometry**: Dynamically places $\lceil N/2 \rceil$ top and $\lfloor N/2 \rfloor$ bottom chairs with proportional surface scaling (`w-16` to `w-56`), accurately visualizing 2P bistros, 4P dining booths, 6P tables, 8P executive stations, and 10P+ banquet conference tables.
+- **Real-Time State Illumination**:
   - 🟠 **Occupied**: Amber glow, active guest name, order number, and dining elapsed timer.
   - 🔵 **Reserved**: Sapphire blue seating with guest arrival details.
   - 🟣 **Billed**: Velvet purple chairs with presented folio summary.
@@ -344,34 +363,38 @@ erDiagram
 - **Live Running Tab**: Chronological order rounds (R1 appetizers, R2 entrees) with instant running balance computation.
 - **Digital GST E-Invoice**: Patrons can download or print verified GST tax invoices directly from their phones.
 
-### 7. 🧾 Order History Ledger &amp; Tax Invoices (`/orders`)
-
-- Comprehensive transactional ledger with filtering by order status, table, payment method, and search terms.
-- One-click 80mm thermal receipt and A4 tax invoice print engine.
-- Void and refund processing with ledger balance validation.
-
-### 8. 📋 Menu &amp; Culinary Catalog Management (`/menu`)
+### 7. 📋 Menu &amp; Culinary Catalog Management (`/menu`)
 
 - **Drag &amp; Drop Media Pipeline**: Instant local image upload via `FileReader.readAsDataURL` with embedded Base64 encoding.
 - **Preset Stock Photo Gallery**: Curated culinary photography shortcuts for pizzas, burgers, pastas, steaks, and drinks.
 - **Full-Bleed Showcase Cards**: Hero photography, dietary pills (`Pure Veg` / `Non-Veg`), and station assignments.
 - **Catalog Health Ribbon**: Metrics for active dishes, dietary split, station distribution, and stock availability.
 
-### 9. 📦 Recipe Bill-of-Materials (BoM) Inventory (`/inventory`)
+### 8. 📦 Recipe Bill-of-Materials (BoM) Inventory (`/inventory`)
 
 - **Automated Stock Deduction**: Order settlements automatically deduct exact gram and milliliter quantities from raw ingredients.
 - **Critical Low-Stock Alerts**: Real-time warnings when items drop below minimum safe reorder thresholds.
 - **Stock Journaling**: Inward stock receiving and wastage recording with reason tracking.
+- **Category Badge Integrity**: Strict `whitespace-nowrap inline-flex` styling preventing badge text wrapping on ingredients.
 
-### 10. 📈 Sales, Taxes &amp; Financial Analytics (`/reports`)
+### 9. 📈 Sales, Taxes &amp; Financial Analytics (`/reports`)
 
-- Executive metrics: Daily Gross Sales, Net Revenue, Average Order Value (AOV), and Total GST Collected.
-- Tender breakdown: Real-time payment method distribution (UPI vs. Cash vs. Card).
-- End-of-Day Register Closing (Z-Report) with instant CSV export.
+- **Executive Financial KPIs**: Daily Gross Sales, Net Revenue, Average Order Value (AOV), and Total GST Collected (CGST + SGST).
+- **Payment Collection Channels**: Audited share breakdown for UPI QR Transfers, Physical Cash Drawer, and Card Terminals (EDC).
+- **Isolated Dual Print Engine Studio**:
+  - **80mm Thermal Shift Z-Slip (`printZReport80mm`)**: Formatted for standard POS roll printers; includes shift summary, gross/net sales, dual GST, tender reconciliation, top dishes, and cashier/manager signature lines.
+  - **1-Page A4 Executive Audit Statement (`printExecutiveReportA4`)**: Strictly formatted to fit on **EXACTLY 1 single sheet of A4 paper** (Portrait, zero page breaks, no browser headers/URLs), featuring 4 KPI cards, channel tables, dark register settlement block (`break-inside: avoid`), and 3 formal sign-off seals.
+- **Period Filtering &amp; CSV Export**: Date filters (`Today`, `Yesterday`, `7 Days`, `30 Days`) with instant CSV export.
+
+### 10. ⚙️ System &amp; Branch Settings (`/settings`)
+
+- **Statutory GST &amp; Surcharge Configuration**: Interactive, editable fields for Central GST (CGST %), State GST (SGST %), and Dine-in Service Charge (%).
+- **Instant Reactive Persistence**: Real-time store updates that synchronize immediately with new checkout bills and persist to browser LocalStorage.
+- **Thermal Printer &amp; Branding Profile**: Receipt paper width preference (80mm vs. 58mm) and customizable footer notes.
 
 ### 11. 🛡️ Immutable Security Audit Trail (`/audit`)
 
-- Tamper-evident ledger capturing all manager overrides, price adjustments, voids, discounts, and stock modifications with exact timestamps and actor roles.
+- Tamper-evident ledger capturing all manager overrides, price adjustments, voids, discounts, tax updates, and stock modifications with exact timestamps and actor roles.
 
 ---
 
@@ -434,6 +457,7 @@ ORDRIVA/
 │   │       │   └── MobileBottomNav.tsx      # Fixed Mobile Bottom Tab Bar (iOS Safe Area)
 │   │       ├── 📁 lib/                      # Core Business Logic & In-Memory Store
 │   │       │   ├── store.tsx                # Zustand-style Reactive Store & Initial State
+│   │       │   ├── receiptPrinter.ts        # Isolated 80mm Thermal & A4 Invoice Print Engines
 │   │       │   └── utils.ts                 # Currency Formatting & Tax Math
 │   │       └── 📁 types/                    # Domain Type Definitions & Schema
 │   │           └── index.ts                 # TypeScript Interfaces & Enums
@@ -509,13 +533,15 @@ docker-compose up -d
 | :-------------------------------------- | :------------------------------------------------------------------------------- | :-------------------------------- |
 | **Executive Admin Overview**            | [http://localhost:3000](http://localhost:3000)                                   | Administrator (`Vikram Malhotra`) |
 | **Touch Cashier POS**                   | [http://localhost:3000/pos](http://localhost:3000/pos)                           | Cashier / Billing Staff           |
+| **Orders History & Tax Invoices**       | [http://localhost:3000/orders](http://localhost:3000/orders)                     | Cashier / Manager / Auditor       |
 | **Kitchen Display System (KDS)**        | [http://localhost:3000/kitchen](http://localhost:3000/kitchen)                   | Kitchen Line / Head Chef          |
 | **Customer QR Portal**                  | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01)        |
 | **Floor Plan &amp; Table Management**   | [http://localhost:3000/tables](http://localhost:3000/tables)                     | Host / Floor Manager              |
 | **Table QR Stands &amp; Print Studio**  | [http://localhost:3000/tables/qr](http://localhost:3000/tables/qr)               | Admin / Restaurant Manager        |
 | **Menu Catalog &amp; Media Management** | [http://localhost:3000/menu](http://localhost:3000/menu)                         | Head Chef / Manager               |
 | **Inventory &amp; Recipe BoM**          | [http://localhost:3000/inventory](http://localhost:3000/inventory)               | Stock &amp; Inventory Manager     |
-| **GST &amp; Sales Reports**             | [http://localhost:3000/reports](http://localhost:3000/reports)                   | Accountant / Auditor              |
+| **GST &amp; Financial Reports**         | [http://localhost:3000/reports](http://localhost:3000/reports)                   | Accountant / Auditor              |
+| **Branch & Tax Settings**               | [http://localhost:3000/settings](http://localhost:3000/settings)                 | General Manager / Admin           |
 | **Backend REST API Health**             | [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health)       | API Gateway                       |
 
 ---
