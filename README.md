@@ -1,4 +1,4 @@
-<div align="center">
+run the project and also run the above command<div align="center">
 
   <!-- ORDRIVA Official Brand Identity Logo -->
   <img src="apps/web/public/logo.png" alt="ORDRIVA Enterprise Restaurant OS" width="420" />
@@ -68,14 +68,14 @@ Built with a modular monolith architecture, ORDRIVA eliminates third-party aggre
 
 ## ⚡ Key Performance Benchmarks
 
-| Metric | Target Specification | ORDRIVA Performance | Industry Average |
-| :--- | :--- | :--- | :--- |
-| **Cashier Terminal Latency** | `< 400ms` | **`< 240ms`** (instant DOM updates) | `1.2s - 2.5s` |
-| **KOT Kitchen Dispatch Time** | `< 1.0s` | **`< 120ms`** (Socket.IO broadcast) | `3.0s - 8.0s` |
-| **Offline Resilience** | Full local order capture | **100% Offline-capable** (IndexedDB / LocalStore) | Partial / Crashes |
-| **Touch Ergonomics** | Min 44×44px hit-box | **100% WCAG 2.1 AA** compliant targets | Inconsistent |
-| **Table Tent Print Resolution** | 300 DPI vector PDF/HTML | **Zero layout shift** (Isolated Print Iframe) | Distorted preview |
-| **GST Tax Precision** | 4 decimal internal math | **`NUMERIC(14,2)`** zero-roundoff error | Float precision bugs |
+| Metric                          | Target Specification     | ORDRIVA Performance                               | Industry Average     |
+| :------------------------------ | :----------------------- | :------------------------------------------------ | :------------------- |
+| **Cashier Terminal Latency**    | `< 400ms`                | **`< 240ms`** (instant DOM updates)               | `1.2s - 2.5s`        |
+| **KOT Kitchen Dispatch Time**   | `< 1.0s`                 | **`< 120ms`** (Socket.IO broadcast)               | `3.0s - 8.0s`        |
+| **Offline Resilience**          | Full local order capture | **100% Offline-capable** (IndexedDB / LocalStore) | Partial / Crashes    |
+| **Touch Ergonomics**            | Min 44×44px hit-box      | **100% WCAG 2.1 AA** compliant targets            | Inconsistent         |
+| **Table Tent Print Resolution** | 300 DPI vector PDF/HTML  | **Zero layout shift** (Isolated Print Iframe)     | Distorted preview    |
+| **GST Tax Precision**           | 4 decimal internal math  | **`NUMERIC(14,2)`** zero-roundoff error           | Float precision bugs |
 
 ---
 
@@ -210,25 +210,29 @@ ORDRIVA is purpose-built to deliver an ergonomic touch experience across any scr
 ```
 
 ### 1. Fixed Safe-Area Mobile Bottom Tab Bar
-* Rendered on `< md` screens directly via [`MobileBottomNav.tsx`](file:///e:/New%20Projects/ORDRIVA/apps/web/src/components/MobileBottomNav.tsx).
-* Gives instant 1-tap thumb navigation between **Overview**, **POS Terminal**, **Kitchen KDS**, **Floor Tables**, and the **More** drawer.
-* Built-in native iOS safe-area inset accommodation: `pb-[calc(0.35rem+env(safe-area-inset-bottom,0px))]`.
-* Live badge bubbles for pending kitchen orders, active cart count, and table occupancy.
+
+- Rendered on `< md` screens directly via [`MobileBottomNav.tsx`](file:///e:/New%20Projects/ORDRIVA/apps/web/src/components/MobileBottomNav.tsx).
+- Gives instant 1-tap thumb navigation between **Overview**, **POS Terminal**, **Kitchen KDS**, **Floor Tables**, and the **More** drawer.
+- Built-in native iOS safe-area inset accommodation: `pb-[calc(0.35rem+env(safe-area-inset-bottom,0px))]`.
+- Live badge bubbles for pending kitchen orders, active cart count, and table occupancy.
 
 ### 2. Off-Canvas Slide-Over Navigation Drawer
-* Integrated into [`Navbar.tsx`](file:///e:/New%20Projects/ORDRIVA/apps/web/src/components/Navbar.tsx), accessible via the mobile hamburger button or the bottom "More" tab.
-* Full directory of all 11 restaurant operational modules with live counters and active route indicators.
-* Operating branch selector and root administrator account card.
-* Smooth entrance transitions with glassmorphic backdrop dismiss.
+
+- Integrated into [`Navbar.tsx`](file:///e:/New%20Projects/ORDRIVA/apps/web/src/components/Navbar.tsx), accessible via the mobile hamburger button or the bottom "More" tab.
+- Full directory of all 11 restaurant operational modules with live counters and active route indicators.
+- Operating branch selector and root administrator account card.
+- Smooth entrance transitions with glassmorphic backdrop dismiss.
 
 ### 3. Dual-Mode Cashier POS Terminal
-* On displays `< lg`, POS dynamically provides a 1-tap top segmented controller between **Menu Catalog** and **Order Cart**.
-* When browsing menu items with cart contents, an elevated sticky bottom pill provides instant checkout awareness:
+
+- On displays `< lg`, POS dynamically provides a 1-tap top segmented controller between **Menu Catalog** and **Order Cart**.
+- When browsing menu items with cart contents, an elevated sticky bottom pill provides instant checkout awareness:
   $$\text{🛒 View Order Cart (}N\text{ items) • ₹Total } \rightarrow$$
-* Retains a side-by-side dual-pane terminal on desktop displays (`lg:flex`).
+- Retains a side-by-side dual-pane terminal on desktop displays (`lg:flex`).
 
 ### 4. Horizontal Scroll Containment
-* Data tables across **Orders & Bills**, **Inventory Ledgers**, and **Security Audit Trails** utilize an `overflow-x-auto` wrapper with `.no-scrollbar` styling to eliminate horizontal screen blowout on phones.
+
+- Data tables across **Orders & Bills**, **Inventory Ledgers**, and **Security Audit Trails** utilize an `overflow-x-auto` wrapper with `.no-scrollbar` styling to eliminate horizontal screen blowout on phones.
 
 ---
 
@@ -294,69 +298,80 @@ erDiagram
 ## ⚡ 11 Core Operating Modules
 
 ### 1. 📊 Executive Dashboard &amp; Admin Command Center (`/`)
-* **Real-Time KPI Cards**: Daily Gross Sales, Live Active Orders, Dining Floor Occupancy Rate, and Critical Stock Alerts.
-* **Live Orders Quick Table**: Instant view of recent orders with items summary, live state semaphores, and timestamps.
-* **Mini Architectural Floor Map**: High-level floor plan preview showing active table states and guest counts.
+
+- **Real-Time KPI Cards**: Daily Gross Sales, Live Active Orders, Dining Floor Occupancy Rate, and Critical Stock Alerts.
+- **Live Orders Quick Table**: Instant view of recent orders with items summary, live state semaphores, and timestamps.
+- **Mini Architectural Floor Map**: High-level floor plan preview showing active table states and guest counts.
 
 ### 2. 🖥️ Touch Cashier POS Terminal (`/pos`)
-* **Sub-300ms Touch Response**: 44px touch targets designed for high-throughput peak counter rush hours.
-* **Cash Tender Shortcuts**: One-tap cash buttons (₹500, ₹1000, ₹2000, Exact) with real-time change calculation.
-* **Dynamic UPI QR Engine**: Instant on-screen NPCI UPI QR code generation compatible with Google Pay, PhonePe, and Paytm.
-* **80mm Thermal Receipt Printing**: Clean monochrome bills formatted to statutory Indian GST regulations.
+
+- **Sub-300ms Touch Response**: 44px touch targets designed for high-throughput peak counter rush hours.
+- **Cash Tender Shortcuts**: One-tap cash buttons (₹500, ₹1000, ₹2000, Exact) with real-time change calculation.
+- **Dynamic UPI QR Engine**: Instant on-screen NPCI UPI QR code generation compatible with Google Pay, PhonePe, and Paytm.
+- **80mm Thermal Receipt Printing**: Clean monochrome bills formatted to statutory Indian GST regulations.
 
 ### 3. 👨‍🍳 Kitchen Display System (KDS Kanban) (`/kitchen`)
-* **3-Stage Real-Time Kanban**: Categorized columns for **New Orders**, **In Preparation**, and **Ready for Pickup**.
-* **Station Filter Routing**: Instant station switching (*All Stations*, *Hot Kitchen*, *Grill & Fryer*, *Bar & Beverage*).
-* **Chromatic Aging Alerts**: Visual color warnings for ticket wait times (Green `<10m`, Amber `10–20m`, Red `>20m`).
-* **Web Audio Chimes**: Automated chime alerts notify line chefs immediately upon new ticket placement.
+
+- **3-Stage Real-Time Kanban**: Categorized columns for **New Orders**, **In Preparation**, and **Ready for Pickup**.
+- **Station Filter Routing**: Instant station switching (_All Stations_, _Hot Kitchen_, _Grill & Fryer_, _Bar & Beverage_).
+- **Chromatic Aging Alerts**: Visual color warnings for ticket wait times (Green `<10m`, Amber `10–20m`, Red `>20m`).
+- **Web Audio Chimes**: Automated chime alerts notify line chefs immediately upon new ticket placement.
 
 ### 4. 🪑 Floor Plan &amp; Architectural Table Manager (`/tables`)
-* **2D Architectural Blueprint Geometry**: Circular 2-tops, rounded square 4-tops, and elongated banquet conference layouts with perimeter chair dots.
-* **Dynamic State Illumination**:
-  * 🟠 **Occupied**: Amber glow, active guest name, order number, and dining elapsed timer.
-  * 🔵 **Reserved**: Sapphire blue seating with guest arrival details.
-  * 🟣 **Billed**: Velvet purple chairs with presented folio summary.
-  * 🟢 **Available**: Clean slate table ready for immediate seating.
-* **Zero Label Hyphen Wrapping**: Precision-calibrated responsive columns ensure table names (e.g. `T-03`) never split across lines.
-* **Floor Analytics Ribbon**: Live seat occupancy count, percentage progress bar, and open tab revenue summation.
+
+- **2D Architectural Blueprint Geometry**: Circular 2-tops, rounded square 4-tops, and elongated banquet conference layouts with perimeter chair dots.
+- **Dynamic State Illumination**:
+  - 🟠 **Occupied**: Amber glow, active guest name, order number, and dining elapsed timer.
+  - 🔵 **Reserved**: Sapphire blue seating with guest arrival details.
+  - 🟣 **Billed**: Velvet purple chairs with presented folio summary.
+  - 🟢 **Available**: Clean slate table ready for immediate seating.
+- **Zero Label Hyphen Wrapping**: Precision-calibrated responsive columns ensure table names (e.g. `T-03`) never split across lines.
+- **Floor Analytics Ribbon**: Live seat occupancy count, percentage progress bar, and open tab revenue summation.
 
 ### 5. 🖨️ Table QR Stands &amp; Print Studio (`/tables/qr`)
-* **Isolated Direct Print Engine**: Executes prints inside sandboxed offscreen iframes (`@page { size: 4in 6in; margin: 0; }`), eliminating blank pages or browser preview interference.
-* **Dual Design Themes**:
-  * **🌙 Dark Acrylic (Luxury Obsidian)**: Obsidian black background (`#0B1120`), gold cloche emblem, and high-contrast QR scan matrix with gold registration brackets.
-  * **☀️ Clean White (Minimalist Crisp)**: Crisp white background with dark typography, ideal for sunlit cafes and bakeries.
-* **Batch Print Automation**: One-click batch generation formats all 10 floor stands in a single print job with automatic page breaks.
-* **High-Res PNG Export**: Client-side canvas rasterization exports 300 DPI PNGs for acrylic fabricators and vinyl sticker printers.
+
+- **Isolated Direct Print Engine**: Executes prints inside sandboxed offscreen iframes (`@page { size: 4in 6in; margin: 0; }`), eliminating blank pages or browser preview interference.
+- **Dual Design Themes**:
+  - **🌙 Dark Acrylic (Luxury Obsidian)**: Obsidian black background (`#0B1120`), gold cloche emblem, and high-contrast QR scan matrix with gold registration brackets.
+  - **☀️ Clean White (Minimalist Crisp)**: Crisp white background with dark typography, ideal for sunlit cafes and bakeries.
+- **Batch Print Automation**: One-click batch generation formats all 10 floor stands in a single print job with automatic page breaks.
+- **High-Res PNG Export**: Client-side canvas rasterization exports 300 DPI PNGs for acrylic fabricators and vinyl sticker printers.
 
 ### 6. 📱 Contactless Customer Dining Portal (`/order`)
-* **Multi-Item Quantity Stepper**: Patron can tap `[-] Qty [+]` directly on any dish to increment quantities effortlessly.
-* **Artisanal Modifier Customizer**: Modals for selecting dips, crusts, temperatures, and custom chef instructions.
-* **Live Running Tab**: Chronological order rounds (R1 appetizers, R2 entrees) with instant running balance computation.
-* **Digital GST E-Invoice**: Patrons can download or print verified GST tax invoices directly from their phones.
+
+- **Multi-Item Quantity Stepper**: Patron can tap `[-] Qty [+]` directly on any dish to increment quantities effortlessly.
+- **Artisanal Modifier Customizer**: Modals for selecting dips, crusts, temperatures, and custom chef instructions.
+- **Live Running Tab**: Chronological order rounds (R1 appetizers, R2 entrees) with instant running balance computation.
+- **Digital GST E-Invoice**: Patrons can download or print verified GST tax invoices directly from their phones.
 
 ### 7. 🧾 Order History Ledger &amp; Tax Invoices (`/orders`)
-* Comprehensive transactional ledger with filtering by order status, table, payment method, and search terms.
-* One-click 80mm thermal receipt and A4 tax invoice print engine.
-* Void and refund processing with ledger balance validation.
+
+- Comprehensive transactional ledger with filtering by order status, table, payment method, and search terms.
+- One-click 80mm thermal receipt and A4 tax invoice print engine.
+- Void and refund processing with ledger balance validation.
 
 ### 8. 📋 Menu &amp; Culinary Catalog Management (`/menu`)
-* **Drag &amp; Drop Media Pipeline**: Instant local image upload via `FileReader.readAsDataURL` with embedded Base64 encoding.
-* **Preset Stock Photo Gallery**: Curated culinary photography shortcuts for pizzas, burgers, pastas, steaks, and drinks.
-* **Full-Bleed Showcase Cards**: Hero photography, dietary pills (`Pure Veg` / `Non-Veg`), and station assignments.
-* **Catalog Health Ribbon**: Metrics for active dishes, dietary split, station distribution, and stock availability.
+
+- **Drag &amp; Drop Media Pipeline**: Instant local image upload via `FileReader.readAsDataURL` with embedded Base64 encoding.
+- **Preset Stock Photo Gallery**: Curated culinary photography shortcuts for pizzas, burgers, pastas, steaks, and drinks.
+- **Full-Bleed Showcase Cards**: Hero photography, dietary pills (`Pure Veg` / `Non-Veg`), and station assignments.
+- **Catalog Health Ribbon**: Metrics for active dishes, dietary split, station distribution, and stock availability.
 
 ### 9. 📦 Recipe Bill-of-Materials (BoM) Inventory (`/inventory`)
-* **Automated Stock Deduction**: Order settlements automatically deduct exact gram and milliliter quantities from raw ingredients.
-* **Critical Low-Stock Alerts**: Real-time warnings when items drop below minimum safe reorder thresholds.
-* **Stock Journaling**: Inward stock receiving and wastage recording with reason tracking.
+
+- **Automated Stock Deduction**: Order settlements automatically deduct exact gram and milliliter quantities from raw ingredients.
+- **Critical Low-Stock Alerts**: Real-time warnings when items drop below minimum safe reorder thresholds.
+- **Stock Journaling**: Inward stock receiving and wastage recording with reason tracking.
 
 ### 10. 📈 Sales, Taxes &amp; Financial Analytics (`/reports`)
-* Executive metrics: Daily Gross Sales, Net Revenue, Average Order Value (AOV), and Total GST Collected.
-* Tender breakdown: Real-time payment method distribution (UPI vs. Cash vs. Card).
-* End-of-Day Register Closing (Z-Report) with instant CSV export.
+
+- Executive metrics: Daily Gross Sales, Net Revenue, Average Order Value (AOV), and Total GST Collected.
+- Tender breakdown: Real-time payment method distribution (UPI vs. Cash vs. Card).
+- End-of-Day Register Closing (Z-Report) with instant CSV export.
 
 ### 11. 🛡️ Immutable Security Audit Trail (`/audit`)
-* Tamper-evident ledger capturing all manager overrides, price adjustments, voids, discounts, and stock modifications with exact timestamps and actor roles.
+
+- Tamper-evident ledger capturing all manager overrides, price adjustments, voids, discounts, and stock modifications with exact timestamps and actor roles.
 
 ---
 
@@ -364,28 +379,28 @@ erDiagram
 
 ORDRIVA has undergone rigorous usability auditing in accordance with Nielsen Norman Usability Heuristics and WCAG 2.1 AA standards:
 
-| Usability Heuristic | Engineering Implementation &amp; Safeguards |
-| :--- | :--- |
-| **Consistency &amp; Standards** | • Standardized unified CTA terminology (`"Launch POS"`) across header navigation and hero cards.<br>• Standardized badge tokens across sidebar navigation (`rounded-full px-2 py-0.5 text-[10px] border`).<br>• Status semaphoring: Actionable `Ready` tickets rendered in conventional Emerald Green (`bg-emerald-50 text-emerald-700`). |
-| **State Visibility &amp; Feedback** | • Live floor status legend complete with all 4 table states (`Available`, `Occupied`, `Reserved`, `Billed`).<br>• Fully decoded semantic state tags equipped with `aria-hidden="true"` and `role="listitem"`. |
+| Usability Heuristic                   | Engineering Implementation &amp; Safeguards                                                                                                                                                                                                                                                                                                                             |
+| :------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Consistency &amp; Standards**       | • Standardized unified CTA terminology (`"Launch POS"`) across header navigation and hero cards.<br>• Standardized badge tokens across sidebar navigation (`rounded-full px-2 py-0.5 text-[10px] border`).<br>• Status semaphoring: Actionable `Ready` tickets rendered in conventional Emerald Green (`bg-emerald-50 text-emerald-700`).                               |
+| **State Visibility &amp; Feedback**   | • Live floor status legend complete with all 4 table states (`Available`, `Occupied`, `Reserved`, `Billed`).<br>• Fully decoded semantic state tags equipped with `aria-hidden="true"` and `role="listitem"`.                                                                                                                                                           |
 | **Visual Hierarchy &amp; Affordance** | • High-contrast dark button surface for `Kitchen KDS` (`bg-slate-900/80 hover:bg-slate-900`) with keyboard focus rings.<br>• Ambient logo watermarks dialed down to `opacity-5` with `aria-hidden="true"` to eliminate contrast vibration behind action buttons.<br>• Optical alignment: Added `px-2` to `<th>Status</th>` to align directly with badge text baselines. |
-| **Data Integrity &amp; Calculation** | • Fixed order item aggregation: Computes `totalQty` with accurate remaining breakdowns (`3 items (Name +2)`).<br>• Explicit flexbox separation (`gap-2`) preventing merged order type and table badge tokens (`Dine In [T-02]`). |
-| **Typographic Discipline** | • Streamlined disparate color classes into a strict 6-tier token scale (`slate-900`, `slate-600`, `slate-500`, `emerald-700`, `amber-700`, `rose-600`). |
+| **Data Integrity &amp; Calculation**  | • Fixed order item aggregation: Computes `totalQty` with accurate remaining breakdowns (`3 items (Name +2)`).<br>• Explicit flexbox separation (`gap-2`) preventing merged order type and table badge tokens (`Dine In [T-02]`).                                                                                                                                        |
+| **Typographic Discipline**            | • Streamlined disparate color classes into a strict 6-tier token scale (`slate-900`, `slate-600`, `slate-500`, `emerald-700`, `amber-700`, `rose-600`).                                                                                                                                                                                                                 |
 
 ---
 
 ## 🎨 Design Tokens &amp; Color System
 
-| Token | Hex | Visual | Purpose &amp; Role |
-| :--- | :---: | :---: | :--- |
-| **Primary Blue** | `#3B82F6` | ![#3B82F6](https://via.placeholder.com/14/3B82F6/3B82F6.png) | Primary call-to-action buttons, active navigation states, POS checkout |
-| **Sky Blue Accent** | `#60A5FA` | ![#60A5FA](https://via.placeholder.com/14/60A5FA/60A5FA.png) | Subtitles, interactive glows, status pills, hover states |
-| **Violet Accent** | `#A78BFA` | ![#A78BFA](https://via.placeholder.com/14/A78BFA/A78BFA.png) | Administrator role badges, special KPI cards, sparkles |
-| **Obsidian Header** | `#0B1120` | ![#0B1120](https://via.placeholder.com/14/0B1120/0B1120.png) | Top glassmorphic navigation bar, executive cards, dark modal headers |
+| Token                 |    Hex    |                            Visual                            | Purpose &amp; Role                                                            |
+| :-------------------- | :-------: | :----------------------------------------------------------: | :---------------------------------------------------------------------------- |
+| **Primary Blue**      | `#3B82F6` | ![#3B82F6](https://via.placeholder.com/14/3B82F6/3B82F6.png) | Primary call-to-action buttons, active navigation states, POS checkout        |
+| **Sky Blue Accent**   | `#60A5FA` | ![#60A5FA](https://via.placeholder.com/14/60A5FA/60A5FA.png) | Subtitles, interactive glows, status pills, hover states                      |
+| **Violet Accent**     | `#A78BFA` | ![#A78BFA](https://via.placeholder.com/14/A78BFA/A78BFA.png) | Administrator role badges, special KPI cards, sparkles                        |
+| **Obsidian Header**   | `#0B1120` | ![#0B1120](https://via.placeholder.com/14/0B1120/0B1120.png) | Top glassmorphic navigation bar, executive cards, dark modal headers          |
 | **Canvas Background** | `#F8FAFC` | ![#F8FAFC](https://via.placeholder.com/14/F8FAFC/F8FAFC.png) | High-contrast neutral canvas for maximum staff readability under bright light |
-| **Success Emerald** | `#16A34A` | ![#16A34A](https://via.placeholder.com/14/16A34A/16A34A.png) | Vacant tables, settled payments, healthy inventory levels |
-| **Warning Amber** | `#D97706` | ![#D97706](https://via.placeholder.com/14/D97706/D97706.png) | Occupied dining tables, kitchen tickets aging &gt;10m |
-| **Danger Rose** | `#DC2626` | ![#DC2626](https://via.placeholder.com/14/DC2626/DC2626.png) | Critical inventory stockouts, voids, overdue tickets |
+| **Success Emerald**   | `#16A34A` | ![#16A34A](https://via.placeholder.com/14/16A34A/16A34A.png) | Vacant tables, settled payments, healthy inventory levels                     |
+| **Warning Amber**     | `#D97706` | ![#D97706](https://via.placeholder.com/14/D97706/D97706.png) | Occupied dining tables, kitchen tickets aging &gt;10m                         |
+| **Danger Rose**       | `#DC2626` | ![#DC2626](https://via.placeholder.com/14/DC2626/DC2626.png) | Critical inventory stockouts, voids, overdue tickets                          |
 
 ---
 
@@ -453,9 +468,10 @@ ORDRIVA/
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-* **Node.js**: v20.x or higher
-* **Package Manager**: `pnpm` (recommended) or `npm`
-* **Database**: PostgreSQL 16 (or Docker Compose)
+
+- **Node.js**: v20.x or higher
+- **Package Manager**: `pnpm` (recommended) or `npm`
+- **Database**: PostgreSQL 16 (or Docker Compose)
 
 ### 1. Installation
 
@@ -491,19 +507,19 @@ docker-compose up -d
 
 ### 3. Application Directory URL Map
 
-| Portal / Module | URL | Default Access Role |
-| :--- | :--- | :--- |
-| **Executive Admin Overview** | [http://localhost:3000](http://localhost:3000) | Administrator (`Vikram Malhotra`) |
-| **Touch Cashier POS** | [http://localhost:3000/pos](http://localhost:3000/pos) | Cashier / Billing Staff |
-| **Kitchen Display System (KDS)** | [http://localhost:3000/kitchen](http://localhost:3000/kitchen) | Kitchen Line / Head Chef |
-| **Customer QR Portal** | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01) |
-| **Floor Plan &amp; Table Management** | [http://localhost:3000/tables](http://localhost:3000/tables) | Host / Floor Manager |
-| **Table QR Stands &amp; Print Studio** | [http://localhost:3000/tables/qr](http://localhost:3000/tables/qr) | Admin / Restaurant Manager |
-| **Menu Catalog &amp; Media Management** | [http://localhost:3000/menu](http://localhost:3000/menu) | Head Chef / Manager |
-| **Inventory &amp; Recipe BoM** | [http://localhost:3000/inventory](http://localhost:3000/inventory) | Stock &amp; Inventory Manager |
-| **GST &amp; Sales Reports** | [http://localhost:3000/reports](http://localhost:3000/reports) | Accountant / Auditor |
-| **Security Audit Trail** | [http://localhost:3000/audit](http://localhost:3000/audit) | Security / Compliance Officer |
-| **Backend REST API Health** | [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health) | API Gateway |
+| Portal / Module                         | URL                                                                              | Default Access Role               |
+| :-------------------------------------- | :------------------------------------------------------------------------------- | :-------------------------------- |
+| **Executive Admin Overview**            | [http://localhost:3000](http://localhost:3000)                                   | Administrator (`Vikram Malhotra`) |
+| **Touch Cashier POS**                   | [http://localhost:3000/pos](http://localhost:3000/pos)                           | Cashier / Billing Staff           |
+| **Kitchen Display System (KDS)**        | [http://localhost:3000/kitchen](http://localhost:3000/kitchen)                   | Kitchen Line / Head Chef          |
+| **Customer QR Portal**                  | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01)        |
+| **Floor Plan &amp; Table Management**   | [http://localhost:3000/tables](http://localhost:3000/tables)                     | Host / Floor Manager              |
+| **Table QR Stands &amp; Print Studio**  | [http://localhost:3000/tables/qr](http://localhost:3000/tables/qr)               | Admin / Restaurant Manager        |
+| **Menu Catalog &amp; Media Management** | [http://localhost:3000/menu](http://localhost:3000/menu)                         | Head Chef / Manager               |
+| **Inventory &amp; Recipe BoM**          | [http://localhost:3000/inventory](http://localhost:3000/inventory)               | Stock &amp; Inventory Manager     |
+| **GST &amp; Sales Reports**             | [http://localhost:3000/reports](http://localhost:3000/reports)                   | Accountant / Auditor              |
+| **Security Audit Trail**                | [http://localhost:3000/audit](http://localhost:3000/audit)                       | Security / Compliance Officer     |
+| **Backend REST API Health**             | [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health)       | API Gateway                       |
 
 ---
 

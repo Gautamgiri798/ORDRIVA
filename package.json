@@ -4,7 +4,7 @@
   "private": true,
   "description": "ORDRIVA - Restaurant POS & Management System (Product & Engineering Blueprint implementation)",
   "scripts": {
-    "dev": "next dev apps/web",
+    "dev": "next dev apps/web -H 0.0.0.0",
     "build": "node patch-node26.js && next build apps/web",
     "start": "next start apps/web",
     "api:dev": "node apps/api/dist/main.js",

@@ -18,6 +18,7 @@ import {
   Smartphone,
   ShieldCheck,
   Zap,
+  Wifi,
 } from 'lucide-react';
 
 export default function TableQrStandsAdminPage() {
@@ -30,12 +31,48 @@ export default function TableQrStandsAdminPage() {
   const [batchMode, setBatchMode] = useState<boolean>(false);
   const [batchQrs, setBatchQrs] = useState<{ [label: string]: string }>({});
   const [printTheme, setPrintTheme] = useState<'dark' | 'light'>('dark');
+  const [customHost, setCustomHost] = useState<string>('');
+  const [isLocalhost, setIsLocalhost] = useState<boolean>(false);
 
   const currentTableObj = tables.find((t) => t.label === selectedTable) || tables[0];
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ordriva_custom_qr_host');
+      if (saved) setCustomHost(saved);
+      setIsLocalhost(
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === '0.0.0.0'
+      );
+    }
+  }, []);
+
+  const handleCustomHostChange = (val: string) => {
+    setCustomHost(val);
+    if (typeof window !== 'undefined') {
+      if (val.trim()) {
+        localStorage.setItem('ordriva_custom_qr_host', val.trim());
+      } else {
+        localStorage.removeItem('ordriva_custom_qr_host');
+      }
+    }
+  };
+
+  const getBaseUrl = () => {
+    if (customHost.trim()) {
+      let host = customHost.trim();
+      if (!host.startsWith('http://') && !host.startsWith('https://')) {
+        host = `http://${host}`;
+      }
+      return host.replace(/\/$/, '');
+    }
+    return typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  };
+
   // Generate QR for selected table
   useEffect(() => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const origin = getBaseUrl();
     const targetUrl = `${origin}/order?table=${encodeURIComponent(selectedTable)}`;
 
     QRCode.toDataURL(
@@ -55,11 +92,11 @@ export default function TableQrStandsAdminPage() {
         }
       }
     );
-  }, [selectedTable]);
+  }, [selectedTable, customHost]);
 
   // Pre-generate QRs for all tables for Batch Printing
   useEffect(() => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const origin = getBaseUrl();
     const newBatchMap: { [label: string]: string } = {};
 
     let completed = 0;
@@ -84,7 +121,7 @@ export default function TableQrStandsAdminPage() {
         }
       );
     });
-  }, [tables]);
+  }, [tables, customHost]);
 
   const handleDownloadQrPng = () => {
     if (!qrCodeDataUrl) return;
@@ -600,6 +637,58 @@ export default function TableQrStandsAdminPage() {
                 </div>
               </div>
             )}
+
+            {/* Mobile LAN / Phone QR Testing Host Configuration */}
+            <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/80 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Smartphone className="w-4 h-4 text-blue-600" />
+                  <span className="font-bold text-xs text-slate-900">Phone Scanning Host</span>
+                </div>
+                {isLocalhost && !customHost ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                    Localhost Active
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    {customHost ? 'Custom IP Configured' : 'Live Host'}
+                  </span>
+                )}
+              </div>
+
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                {isLocalhost && !customHost ? (
+                  <span>
+                    Your phone cannot open <code className="bg-white px-1 py-0.5 rounded text-amber-700 font-mono text-[10px]">localhost</code> directly. Enter your computer&apos;s Wi-Fi IP (e.g. <span className="font-mono font-bold text-slate-700">192.168.1.15:3000</span>) below so phone camera scans work instantly:
+                  </span>
+                ) : (
+                  <span>
+                    Target URL encoded into QR: <code className="bg-white px-1 py-0.5 rounded text-blue-600 font-mono text-[10px] break-all">{getBaseUrl()}/order?table={selectedTable}</code>
+                  </span>
+                )}
+              </p>
+
+              <div className="flex items-center space-x-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="e.g. 192.168.1.15:3000 or tunnel URL"
+                    value={customHost}
+                    onChange={(e) => handleCustomHostChange(e.target.value)}
+                    className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
+                  />
+                </div>
+                {customHost && (
+                  <button
+                    onClick={() => handleCustomHostChange('')}
+                    className="px-2.5 py-2 text-xs font-semibold bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl transition-colors shrink-0"
+                    title="Reset to default origin"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* Export Actions */}
             <div className="space-y-2.5 pt-1">
