@@ -109,7 +109,7 @@ export function Navbar() {
   // Customer Dine-In Header
   if (isCustomerPage) {
     return (
-      <header className="h-16 bg-[#0B1120] text-white flex items-center justify-between px-4 lg:px-8 z-30 shadow-md border-b border-slate-800">
+      <header className="h-16 bg-[#0B1120] text-white flex items-center justify-between px-4 lg:px-8 z-30 shadow-md border-b border-slate-800 print:hidden">
         {/* Brand & Customer Tag */}
         <div className="flex items-center space-x-3">
           <Link href="/order" className="flex items-center hover:opacity-95 transition-opacity">
@@ -149,7 +149,7 @@ export function Navbar() {
   const currentRoleStyle = getRoleBadgeStyle(currentUser.role);
 
   return (
-    <header className="h-16 bg-gradient-to-r from-[#0B1120] via-[#0F172A] to-[#0B1120] text-white flex items-center justify-between px-4 lg:px-6 z-30 shadow-lg border-b border-[#3B82F6]/30 select-none">
+    <header className="h-16 bg-gradient-to-r from-[#0B1120] via-[#0F172A] to-[#0B1120] text-white flex items-center justify-between px-4 lg:px-6 z-30 shadow-lg border-b border-[#3B82F6]/30 select-none print:hidden">
       {/* Brand & Logo */}
       <div className="flex items-center space-x-3">
         <Link href="/" className="flex items-center hover:opacity-95 transition-opacity">

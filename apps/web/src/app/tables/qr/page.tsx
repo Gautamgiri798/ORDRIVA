@@ -26,6 +26,7 @@ export default function TableQrStandsAdminPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [batchMode, setBatchMode] = useState<boolean>(false);
   const [batchQrs, setBatchQrs] = useState<{ [label: string]: string }>({});
+  const [printTheme, setPrintTheme] = useState<'dark' | 'light'>('dark');
 
   const currentTableObj = tables.find((t) => t.label === selectedTable) || tables[0];
 
@@ -92,6 +93,343 @@ export default function TableQrStandsAdminPage() {
     document.body.removeChild(a);
   };
 
+  // Direct, 100% Reliable Isolated Printing (prevents blank print preview)
+  const executePrintStand = (theme: 'dark' | 'light' = printTheme) => {
+    const isDark = theme === 'dark';
+    const bg = isDark ? '#0B1120' : '#FFFFFF';
+    const textMain = isDark ? '#FFFFFF' : '#0F172A';
+    const textSub = isDark ? '#94A3B8' : '#64748B';
+    const border = isDark ? '#1E293B' : '#CBD5E1';
+    const titleColor = isDark ? '#FDE047' : '#0F172A';
+    const qrFrameBorder = isDark ? '#334155' : '#E2E8F0';
+
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Table ${selectedTable} Stand - ORDRIVA</title>
+          <style>
+            @page {
+              size: 4in 6in;
+              margin: 0;
+            }
+            @page landscape {
+              size: 6in 4in;
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body {
+              background: #ffffff !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              padding: 20px;
+            }
+            .stand-card {
+              width: 320px;
+              background-color: ${bg} !important;
+              color: ${textMain} !important;
+              border-radius: 24px;
+              padding: 24px;
+              text-align: center;
+              border: 3px solid ${border} !important;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .brand-name {
+              font-family: serif;
+              font-size: 20px;
+              font-weight: 900;
+              letter-spacing: 0.15em;
+              color: ${titleColor} !important;
+              margin-top: 4px;
+            }
+            .branch-info {
+              font-size: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              color: ${textSub} !important;
+              font-weight: 700;
+              margin-top: 2px;
+            }
+            .table-badge {
+              display: inline-block;
+              background-color: #2563EB !important;
+              color: #ffffff !important;
+              font-weight: 900;
+              font-size: 14px;
+              letter-spacing: 0.05em;
+              padding: 6px 20px;
+              border-radius: 9999px;
+              margin: 14px 0;
+            }
+            .qr-box {
+              background-color: #ffffff !important;
+              border: 2px solid ${qrFrameBorder};
+              border-radius: 16px;
+              padding: 12px;
+              display: inline-block;
+              margin-bottom: 12px;
+            }
+            .qr-box img {
+              display: block;
+              width: 180px;
+              height: 180px;
+              border-radius: 8px;
+            }
+            .cta-title {
+              font-size: 13px;
+              font-weight: 900;
+              letter-spacing: 0.05em;
+              color: ${textMain} !important;
+              margin-bottom: 4px;
+            }
+            .cta-desc {
+              font-size: 11px;
+              color: ${textSub} !important;
+              line-height: 1.35;
+              max-width: 260px;
+              margin: 0 auto;
+            }
+            .footer-pills {
+              margin-top: 14px;
+              padding-top: 10px;
+              border-top: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'};
+              font-size: 10px;
+              color: #2563EB !important;
+              font-weight: 700;
+              display: flex;
+              justify-content: center;
+              gap: 8px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="stand-card">
+            <div class="brand-name">ORDRIVA</div>
+            <div class="branch-info">${currentBranch.name}</div>
+            <div class="table-badge">TABLE ${selectedTable}</div>
+            <div class="qr-box">
+              <img src="${qrCodeDataUrl}" alt="Table ${selectedTable} QR Code" />
+            </div>
+            <div class="cta-title">SCAN WITH PHONE TO ORDER</div>
+            <div class="cta-desc">Point your phone camera to view full menu, order food, and pay your table bill instantly</div>
+            <div class="footer-pills">
+              <span>⚡ Instant Dispatch</span>
+              <span>•</span>
+              <span>🛡️ 100% Contactless</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        iframe.remove();
+      }, 2000);
+    }, 250);
+  };
+
+  const executePrintBatchStands = (theme: 'dark' | 'light' = printTheme) => {
+    const isDark = theme === 'dark';
+    const bg = isDark ? '#0B1120' : '#FFFFFF';
+    const textMain = isDark ? '#FFFFFF' : '#0F172A';
+    const textSub = isDark ? '#94A3B8' : '#64748B';
+    const border = isDark ? '#1E293B' : '#CBD5E1';
+    const titleColor = isDark ? '#FDE047' : '#0F172A';
+    const qrFrameBorder = isDark ? '#334155' : '#E2E8F0';
+
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    const cardsHtml = tables
+      .map((tbl) => {
+        const q = batchQrs[tbl.label] || qrCodeDataUrl;
+        return `
+        <div class="stand-card">
+          <div class="brand-name">ORDRIVA</div>
+          <div class="branch-info">${currentBranch.name}</div>
+          <div class="table-badge">TABLE ${tbl.label}</div>
+          <div class="qr-box">
+            <img src="${q}" alt="QR" />
+          </div>
+          <div class="cta-title">SCAN WITH PHONE TO ORDER</div>
+          <div class="cta-desc">Point camera to order & pay instantly</div>
+          <div class="footer-pills">
+            <span>⚡ Instant Dispatch</span>
+            <span>•</span>
+            <span>🛡️ Contactless</span>
+          </div>
+        </div>
+      `;
+      })
+      .join('');
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>All Table QR Stands - ORDRIVA</title>
+          <style>
+            @page {
+              size: auto;
+              margin: 10mm;
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body {
+              background: #ffffff !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              padding: 10px;
+            }
+            .grid-container {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 20px;
+              justify-items: center;
+            }
+            .stand-card {
+              width: 290px;
+              background-color: ${bg} !important;
+              color: ${textMain} !important;
+              border-radius: 20px;
+              padding: 18px;
+              text-align: center;
+              border: 2px solid ${border} !important;
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+            .brand-name {
+              font-family: serif;
+              font-size: 17px;
+              font-weight: 900;
+              letter-spacing: 0.12em;
+              color: ${titleColor} !important;
+            }
+            .branch-info {
+              font-size: 9px;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: ${textSub} !important;
+              font-weight: 700;
+              margin-top: 2px;
+            }
+            .table-badge {
+              display: inline-block;
+              background-color: #2563EB !important;
+              color: #ffffff !important;
+              font-weight: 900;
+              font-size: 13px;
+              letter-spacing: 0.05em;
+              padding: 4px 16px;
+              border-radius: 9999px;
+              margin: 10px 0;
+            }
+            .qr-box {
+              background-color: #ffffff !important;
+              border: 1px solid ${qrFrameBorder};
+              border-radius: 12px;
+              padding: 8px;
+              display: inline-block;
+              margin-bottom: 8px;
+            }
+            .qr-box img {
+              display: block;
+              width: 140px;
+              height: 140px;
+              border-radius: 6px;
+            }
+            .cta-title {
+              font-size: 11px;
+              font-weight: 900;
+              letter-spacing: 0.05em;
+              color: ${textMain} !important;
+              margin-bottom: 2px;
+            }
+            .cta-desc {
+              font-size: 10px;
+              color: ${textSub} !important;
+              line-height: 1.25;
+              max-width: 220px;
+              margin: 0 auto;
+            }
+            .footer-pills {
+              margin-top: 10px;
+              padding-top: 8px;
+              border-top: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'};
+              font-size: 9px;
+              color: #2563EB !important;
+              font-weight: 700;
+              display: flex;
+              justify-content: center;
+              gap: 6px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="grid-container">
+            ${cardsHtml}
+          </div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        iframe.remove();
+      }, 2000);
+    }, 250);
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 text-slate-800">
       {/* 1. Header Banner */}
@@ -120,6 +458,30 @@ export default function TableQrStandsAdminPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Print Style Selector */}
+          <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setPrintTheme('dark')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                printTheme === 'dark'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🌙 Dark Acrylic
+            </button>
+            <button
+              onClick={() => setPrintTheme('light')}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                printTheme === 'light'
+                  ? 'bg-[#3B82F6] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              ☀️ Clean White
+            </button>
+          </div>
+
           <button
             onClick={() => setBatchMode(!batchMode)}
             className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center space-x-1.5 transition-all border ${
@@ -133,7 +495,7 @@ export default function TableQrStandsAdminPage() {
           </button>
 
           <button
-            onClick={() => window.print()}
+            onClick={() => (batchMode ? executePrintBatchStands() : executePrintStand())}
             className="px-4 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-extrabold text-xs flex items-center space-x-1.5 shadow-sm transition-all"
           >
             <Printer className="w-4 h-4" />
@@ -144,9 +506,9 @@ export default function TableQrStandsAdminPage() {
 
       {/* 2. SINGLE TABLE MODE */}
       {!batchMode && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start print:hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start print:block print:w-full">
           {/* Left Column: Table Selection & Details (6 cols) */}
-          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm space-y-5">
+          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm space-y-5 print:hidden">
             <div>
               <h3 className="font-extrabold text-base text-slate-900">1. Select Dining Table</h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -218,7 +580,7 @@ export default function TableQrStandsAdminPage() {
               </button>
 
               <button
-                onClick={() => window.print()}
+                onClick={() => executePrintStand()}
                 className="py-2.5 px-4 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow-xs"
               >
                 <Printer className="w-4 h-4" />
@@ -239,10 +601,10 @@ export default function TableQrStandsAdminPage() {
           </div>
 
           {/* Right Column: High-Res 4x6" Stand Mockup Preview (6 cols) */}
-          <div className="lg:col-span-6 bg-slate-100/70 rounded-2xl border border-slate-200/80 p-6 flex flex-col items-center justify-center">
-            <div className="text-center mb-3">
+          <div className="lg:col-span-6 bg-slate-100/70 rounded-2xl border border-slate-200/80 p-6 flex flex-col items-center justify-center print:border-none print:bg-transparent print:p-0 print:m-0 print:w-full print:block">
+            <div className="text-center mb-3 print:hidden">
               <span className="text-xs font-black uppercase tracking-wider text-slate-400 block">
-                Live 4×6&quot; Acrylic Table Tent Preview
+                Live 4×6&quot; Table Tent Preview ({printTheme === 'dark' ? 'Dark Acrylic' : 'Clean White'})
               </span>
               <span className="text-[11px] text-slate-500">
                 Exact printout design that customers will see at the table
@@ -252,15 +614,27 @@ export default function TableQrStandsAdminPage() {
             {/* The 4x6" Table Tent Stand Mockup */}
             <div
               id="printable-table-stand"
-              className="w-full max-w-[310px] bg-gradient-to-b from-[#0B1120] via-[#111C38] to-[#0B1120] text-white rounded-3xl p-6 shadow-2xl border-4 border-[#3B82F6]/40 text-center space-y-4 my-2"
+              className={`w-full max-w-[320px] rounded-3xl p-6 shadow-2xl text-center space-y-4 my-2 transition-all ${
+                printTheme === 'dark'
+                  ? 'bg-gradient-to-b from-[#0B1120] via-[#111C38] to-[#0B1120] text-white border-4 border-[#3B82F6]/40 shadow-slate-950/20'
+                  : 'bg-white text-slate-900 border-4 border-slate-300 shadow-slate-300/40'
+              }`}
             >
               {/* Stand Header */}
               <div className="flex flex-col items-center justify-center space-y-1">
                 <OrdrivaLogo variant="mark" size={42} />
-                <span className="font-serif font-black tracking-widest text-xl text-amber-200 mt-1">
+                <span
+                  className={`font-serif font-black tracking-widest text-xl mt-1 ${
+                    printTheme === 'dark' ? 'text-amber-200' : 'text-slate-900'
+                  }`}
+                >
                   ORDRIVA
                 </span>
-                <span className="text-[10px] uppercase tracking-wider text-slate-300 font-bold">
+                <span
+                  className={`text-[10px] uppercase tracking-wider font-bold ${
+                    printTheme === 'dark' ? 'text-slate-300' : 'text-slate-500'
+                  }`}
+                >
                   {currentBranch.name}
                 </span>
               </div>
@@ -271,15 +645,21 @@ export default function TableQrStandsAdminPage() {
               </div>
 
               {/* Framed QR Code */}
-              <div className="p-3 bg-white rounded-2xl shadow-inner inline-block my-1 border-2 border-white">
+              <div
+                className={`p-3 rounded-2xl inline-block my-1 border-2 ${
+                  printTheme === 'dark'
+                    ? 'bg-white border-white shadow-inner'
+                    : 'bg-white border-slate-200 shadow-sm'
+                }`}
+              >
                 {qrCodeDataUrl ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={qrCodeDataUrl}
                     alt={`Table ${selectedTable} QR Code`}
                     width={200}
                     height={200}
-                    className="rounded-lg"
-                    priority
+                    className="rounded-lg mx-auto block"
                   />
                 ) : (
                   <div className="w-48 h-48 bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-bold">
@@ -290,16 +670,30 @@ export default function TableQrStandsAdminPage() {
 
               {/* Customer Call to Action */}
               <div className="space-y-1">
-                <h4 className="font-black text-sm tracking-wide text-white">
+                <h4
+                  className={`font-black text-sm tracking-wide ${
+                    printTheme === 'dark' ? 'text-white' : 'text-slate-900'
+                  }`}
+                >
                   SCAN WITH PHONE TO ORDER
                 </h4>
-                <p className="text-[11px] text-slate-300 leading-tight px-2">
+                <p
+                  className={`text-[11px] leading-tight px-2 ${
+                    printTheme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+                  }`}
+                >
                   Point your phone camera to view full menu, order food, and pay your table bill instantly
                 </p>
               </div>
 
               {/* Feature Badges */}
-              <div className="pt-2 border-t border-white/10 flex items-center justify-center space-x-3 text-[10px] text-[#60A5FA] font-bold">
+              <div
+                className={`pt-2 border-t flex items-center justify-center space-x-3 text-[10px] font-bold ${
+                  printTheme === 'dark'
+                    ? 'border-white/10 text-[#60A5FA]'
+                    : 'border-slate-200 text-[#1D4ED8]'
+                }`}
+              >
                 <span>⚡ Instant Kitchen Dispatch</span>
                 <span>•</span>
                 <span>🛡️ 100% Contactless</span>
@@ -307,8 +701,8 @@ export default function TableQrStandsAdminPage() {
             </div>
 
             <button
-              onClick={() => window.print()}
-              className="mt-4 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-2 shadow"
+              onClick={() => executePrintStand()}
+              className="mt-4 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-2 shadow print:hidden"
             >
               <Printer className="w-4 h-4 text-[#60A5FA]" />
               <span>Print This Stand (4×6&quot;)</span>
@@ -330,7 +724,7 @@ export default function TableQrStandsAdminPage() {
               </span>
             </div>
             <button
-              onClick={() => window.print()}
+              onClick={() => executePrintBatchStands()}
               className="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-extrabold text-xs flex items-center space-x-1.5 shadow shrink-0"
             >
               <Printer className="w-4 h-4" />
@@ -338,20 +732,32 @@ export default function TableQrStandsAdminPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 printable-batch-grid">
             {tables.map((tbl) => {
               const qrUrl = batchQrs[tbl.label] || qrCodeDataUrl;
               return (
                 <div
                   key={tbl.id}
-                  className="bg-gradient-to-b from-[#0B1120] via-[#111C38] to-[#0B1120] text-white rounded-3xl p-5 shadow-lg border-2 border-[#3B82F6]/40 text-center space-y-3 page-break-inside-avoid"
+                  className={`rounded-3xl p-5 shadow-lg border-2 text-center space-y-3 transition-all ${
+                    printTheme === 'dark'
+                      ? 'bg-gradient-to-b from-[#0B1120] via-[#111C38] to-[#0B1120] text-white border-[#3B82F6]/40'
+                      : 'bg-white text-slate-900 border-slate-300'
+                  }`}
                 >
                   <div className="flex flex-col items-center justify-center space-y-0.5">
                     <OrdrivaLogo variant="mark" size={32} />
-                    <span className="font-serif font-black tracking-widest text-base text-amber-200">
+                    <span
+                      className={`font-serif font-black tracking-widest text-base ${
+                        printTheme === 'dark' ? 'text-amber-200' : 'text-slate-900'
+                      }`}
+                    >
                       ORDRIVA
                     </span>
-                    <span className="text-[9px] uppercase tracking-wider text-slate-300 font-semibold">
+                    <span
+                      className={`text-[9px] uppercase tracking-wider font-semibold ${
+                        printTheme === 'dark' ? 'text-slate-300' : 'text-slate-500'
+                      }`}
+                    >
                       {currentBranch.name}
                     </span>
                   </div>
@@ -360,14 +766,19 @@ export default function TableQrStandsAdminPage() {
                     TABLE {tbl.label}
                   </div>
 
-                  <div className="p-2.5 bg-white rounded-2xl shadow-inner inline-block my-1 border-2 border-white">
+                  <div
+                    className={`p-2.5 rounded-2xl inline-block my-1 border-2 ${
+                      printTheme === 'dark' ? 'bg-white border-white shadow-inner' : 'bg-white border-slate-200'
+                    }`}
+                  >
                     {qrUrl ? (
-                      <Image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={qrUrl}
                         alt={`Table ${tbl.label} QR`}
                         width={160}
                         height={160}
-                        className="rounded-lg"
+                        className="rounded-lg mx-auto block"
                       />
                     ) : (
                       <div className="w-40 h-40 bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
@@ -377,15 +788,29 @@ export default function TableQrStandsAdminPage() {
                   </div>
 
                   <div className="space-y-0.5">
-                    <h5 className="font-black text-xs tracking-wide text-white">
+                    <h5
+                      className={`font-black text-xs tracking-wide ${
+                        printTheme === 'dark' ? 'text-white' : 'text-slate-900'
+                      }`}
+                    >
                       SCAN WITH PHONE TO ORDER
                     </h5>
-                    <p className="text-[10px] text-slate-300 leading-tight">
+                    <p
+                      className={`text-[10px] leading-tight ${
+                        printTheme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+                      }`}
+                    >
                       Browse live menu, order food, and pay your bill
                     </p>
                   </div>
 
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-center space-x-2 text-[9px] text-[#60A5FA] font-bold">
+                  <div
+                    className={`pt-2 border-t flex items-center justify-center space-x-2 text-[9px] font-bold ${
+                      printTheme === 'dark'
+                        ? 'border-white/10 text-[#60A5FA]'
+                        : 'border-slate-200 text-[#1D4ED8]'
+                    }`}
+                  >
                     <span>⚡ Instant Dispatch</span>
                     <span>•</span>
                     <span>🛡️ Contactless</span>
@@ -396,26 +821,6 @@ export default function TableQrStandsAdminPage() {
           </div>
         </div>
       )}
-
-      {/* Print Styles */}
-      <style jsx global>{`
-        @media print {
-          body {
-            background: white !important;
-          }
-          header,
-          aside,
-          nav,
-          .print\\:hidden {
-            display: none !important;
-          }
-          #printable-table-stand {
-            box-shadow: none !important;
-            margin: 0 auto !important;
-            page-break-inside: avoid !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

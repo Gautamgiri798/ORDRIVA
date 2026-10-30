@@ -84,10 +84,10 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col justify-between shrink-0 h-[calc(100vh-4rem)]">
+    <aside className="w-64 bg-white border-r border-slate-200/90 hidden md:flex flex-col justify-between shrink-0 h-full overflow-hidden print:hidden select-none">
       {/* Navigation Links */}
-      <div className="p-3 space-y-1 overflow-y-auto">
-        <div className="px-3 py-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+      <div className="p-3 space-y-1 overflow-y-auto flex-1 min-h-0">
+        <div className="px-3 py-2 text-[10px] font-black tracking-widest text-slate-400 uppercase">
           Restaurant Modules
         </div>
         {navItems.map((item) => {
@@ -98,32 +98,42 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 isActive
-                  ? 'bg-blue-50 text-[#3B82F6] border-l-4 border-[#3B82F6] font-semibold'
+                  ? 'bg-blue-50/90 text-[#1D4ED8] shadow-xs'
                   : item.highlight
-                  ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                  ? 'text-slate-800 hover:bg-slate-50 hover:text-slate-950'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
+              {isActive && (
+                <span className="absolute left-0 top-2 bottom-2 w-1 bg-[#3B82F6] rounded-r-full" />
+              )}
+
               <div className="flex items-center space-x-3">
                 <Icon
-                  className={`w-5 h-5 ${
-                    isActive ? 'text-[#3B82F6]' : item.highlight ? 'text-[#60A5FA]' : 'text-slate-400'
+                  className={`w-4 h-4 transition-colors ${
+                    isActive
+                      ? 'text-[#3B82F6]'
+                      : item.highlight
+                      ? 'text-[#60A5FA] group-hover:text-[#3B82F6]'
+                      : 'text-slate-400 group-hover:text-slate-600'
                   }`}
                 />
-                <span>{item.label}</span>
+                <span className="tracking-tight">{item.label}</span>
               </div>
 
               {item.badge && (
-                <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-100 text-[#A78BFA] border border-purple-200/50">
+                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100/70 text-[#1D4ED8] border border-blue-200/60">
                   {item.badge}
                 </span>
               )}
 
               {item.count !== undefined && (
                 <span
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${item.countColor || 'bg-slate-200 text-slate-700'}`}
+                  className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    item.countColor || 'bg-slate-100 text-slate-700'
+                  }`}
                 >
                   {item.count}
                 </span>
@@ -134,13 +144,16 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Info / System Status */}
-      <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>Engine: <strong className="text-[#3B82F6]">Modular Monolith</strong></span>
-          <span className="font-extrabold text-[11px] px-2 py-0.5 rounded bg-purple-50 text-[#A78BFA] border border-purple-200/50">v1.0 MVP</span>
+      <div className="p-3.5 mx-3 mb-8 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1 shrink-0">
+        <div className="flex items-center justify-between text-[11px]">
+          <span className="font-bold text-slate-700">ORDRIVA POS</span>
+          <span className="font-extrabold text-[9px] uppercase px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-700 border border-purple-200/60">
+            v1.0 MVP
+          </span>
         </div>
-        <div className="mt-1 text-[11px] text-slate-400">
-          GST Ready (CGST + SGST) • POS 2.0
+        <div className="text-[10px] text-slate-400 flex items-center justify-between">
+          <span>Engine: <strong className="text-slate-600">Modular Monolith</strong></span>
+          <span className="text-emerald-600 font-bold">● Active</span>
         </div>
       </div>
     </aside>

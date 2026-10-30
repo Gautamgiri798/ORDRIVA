@@ -100,6 +100,7 @@ function ClientOrderContent() {
   const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
   const [tempMods, setTempMods] = useState<SelectedModifier[]>([]);
   const [tempNotes, setTempNotes] = useState<string>('');
+  const [tempQty, setTempQty] = useState<number>(1);
 
   // Active Placed Order (Live Tracking Banner)
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
@@ -254,10 +255,18 @@ function ClientOrderContent() {
 
   const totals = calculateTotals();
 
+  // Helper to query quantity of an item currently in client cart
+  const getItemCartQuantity = (itemId: string) => {
+    return clientCart
+      .filter((ci) => ci.menuItem.id === itemId)
+      .reduce((sum, ci) => sum + ci.quantity, 0);
+  };
+
   // Add Item to Cart
   const handleItemClick = (item: MenuItem) => {
     if (item.modifierGroups && item.modifierGroups.length > 0) {
       setCustomizingItem(item);
+      setTempQty(1);
       const defaults: SelectedModifier[] = [];
       item.modifierGroups.forEach((grp) => {
         if (grp.required && grp.options.length > 0) {
@@ -273,6 +282,23 @@ function ClientOrderContent() {
     } else {
       addDirectToCart(item, 1, [], '');
     }
+  };
+
+  const handleQuickRemove = (itemId: string) => {
+    setClientCart((prev) => {
+      const idx = prev.map((ci) => ci.menuItem.id).lastIndexOf(itemId);
+      if (idx === -1) return prev;
+
+      const next = [...prev];
+      if (next[idx].quantity > 1) {
+        next[idx] = {
+          ...next[idx],
+          quantity: next[idx].quantity - 1,
+        };
+        return next;
+      }
+      return next.filter((_, i) => i !== idx);
+    });
   };
 
   const addDirectToCart = (
@@ -313,10 +339,11 @@ function ClientOrderContent() {
 
   const confirmCustomization = () => {
     if (!customizingItem) return;
-    addDirectToCart(customizingItem, 1, tempMods, tempNotes);
+    addDirectToCart(customizingItem, tempQty, tempMods, tempNotes);
     setCustomizingItem(null);
     setTempMods([]);
     setTempNotes('');
+    setTempQty(1);
   };
 
   const updateCartQty = (idx: number, delta: number) => {
@@ -1229,13 +1256,38 @@ ${line}`;
                         </span>
                       </div>
 
-                      <button
-                        onClick={() => handleItemClick(item)}
-                        className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-[#3B82F6] text-[#1D4ED8] hover:text-white font-extrabold text-xs flex items-center space-x-1.5 transition-all shadow-xs active:scale-95 border border-blue-200 hover:border-transparent"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Add to Order</span>
-                      </button>
+                      {/* Interactive Add / Multiple Quantity Controls */}
+                      {getItemCartQuantity(item.id) > 0 ? (
+                        <div className="flex items-center space-x-1.5 bg-blue-50 border border-blue-200 rounded-xl p-1 shadow-xs">
+                          <button
+                            onClick={() => handleQuickRemove(item.id)}
+                            className="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center font-bold shadow-xs active:scale-95 transition-all"
+                            aria-label={`Decrease ${item.name}`}
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+
+                          <span className="font-black text-xs text-[#1D4ED8] px-2 tabular-nums">
+                            {getItemCartQuantity(item.id)}
+                          </span>
+
+                          <button
+                            onClick={() => handleItemClick(item)}
+                            className="w-7 h-7 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white flex items-center justify-center font-bold shadow-xs active:scale-95 transition-all"
+                            aria-label={`Add more ${item.name}`}
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleItemClick(item)}
+                          className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-[#3B82F6] text-[#1D4ED8] hover:text-white font-extrabold text-xs flex items-center space-x-1.5 transition-all shadow-xs active:scale-95 border border-blue-200 hover:border-transparent"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add to Order</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2054,6 +2106,38 @@ ${line}`;
                 </div>
               ))}
 
+              {/* Quantity Selector: Customer can add multiple items at once */}
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div>
+                  <span className="font-extrabold text-xs text-slate-900 block">
+                    Quantity
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    How many items of this dish would you like?
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2.5 bg-white border border-slate-300 rounded-xl p-1 shadow-xs">
+                  <button
+                    onClick={() => setTempQty(Math.max(1, tempQty - 1))}
+                    disabled={tempQty <= 1}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors font-bold"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="font-black text-sm text-slate-900 w-6 text-center tabular-nums">
+                    {tempQty}
+                  </span>
+                  <button
+                    onClick={() => setTempQty(tempQty + 1)}
+                    className="w-8 h-8 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white flex items-center justify-center font-bold shadow-xs transition-colors"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-1 text-xs">
                 <label className="font-bold text-slate-800">Special Cooking Instructions for Chef</label>
                 <input
@@ -2066,19 +2150,37 @@ ${line}`;
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
-              <button
-                onClick={() => setCustomizingItem(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmCustomization}
-                className="px-5 py-2.5 rounded-xl text-xs font-extrabold bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow"
-              >
-                Add to Cart
-              </button>
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                  Total for {tempQty} {tempQty === 1 ? 'item' : 'items'}
+                </span>
+                <span className="font-black text-base text-slate-900 tabular-nums">
+                  {formatCurrency(
+                    ((customizingItem.price || 0) +
+                      tempMods.reduce((s, m) => s + m.priceDelta, 0)) *
+                      tempQty
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCustomizingItem(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmCustomization}
+                  className="px-5 py-2.5 rounded-xl text-xs font-black bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow flex items-center space-x-1.5 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>
+                    Add {tempQty > 1 ? `${tempQty} to Cart` : 'to Cart'}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

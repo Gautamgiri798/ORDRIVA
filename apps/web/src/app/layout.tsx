@@ -19,12 +19,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col antialiased" suppressHydrationWarning>
+      <body className="h-screen overflow-hidden bg-[#F8FAFC] text-[#0F172A] flex flex-col antialiased print:h-auto print:min-h-0 print:overflow-visible print:bg-white print:block" suppressHydrationWarning>
         <PosStoreProvider>
           <Navbar />
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden min-h-0 print:block print:overflow-visible">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto min-h-0 bg-[#F8FAFC]">
+            <main className="flex-1 overflow-y-auto min-h-0 bg-[#F8FAFC] print:block print:overflow-visible print:bg-white print:p-0 print:m-0">
               {children}
             </main>
           </div>
