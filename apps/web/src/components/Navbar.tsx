@@ -198,7 +198,7 @@ export function Navbar() {
       icon: QrCode,
       badge: 'Print',
     },
-    { label: 'Orders & Bills', href: '/orders', icon: Receipt },
+    { label: 'Orders & Bills', href: '/orders', icon: Receipt, badge: 'Print' },
     { label: 'Menu Catalog', href: '/menu', icon: UtensilsCrossed },
     {
       label: 'Inventory & Stock',

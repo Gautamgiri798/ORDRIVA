@@ -761,6 +761,7 @@ const PosStoreContext = createContext<PosStoreContextType | null>(null);
 export function PosStoreProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[0]); // Locked to Admin (Vikram Malhotra)
   const [currentBranch, setCurrentBranch] = useState<Branch>(INITIAL_BRANCHES[0]);
+  const [availableBranches, setAvailableBranches] = useState<Branch[]>(INITIAL_BRANCHES);
   const [categories, setCategories] = useState<MenuCategory[]>(INITIAL_CATEGORIES);
   const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
   const [tables, setTables] = useState<DiningTable[]>(INITIAL_TABLES);
@@ -789,6 +790,28 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+  }, []);
+
+  // Restore Branch & Tax Settings from LocalStorage
+  useEffect(() => {
+    try {
+      const savedBranches = localStorage.getItem('ordriva_available_branches');
+      const savedCurrentBranch = localStorage.getItem('ordriva_current_branch');
+      if (savedBranches) {
+        const parsed = JSON.parse(savedBranches);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAvailableBranches(parsed);
+        }
+      }
+      if (savedCurrentBranch) {
+        const parsedCurrent = JSON.parse(savedCurrentBranch);
+        if (parsedCurrent && parsedCurrent.taxRates) {
+          setCurrentBranch(parsedCurrent);
+        }
+      }
+    } catch {
+      // Ignored
+    }
   }, []);
 
   // Save cart to LocalStorage for offline resilience
@@ -1287,11 +1310,32 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateBranchTaxSettings = (cgst: number, sgst: number, serviceCharge: number) => {
-    setCurrentBranch((prev) => ({
-      ...prev,
-      taxRates: { cgst, sgst, serviceCharge },
-    }));
+    const updatedRates = { cgst, sgst, serviceCharge };
+
+    setCurrentBranch((prev) => {
+      const next = { ...prev, taxRates: updatedRates };
+      try {
+        localStorage.setItem('ordriva_current_branch', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    setAvailableBranches((prev) => {
+      const next = prev.map((b) => (b.id === currentBranch.id ? { ...b, taxRates: updatedRates } : b));
+      try {
+        localStorage.setItem('ordriva_available_branches', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
     addAuditEvent('TAX_SETTINGS_UPDATED', 'BRANCH', currentBranch.id, { cgst, sgst, serviceCharge });
+  };
+
+  const handleSetCurrentBranch = (b: Branch) => {
+    setCurrentBranch(b);
+    try {
+      localStorage.setItem('ordriva_current_branch', JSON.stringify(b));
+    } catch {}
   };
 
   return (
@@ -1301,8 +1345,8 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser,
         availableUsers: [INITIAL_USERS[0]], // Admin only
         currentBranch,
-        setCurrentBranch,
-        availableBranches: INITIAL_BRANCHES,
+        setCurrentBranch: handleSetCurrentBranch,
+        availableBranches,
         categories,
         menuItems,
         tables,

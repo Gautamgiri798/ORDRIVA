@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePosStore } from '@/lib/store';
 import { formatCurrency, formatTime } from '@/lib/utils';
+import { print80mmReceipt, printA4TaxInvoice } from '@/lib/receiptPrinter';
 import { Order, PaymentMethod } from '@/types';
 import {
   DollarSign,
@@ -17,6 +18,7 @@ import {
   Sparkles,
   Receipt,
   Printer,
+  FileText,
   Search,
   Filter,
   CheckCircle,
@@ -244,6 +246,8 @@ export default function AdminDashboardPage() {
 
   // Instant 80mm Isolated Bill Printing
   const executePrintBill = (order: Order) => {
+    print80mmReceipt(order, currentBranch, currentUser.name);
+    return;
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -1114,7 +1118,15 @@ export default function AdminDashboardPage() {
                 className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-sm transition-all active:scale-95"
               >
                 <Printer className="w-4 h-4 text-blue-400" />
-                <span>Print 80mm Bill</span>
+                <span>80mm Slip</span>
+              </button>
+
+              <button
+                onClick={() => printA4TaxInvoice(viewingOrder, currentBranch, currentUser.name)}
+                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-sm transition-all active:scale-95"
+              >
+                <FileText className="w-4 h-4 text-white" />
+                <span>A4 Invoice</span>
               </button>
 
               {viewingOrder.paymentStatus === 'pending' && (
