@@ -256,27 +256,29 @@ export function Navbar() {
 
       {/* Right Controls: Staff Switcher & Quick Actions */}
       <div className="flex items-center space-x-2.5">
-        {/* Live Kitchen Badge shortcut */}
+        {/* Live Kitchen KDS Shortcut (Issue 12) */}
         <Link
           href="/kitchen"
-          className="relative p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white transition-all border border-slate-700/60"
+          className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white text-xs font-bold border border-slate-700/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          aria-label={`Kitchen Display System, ${pendingTickets.length} pending tickets`}
           title="Kitchen Display System (KDS)"
         >
-          <ChefHat className="w-4 h-4 text-[#A78BFA]" />
+          <ChefHat className="w-4 h-4 text-[#A78BFA]" aria-hidden="true" />
+          <span className="hidden md:inline">Kitchen KDS</span>
           {pendingTickets.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-sm">
+            <span className="bg-amber-500 text-slate-950 text-[10px] px-1.5 py-0.2 rounded-full font-black">
               {pendingTickets.length}
             </span>
           )}
         </Link>
 
-        {/* Quick POS Terminal Button */}
+        {/* Quick POS Terminal Button (Issues 3 & 4) */}
         <Link
           href="/pos"
-          className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white text-xs font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.35)] transition-all transform active:scale-95"
+          className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white text-xs font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.35)] transition-all transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
-          <ShoppingBag className="w-4 h-4" />
-          <span className="hidden md:inline">Open POS</span>
+          <ShoppingBag className="w-4 h-4" aria-hidden="true" />
+          <span className="hidden md:inline">Launch POS</span>
           {cart.length > 0 && (
             <span className="bg-white text-[#1D4ED8] text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1 shadow-xs">
               {cart.reduce((s, c) => s + c.quantity, 0)}

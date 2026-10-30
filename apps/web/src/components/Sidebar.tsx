@@ -54,14 +54,14 @@ export function Sidebar() {
       href: '/kitchen',
       icon: ChefHat,
       count: pendingTicketsCount > 0 ? pendingTicketsCount : undefined,
-      countColor: 'bg-amber-500 text-slate-900',
+      countColor: 'bg-amber-50 text-amber-800 border-amber-200',
     },
     {
       label: 'Floor & Tables',
       href: '/tables',
       icon: Grid,
       count: occupiedTablesCount > 0 ? `${occupiedTablesCount}/${tables.length}` : undefined,
-      countColor: 'bg-blue-100 text-[#3B82F6]',
+      countColor: 'bg-blue-50 text-blue-700 border-blue-200/80',
     },
     {
       label: 'Table QR Stands',
@@ -76,7 +76,7 @@ export function Sidebar() {
       href: '/inventory',
       icon: Boxes,
       count: lowStockCount > 0 ? lowStockCount : undefined,
-      countColor: 'bg-rose-500 text-white animate-pulse',
+      countColor: 'bg-rose-50 text-rose-700 border-rose-200',
     },
     { label: 'Analytics & GST', href: '/reports', icon: BarChart3 },
     { label: 'Audit Trail', href: '/audit', icon: ShieldCheck },
@@ -124,15 +124,15 @@ export function Sidebar() {
               </div>
 
               {item.badge && (
-                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100/70 text-[#1D4ED8] border border-blue-200/60">
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                   {item.badge}
                 </span>
               )}
 
               {item.count !== undefined && (
                 <span
-                  className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                    item.countColor || 'bg-slate-100 text-slate-700'
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    item.countColor || 'bg-slate-100 text-slate-700 border-slate-200'
                   }`}
                 >
                   {item.count}
