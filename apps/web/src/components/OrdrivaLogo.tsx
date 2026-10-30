@@ -118,10 +118,13 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 40 }: Log
   const horizontalWidth = Math.round(size * 4.4);
 
   return (
-    <div className={`flex items-center shrink-0 select-none ${className}`}>
+    <div
+      className={`flex items-center shrink-0 select-none ${className}`}
+      style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+    >
       <div
         className="relative shrink-0 flex items-center"
-        style={{ height: size, width: horizontalWidth }}
+        style={{ height: size, width: horizontalWidth, position: 'relative', display: 'flex', alignItems: 'center' }}
       >
         <Image
           src="/ordriva-logo.svg"
@@ -129,6 +132,7 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 40 }: Log
           width={horizontalWidth}
           height={size}
           className="h-full w-auto object-contain filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+          style={{ height: `${size}px`, width: 'auto', maxWidth: `${horizontalWidth}px` }}
           priority
         />
       </div>

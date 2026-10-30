@@ -79,8 +79,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Subtle Decorative Logo Watermark (Issue 11) */}
-        <div className="absolute right-2 -bottom-8 opacity-5 pointer-events-none w-64 h-32 select-none" aria-hidden="true">
-          <Image src="/ordriva-logo.svg" alt="" fill className="object-contain" priority />
+        <div
+          className="absolute right-2 -bottom-8 opacity-5 pointer-events-none select-none overflow-hidden"
+          style={{ position: 'absolute', right: '8px', bottom: '-32px', width: '256px', height: '128px', opacity: 0.05, pointerEvents: 'none' }}
+          aria-hidden="true"
+        >
+          <Image src="/ordriva-logo.svg" alt="" width={256} height={128} className="object-contain" priority />
         </div>
       </div>
 
