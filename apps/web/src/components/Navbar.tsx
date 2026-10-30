@@ -124,7 +124,7 @@ export function Navbar() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const isCustomerPage = pathname?.startsWith('/order');
+  const isCustomerPage = pathname === '/order' || pathname?.startsWith('/order/');
 
   // Customer Dine-In Header
   if (isCustomerPage) {

@@ -271,11 +271,27 @@ export default function TablesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {filteredTables.map((table) => {
           const activeOrder = orders.find((o) => o.id === table.activeOrderId);
-          const isCircle = table.capacity <= 2;
-          const isBanquet = table.capacity >= 8;
+          const cap = Math.max(1, table.capacity || 2);
+          const isCircle = cap <= 2;
+          const isBanquet = cap >= 8;
           const isOccupied = table.status === 'occupied';
           const isBilled = table.status === 'billed';
           const isReserved = table.status === 'reserved';
+
+          // Dynamic exact chair allocation for any N guests
+          const topChairsCount = isCircle ? 1 : Math.ceil(cap / 2);
+          const bottomChairsCount = isCircle ? Math.max(0, cap - 1) : Math.floor(cap / 2);
+
+          // Proportional architectural surface dimensions based on person count
+          const getTableDimensions = (capacity: number) => {
+            if (capacity <= 2) return 'w-16 h-16 rounded-full border-2';
+            if (capacity <= 4) return 'w-24 h-14 rounded-2xl border-2';
+            if (capacity <= 6) return 'w-32 h-14 rounded-2xl border-2';
+            if (capacity <= 8) return 'w-40 h-14 rounded-2xl border-2';
+            if (capacity <= 10) return 'w-48 h-14 rounded-2xl border-2';
+            if (capacity <= 12) return 'w-56 h-14 rounded-2xl border-2';
+            return 'w-64 h-14 rounded-2xl border-2';
+          };
 
           return (
             <div
@@ -334,8 +350,8 @@ export default function TablesPage() {
                 <div className="py-2 flex items-center justify-center">
                   <div className="relative flex items-center justify-center">
                     {/* Top Chairs Row */}
-                    <div className="absolute -top-2 flex space-x-2 z-0">
-                      {Array.from({ length: isCircle ? 1 : isBanquet ? 4 : 2 }).map((_, i) => (
+                    <div className="absolute -top-2 inset-x-0 flex items-center justify-center space-x-2 z-0 pointer-events-none">
+                      {Array.from({ length: topChairsCount }).map((_, i) => (
                         <div
                           key={`top-${i}`}
                           className={`w-4 h-2 rounded-t-md transition-all ${
@@ -353,13 +369,9 @@ export default function TablesPage() {
 
                     {/* Table Surface */}
                     <div
-                      className={`relative z-10 flex flex-col items-center justify-center transition-all ${
-                        isCircle
-                          ? 'w-16 h-16 rounded-full border-2'
-                          : isBanquet
-                          ? 'w-32 h-14 rounded-2xl border-2'
-                          : 'w-24 h-14 rounded-2xl border-2'
-                      } ${
+                      className={`relative z-10 flex flex-col items-center justify-center transition-all ${getTableDimensions(
+                        table.capacity
+                      )} ${
                         isOccupied
                           ? 'bg-gradient-to-b from-amber-50 to-amber-100/90 border-amber-300 text-amber-900 shadow-sm'
                           : isBilled
@@ -379,8 +391,8 @@ export default function TablesPage() {
                     </div>
 
                     {/* Bottom Chairs Row */}
-                    <div className="absolute -bottom-2 flex space-x-2 z-0">
-                      {Array.from({ length: isCircle ? 1 : isBanquet ? 4 : 2 }).map((_, i) => (
+                    <div className="absolute -bottom-2 inset-x-0 flex items-center justify-center space-x-2 z-0 pointer-events-none">
+                      {Array.from({ length: bottomChairsCount }).map((_, i) => (
                         <div
                           key={`bottom-${i}`}
                           className={`w-4 h-2 rounded-b-md transition-all ${

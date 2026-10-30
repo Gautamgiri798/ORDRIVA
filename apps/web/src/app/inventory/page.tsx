@@ -36,6 +36,31 @@ export default function InventoryPage() {
 
   const categories = Array.from(new Set(inventory.map((i) => i.category)));
 
+  const getCategoryBadgeStyle = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'dry goods':
+        return 'bg-amber-50 text-amber-800 border-amber-200/80';
+      case 'dairy':
+        return 'bg-blue-50 text-blue-800 border-blue-200/80';
+      case 'canned goods':
+        return 'bg-indigo-50 text-indigo-800 border-indigo-200/80';
+      case 'oils':
+        return 'bg-yellow-50 text-yellow-800 border-yellow-200/80';
+      case 'produce':
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
+      case 'meat':
+        return 'bg-rose-50 text-rose-800 border-rose-200/80';
+      case 'seafood':
+        return 'bg-cyan-50 text-cyan-800 border-cyan-200/80';
+      case 'bakery':
+        return 'bg-orange-50 text-orange-800 border-orange-200/80';
+      case 'beverage':
+        return 'bg-purple-50 text-purple-800 border-purple-200/80';
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200/80';
+    }
+  };
+
   // Analytics Metrics
   const totalItems = inventory.length;
   const lowStockItems = inventory.filter((i) => i.currentStock <= i.minReorderLevel);
@@ -335,15 +360,15 @@ export default function InventoryPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80 border-b border-slate-200">
-                <th className="py-3.5 px-5">Ingredient / Raw Material</th>
-                <th className="py-3.5 px-4">Category</th>
-                <th className="py-3.5 px-4">Stock Level &amp; Health</th>
-                <th className="py-3.5 px-4">Current Stock</th>
-                <th className="py-3.5 px-4">Reorder Min</th>
-                <th className="py-3.5 px-4">Unit Cost</th>
-                <th className="py-3.5 px-4">Stock Value</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-5 text-right">Quick Action</th>
+                <th className="py-3.5 px-5 whitespace-nowrap">Ingredient / Raw Material</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
+                <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Stock Level &amp; Health</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Current Stock</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Reorder Min</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Unit Cost</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Stock Value</th>
+                <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3.5 px-5 text-right whitespace-nowrap">Quick Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -355,10 +380,10 @@ export default function InventoryPage() {
                 return (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
                     {/* Item Name */}
-                    <td className="py-4 px-5">
+                    <td className="py-4 px-5 whitespace-nowrap">
                       <div className="flex items-center space-x-3">
                         <div
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs ${
                             isLow
                               ? 'bg-rose-50 text-rose-600 border border-rose-200'
                               : 'bg-blue-50 text-blue-600 border border-blue-100'
@@ -378,17 +403,17 @@ export default function InventoryPage() {
                     </td>
 
                     {/* Category */}
-                    <td className="py-4 px-4">
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200/60">
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border inline-flex items-center whitespace-nowrap shadow-2xs ${getCategoryBadgeStyle(item.category)}`}>
                         {item.category}
                       </span>
                     </td>
 
                     {/* Stock Level Gauge */}
-                    <td className="py-4 px-4 min-w-[140px]">
+                    <td className="py-4 px-4 min-w-[160px] whitespace-nowrap">
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-[10px] font-semibold">
-                          <span className={isLow ? 'text-rose-600 font-bold' : 'text-slate-500'}>
+                          <span className={isLow ? 'text-rose-600 font-bold' : 'text-slate-600 font-medium'}>
                             {isLow ? 'Restock Required' : 'Adequate Supply'}
                           </span>
                           <span className="text-slate-400 tabular-nums">{ratio}%</span>
@@ -405,31 +430,31 @@ export default function InventoryPage() {
                     </td>
 
                     {/* Current Stock */}
-                    <td className="py-4 px-4 font-black text-slate-900 tabular-nums">
+                    <td className="py-4 px-4 font-black text-slate-900 tabular-nums whitespace-nowrap">
                       <span className="text-sm">{item.currentStock}</span>{' '}
                       <span className="text-xs font-semibold text-slate-500">{item.unit}</span>
                     </td>
 
                     {/* Reorder Min */}
-                    <td className="py-4 px-4 text-xs font-medium text-slate-500 tabular-nums">
+                    <td className="py-4 px-4 text-xs font-medium text-slate-500 tabular-nums whitespace-nowrap">
                       {item.minReorderLevel} {item.unit}
                     </td>
 
                     {/* Cost / Unit */}
-                    <td className="py-4 px-4 text-xs font-bold text-slate-700 tabular-nums">
+                    <td className="py-4 px-4 text-xs font-bold text-slate-700 tabular-nums whitespace-nowrap">
                       {formatCurrency(item.costPerUnit)}{' '}
                       <span className="text-[10px] text-slate-400 font-normal">/{item.unit}</span>
                     </td>
 
                     {/* Total Stock Value */}
-                    <td className="py-4 px-4 font-black text-blue-700 tabular-nums text-xs">
+                    <td className="py-4 px-4 font-black text-blue-700 tabular-nums text-xs whitespace-nowrap">
                       {formatCurrency(stockValuation)}
                     </td>
 
                     {/* Status Pill */}
-                    <td className="py-4 px-4">
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <span
-                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center space-x-1.5 ${
+                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center space-x-1.5 whitespace-nowrap ${
                           isLow
                             ? 'bg-rose-50 text-rose-700 border-rose-200 animate-pulse'
                             : 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -445,7 +470,7 @@ export default function InventoryPage() {
                     </td>
 
                     {/* Quick Action Button */}
-                    <td className="py-4 px-5 text-right">
+                    <td className="py-4 px-5 text-right whitespace-nowrap">
                       <button
                         onClick={() => {
                           setAdjustModalItem(item);

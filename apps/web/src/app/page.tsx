@@ -247,111 +247,6 @@ export default function AdminDashboardPage() {
   // Instant 80mm Isolated Bill Printing
   const executePrintBill = (order: Order) => {
     print80mmReceipt(order, currentBranch, currentUser.name);
-    return;
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentWindow?.document;
-    if (!doc) {
-      window.print();
-      return;
-    }
-
-    const itemsHtml = order.items
-      .map(
-        (it) => `
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;">
-        <div>
-          <span style="font-weight:bold;">${it.quantity}x</span> ${it.name}
-          ${it.modifiers && it.modifiers.length > 0 ? `<div style="font-size:9.5px;color:#555;">+ ${it.modifiers.map((m) => m.name).join(', ')}</div>` : ''}
-        </div>
-        <div style="font-weight:bold;text-align:right;">₹${it.itemTotal.toFixed(2)}</div>
-      </div>
-    `
-      )
-      .join('');
-
-    doc.open();
-    doc.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>Tax Invoice #${order.orderNumber} - ${currentBranch.name}</title>
-          <style>
-            @page { size: 80mm auto; margin: 4mm; }
-            * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Courier New", monospace; color: #000; }
-            body { margin: 0; padding: 4px; font-size: 11px; }
-            .header { text-align: center; border-bottom: 1.5px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-            .brand { font-size: 17px; font-weight: 900; letter-spacing: 0.15em; font-family: Georgia, serif; }
-            .sub { font-size: 9.5px; margin-top: 2px; }
-            .meta { border-bottom: 1px dashed #000; padding-bottom: 6px; margin-bottom: 6px; font-size: 10px; }
-            .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
-            .items { border-bottom: 1.5px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
-            .totals { font-size: 11px; }
-            .grand-row { display: flex; justify-content: space-between; font-size: 14px; font-weight: 900; border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; padding: 5px 0; margin-top: 5px; }
-            .footer { text-align: center; margin-top: 10px; font-size: 9px; border-top: 1px dashed #000; padding-top: 6px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="brand">ORDRIVA</div>
-            <div class="sub" style="font-weight:bold;">${currentBranch.name}</div>
-            <div class="sub">${currentBranch.address}</div>
-            <div class="sub">GSTIN: ${currentBranch.gstin}</div>
-            <div class="sub">Phone: ${currentBranch.phone}</div>
-          </div>
-          <div class="meta">
-            <div class="row">
-              <span><strong>Tax Invoice #${order.orderNumber}</strong></span>
-              <span>${order.tableLabel ? `Table: ${order.tableLabel}` : order.orderType.toUpperCase()}</span>
-            </div>
-            <div class="row">
-              <span>Date: ${new Date(order.createdAt).toLocaleDateString()}</span>
-              <span>Time: ${new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-            <div class="row">
-              <span>Staff: ${order.createdByName || 'Rahul Verma'}</span>
-              <span>Guest: ${order.customerName || 'Dine-In Guest'}</span>
-            </div>
-          </div>
-          <div class="items">
-            ${itemsHtml}
-          </div>
-          <div class="totals">
-            <div class="row"><span>Item Subtotal:</span><span>₹${order.subtotal.toFixed(2)}</span></div>
-            ${order.discountTotal > 0 ? `<div class="row" style="color:#d00;"><span>Special Discount:</span><span>-₹${order.discountTotal.toFixed(2)}</span></div>` : ''}
-            <div class="row"><span>CGST (2.5%):</span><span>₹${order.cgst.toFixed(2)}</span></div>
-            <div class="row"><span>SGST (2.5%):</span><span>₹${order.sgst.toFixed(2)}</span></div>
-            ${order.serviceChargeTotal > 0 ? `<div class="row"><span>Service Charge (5%):</span><span>₹${order.serviceChargeTotal.toFixed(2)}</span></div>` : ''}
-            <div class="grand-row">
-              <span>NET PAYABLE:</span>
-              <span>₹${order.grandTotal.toFixed(2)}</span>
-            </div>
-          </div>
-          <div class="footer">
-            <div style="font-weight:bold;">Payment: ${order.paymentStatus === 'succeeded' ? `SETTLED VIA ${order.paymentMethod?.toUpperCase() || 'CASH'}` : 'UNPAID / RUNNING TAB'}</div>
-            <div style="margin-top:3px;">Thank you for dining with us!</div>
-            <div style="margin-top:2px;color:#666;">Powered by ORDRIVA Restaurant OS</div>
-          </div>
-        </body>
-      </html>
-    `);
-    doc.close();
-
-    setTimeout(() => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-      setTimeout(() => {
-        iframe.remove();
-      }, 2000);
-    }, 250);
   };
 
   // Settle Bill Submit Handler
@@ -596,95 +491,278 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* 2B. DAY-BY-DAY REVENUE BAR CHART */}
-        <div className="p-5 rounded-3xl bg-slate-50/80 border border-slate-200/80 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        {/* 2B. LUXURY DAY-BY-DAY REVENUE PROGRESSION CANVAS */}
+        <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-b from-white via-slate-50/50 to-slate-50/90 border border-slate-200/90 shadow-sm space-y-6">
+          {/* Header & Meta Ribbon */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
             <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-black text-slate-900 tracking-tight">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center border border-blue-600/20 shadow-xs">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-black text-slate-900 tracking-tight">
                   Day-by-Day Revenue Progression
                 </h3>
+                <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs">
+                  {rangeConfig.label}
+                </span>
                 {peakDay && (
-                  <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                    <Flame className="w-3 h-3 text-amber-600" />
-                    <span>Peak Day: {peakDay.displayDate} ({formatCurrency(peakDay.grossRevenue)})</span>
+                  <span className="inline-flex items-center space-x-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 shadow-xs">
+                    <Flame className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+                    <span>Peak Day: <strong className="font-black">{peakDay.displayDate}</strong> ({formatCurrency(peakDay.grossRevenue)})</span>
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-500">
-                Visual sales curve across {dailyBreakdown.length} trading days. Hover or click a bar to inspect.
+              <p className="text-xs text-slate-500 mt-1">
+                Trading volume curve across {dailyBreakdown.length} days with Dual GST statutory tax pools. Hover or click a bar to inspect.
               </p>
             </div>
 
-            <div className="flex items-center space-x-3 text-[11px] text-slate-500">
-              <span className="flex items-center space-x-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-blue-600" />
-                <span>Sales Bar</span>
-              </span>
-              <span className="flex items-center space-x-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-amber-400" />
-                <span>Peak Volume</span>
-              </span>
+            {/* Quick KPI Run Rate & Legend */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="hidden sm:flex items-center space-x-3 px-3.5 py-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-xs">
+                <div className="text-right">
+                  <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">Daily Run Rate</span>
+                  <span className="font-black text-slate-900 tabular-nums">
+                    {formatCurrency(Math.round(periodTotals.totalRevenue / (dailyBreakdown.length || 1)))} / day
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 text-xs text-slate-600 px-3 py-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs font-semibold">
+                <span className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded-md bg-gradient-to-t from-blue-700 to-sky-400 shadow-xs shadow-blue-500/30" />
+                  <span>Standard Volume</span>
+                </span>
+                <span className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded-md bg-gradient-to-t from-amber-600 to-yellow-300 shadow-xs shadow-amber-500/30 ring-1 ring-amber-400" />
+                  <span>Peak Volume</span>
+                </span>
+                <span className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded-md bg-gradient-to-t from-indigo-700 to-cyan-400 shadow-xs ring-1 ring-blue-500" />
+                  <span>Today</span>
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Interactive CSS Bar Chart */}
-          <div className="pt-6 pb-2 px-2 overflow-x-auto">
-            <div className="flex items-end justify-between gap-2 sm:gap-3 min-w-[500px] h-48 border-b border-slate-200 pb-2">
-              {dailyBreakdown.map((day) => {
-                const heightPercent = Math.max(
-                  10,
-                  Math.round((day.grossRevenue / periodTotals.maxDailyRevenue) * 100)
-                );
-                const isSelected = selectedDayKey === day.key;
+          {/* Luxury Chart Canvas with Benchmark Grid & Slender Columns */}
+          <div className="pt-4 pb-2 px-1 overflow-x-auto">
+            <div className="relative min-w-[560px]">
+              {/* Benchmark Horizontal Guide Lines & Left Y-Axis */}
+              {(() => {
+                const maxVal = periodTotals.maxDailyRevenue || 10000;
+                const step = maxVal > 20000 ? 10000 : 5000;
+                const gridCeil = Math.ceil(maxVal / step) * step;
+                const gridLevels = [
+                  { label: `₹${Math.round(gridCeil / 1000)}k`, percent: 100 },
+                  { label: `₹${Math.round((gridCeil * 0.75) / 1000)}k`, percent: 75 },
+                  { label: `₹${Math.round((gridCeil * 0.5) / 1000)}k`, percent: 50 },
+                  { label: `₹${Math.round((gridCeil * 0.25) / 1000)}k`, percent: 25 },
+                ];
 
                 return (
-                  <div
-                    key={day.key}
-                    onClick={() => setSelectedDayKey(isSelected ? null : day.key)}
-                    className="flex-1 flex flex-col items-center group cursor-pointer relative"
-                  >
-                    {/* Tooltip on Hover */}
-                    <div className="absolute -top-12 z-20 hidden group-hover:flex flex-col items-center pointer-events-none whitespace-nowrap bg-slate-900 text-white text-[10px] px-2.5 py-1 rounded-xl shadow-lg font-bold">
-                      <span>{day.displayDate}: {formatCurrency(day.grossRevenue)}</span>
-                      <span className="text-[9px] text-slate-300 font-normal">{day.orderCount} orders • AOV {formatCurrency(day.aov)}</span>
+                  <div className="relative">
+                    {/* Background Grid Guide Lines */}
+                    <div className="absolute inset-0 left-12 bottom-12 pointer-events-none flex flex-col justify-between">
+                      {gridLevels.map((lvl, idx) => (
+                        <div key={idx} className="w-full border-b border-dashed border-slate-200/80 flex items-center">
+                          <span className="text-[9px] font-mono text-slate-300 ml-auto pr-1"></span>
+                        </div>
+                      ))}
+                      <div className="w-full border-b border-slate-300"></div>
                     </div>
 
-                    {/* Bar Value on top of tallest bars */}
-                    {day.grossRevenue > 0 && (
-                      <span className="text-[9px] font-bold text-slate-400 mb-1 tabular-nums hidden sm:block">
-                        {Math.round(day.grossRevenue / 1000)}k
-                      </span>
-                    )}
+                    {/* Chart Container: Left Y-Axis + Bars */}
+                    <div className="flex items-end">
+                      {/* Left Y-Axis Labels */}
+                      <div className="w-12 h-52 flex flex-col justify-between pb-12 pr-2 text-right shrink-0 select-none">
+                        {gridLevels.map((lvl, idx) => (
+                          <span key={idx} className="text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">
+                            {lvl.label}
+                          </span>
+                        ))}
+                        <span className="text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">₹0</span>
+                      </div>
 
-                    {/* Vertical Bar */}
-                    <div className="w-full max-w-[42px] h-32 bg-slate-200/60 rounded-xl flex items-end p-0.5">
-                      <div
-                        style={{ height: `${heightPercent}%` }}
-                        className={`w-full rounded-lg transition-all duration-300 ${
-                          day.isPeak
-                            ? 'bg-gradient-to-t from-amber-500 to-amber-300 shadow-sm shadow-amber-500/30 ring-2 ring-amber-400/40'
-                            : day.isToday
-                            ? 'bg-gradient-to-t from-blue-700 to-blue-500 ring-2 ring-blue-500/50 shadow-sm'
-                            : 'bg-gradient-to-t from-blue-600 to-blue-400 group-hover:from-blue-700 group-hover:to-blue-500'
-                        } ${isSelected ? 'ring-2 ring-slate-900 scale-105' : ''}`}
-                      />
-                    </div>
+                      {/* Bars Flex Strip */}
+                      <div className="flex-1 flex items-end justify-between gap-2 sm:gap-4 relative z-10 pb-2">
+                        {dailyBreakdown.map((day) => {
+                          const heightPercent = Math.max(
+                            8,
+                            Math.min(100, Math.round((day.grossRevenue / gridCeil) * 100))
+                          );
+                          const isSelected = selectedDayKey === day.key;
 
-                    {/* X-Axis Date Label */}
-                    <div className="mt-2 text-center">
-                      <span className="block text-[10px] font-bold text-slate-800">
-                        {day.dayName}
-                      </span>
-                      <span className="block text-[9px] text-slate-400 font-medium whitespace-nowrap">
-                        {day.displayDate.split(' ')[0]} {day.displayDate.split(' ')[1]}
-                      </span>
+                          return (
+                            <div
+                              key={day.key}
+                              onClick={() => setSelectedDayKey(isSelected ? null : day.key)}
+                              className="flex-1 flex flex-col items-center group cursor-pointer relative"
+                            >
+                              {/* Rich Floating Luxury Tooltip on Hover */}
+                              <div className="absolute -top-32 z-30 hidden group-hover:flex flex-col pointer-events-none whitespace-nowrap bg-slate-950/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl border border-slate-700/80 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">
+                                <div className="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[10px]">
+                                  <span className="font-extrabold text-slate-300">{day.dayName}, {day.displayDate}</span>
+                                  {day.isPeak ? (
+                                    <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 font-black text-[9px] border border-amber-500/30">PEAK</span>
+                                  ) : day.isToday ? (
+                                    <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 font-black text-[9px] border border-blue-500/30">TODAY</span>
+                                  ) : (
+                                    <span className="text-slate-500 text-[9px] uppercase font-bold">TRADING</span>
+                                  )}
+                                </div>
+                                <div className="pt-1.5">
+                                  <div className="text-sm font-black text-white tabular-nums tracking-tight">
+                                    {formatCurrency(day.grossRevenue)}
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9.5px] text-slate-400 pt-1 border-t border-slate-800/60 mt-1">
+                                    <div>Net: <span className="text-slate-200 font-bold">{formatCurrency(day.netSales)}</span></div>
+                                    <div>GST: <span className="text-slate-200 font-bold">{formatCurrency(day.tax)}</span></div>
+                                    <div>Bills: <span className="text-slate-200 font-bold">{day.orderCount}</span></div>
+                                    <div>AOV: <span className="text-slate-200 font-bold">{formatCurrency(day.aov)}</span></div>
+                                  </div>
+                                  <div className="text-[9px] text-blue-400 font-bold pt-1 text-center">
+                                    Click bar to inspect in ledger
+                                  </div>
+                                </div>
+                                <div className="w-2.5 h-2.5 bg-slate-950 border-r border-b border-slate-700 rotate-45 absolute -bottom-1.5 left-1/2 -translate-x-1/2" />
+                              </div>
+
+                              {/* Floating Value Pill Badge Above Bar */}
+                              <div className="mb-1.5 transition-transform duration-200 group-hover:-translate-y-0.5">
+                                {day.grossRevenue > 0 ? (
+                                  <span
+                                    className={`text-[10px] font-black tabular-nums tracking-tight px-1.5 py-0.5 rounded-md border shadow-2xs transition-colors ${
+                                      day.isPeak
+                                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 shadow-amber-500/30'
+                                        : day.isToday
+                                        ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/30'
+                                        : isSelected
+                                        ? 'bg-slate-900 text-white border-slate-800'
+                                        : 'bg-white/95 text-slate-700 border-slate-200 group-hover:border-blue-400 group-hover:text-blue-700'
+                                    }`}
+                                  >
+                                    ₹{(day.grossRevenue / 1000).toFixed(1)}k
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-slate-300">₹0</span>
+                                )}
+                              </div>
+
+                              {/* Slender Architectural Bar Column */}
+                              <div
+                                className={`w-10 sm:w-12 max-w-[44px] h-44 bg-slate-100/70 rounded-2xl flex items-end p-1 relative border transition-all duration-300 group-hover:bg-slate-100 ${
+                                  isSelected
+                                    ? 'border-blue-500 ring-2 ring-blue-500/40 bg-blue-50/30'
+                                    : 'border-slate-200/70 group-hover:border-blue-300'
+                                }`}
+                              >
+                                <div
+                                  style={{ height: `${heightPercent}%` }}
+                                  className={`w-full rounded-xl transition-all duration-500 relative overflow-hidden group-hover:brightness-105 ${
+                                    day.isPeak
+                                      ? 'bg-gradient-to-t from-amber-600 via-amber-500 to-yellow-300 border-t-2 border-white/70 shadow-md shadow-amber-500/30 ring-2 ring-amber-400/50'
+                                      : day.isToday
+                                      ? 'bg-gradient-to-t from-indigo-700 via-blue-600 to-cyan-400 border-t-2 border-white/70 shadow-md shadow-blue-500/25 ring-2 ring-blue-400/50'
+                                      : 'bg-gradient-to-t from-blue-700 via-blue-600 to-sky-400 border-t-2 border-white/50 shadow-sm shadow-blue-500/20'
+                                  }`}
+                                >
+                                  {/* Glass Shimmer Accent */}
+                                  <div className="absolute inset-x-0 top-0 h-1 bg-white/40" />
+                                </div>
+                              </div>
+
+                              {/* X-Axis Date Pill Container */}
+                              <div className="mt-2.5 text-center transition-all duration-200">
+                                <span className={`block text-xs font-black tracking-tight ${
+                                  day.isToday ? 'text-blue-700' : day.isPeak ? 'text-amber-800' : 'text-slate-800'
+                                }`}>
+                                  {day.dayName}
+                                </span>
+                                <span className="block text-[10px] text-slate-500 font-semibold whitespace-nowrap">
+                                  {day.displayDate.split(' ')[0]} {day.displayDate.split(' ')[1]}
+                                </span>
+                                {day.isToday && (
+                                  <span className="inline-block px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[8.5px] font-black uppercase mt-0.5 shadow-2xs">
+                                    Today
+                                  </span>
+                                )}
+                                {day.isPeak && !day.isToday && (
+                                  <span className="inline-block px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[8.5px] font-black uppercase mt-0.5">
+                                    Peak
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
-              })}
+              })()}
             </div>
           </div>
+
+          {/* Interactive Inspection Strip (When a Day is Selected) */}
+          {selectedDayKey && (() => {
+            const activeDay = dailyBreakdown.find((d) => d.key === selectedDayKey);
+            if (!activeDay) return null;
+
+            return (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900 via-slate-900 to-[#0F172A] text-white flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-lg shadow-blue-950/20 border border-blue-800/40 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300 shrink-0">
+                    <Sparkles className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-black text-sm text-white">
+                        {activeDay.dayName}, {activeDay.displayDate} Deep Dive
+                      </span>
+                      {activeDay.isPeak && (
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500 text-slate-950">
+                          Peak Revenue
+                        </span>
+                      )}
+                      {activeDay.isToday && (
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500 text-white">
+                          Current Day
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-300 mt-1">
+                      <span>Gross: <strong className="text-white font-black tabular-nums">{formatCurrency(activeDay.grossRevenue)}</strong></span>
+                      <span>Net: <strong className="text-slate-100 font-semibold tabular-nums">{formatCurrency(activeDay.netSales)}</strong></span>
+                      <span>GST (5%): <strong className="text-emerald-400 font-semibold tabular-nums">{formatCurrency(activeDay.tax)}</strong></span>
+                      <span>Bills: <strong className="text-slate-100 font-semibold tabular-nums">{activeDay.orderCount}</strong></span>
+                      <span>Avg Ticket: <strong className="text-blue-300 font-semibold tabular-nums">{formatCurrency(activeDay.aov)}</strong></span>
+                      <span>Preferred: <strong className="uppercase text-amber-300 font-bold">{activeDay.dominantMethod}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 self-end md:self-auto shrink-0">
+                  <button
+                    onClick={() => {
+                      setOrderSearch(activeDay.displayDate.split(' ')[0]);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-xs"
+                  >
+                    Filter Orders Below
+                  </button>
+                  <button
+                    onClick={() => setSelectedDayKey(null)}
+                    className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                    title="Close inspection"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* 2C. DAY-BY-DAY REVENUE DETAILED HISTORICAL TABLE */}
@@ -864,6 +942,7 @@ export default function AdminDashboardPage() {
               <thead className="bg-slate-50/80 border-b border-slate-200">
                 <tr className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
                   <th className="py-3 px-4">Invoice #</th>
+                  <th className="py-3 px-4">Date &amp; Time Placed</th>
                   <th className="py-3 px-4">Service &amp; Table</th>
                   <th className="py-3 px-4">Guest</th>
                   <th className="py-3 px-4">Order Items</th>
@@ -884,6 +963,30 @@ export default function AdminDashboardPage() {
                           <span>#{order.orderNumber}</span>
                           <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
                             {order.orderType === 'dine_in' ? 'Dine-In' : 'Takeaway'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="font-bold text-slate-900 flex items-center space-x-1.5">
+                          <span>
+                            {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
+                          <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 font-extrabold border border-blue-200/60">
+                            {new Date(order.createdAt).toLocaleDateString('en-IN', { weekday: 'short' })}
+                          </span>
+                        </div>
+                        <div className="text-[10.5px] text-slate-500 font-medium flex items-center space-x-1 mt-0.5">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          <span>
+                            {new Date(order.createdAt).toLocaleTimeString('en-IN', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
                           </span>
                         </div>
                       </td>
@@ -1021,7 +1124,7 @@ export default function AdminDashboardPage() {
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3 print:hidden">
               <div>
                 <h3 className="font-black text-lg text-slate-900">
                   Tax Invoice #{viewingOrder.orderNumber}
@@ -1039,7 +1142,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Receipt Preview Container */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 font-mono text-xs">
+            <div id="printable-receipt" className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 font-mono text-xs print:bg-white print:border-none print:shadow-none print:p-2">
               <div className="text-center pb-2 border-b border-dashed border-slate-300">
                 <div className="font-serif font-black text-base text-slate-900">ORDRIVA</div>
                 <div className="text-[10px] text-slate-600 font-sans font-bold">{currentBranch.name}</div>
@@ -1112,7 +1215,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center space-x-2 pt-2">
+            <div className="flex items-center space-x-2 pt-2 print:hidden">
               <button
                 onClick={() => executePrintBill(viewingOrder)}
                 className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-sm transition-all active:scale-95"

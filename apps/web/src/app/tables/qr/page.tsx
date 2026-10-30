@@ -147,11 +147,13 @@ export default function TableQrStandsAdminPage() {
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
+    iframe.style.top = '-9999px';
+    iframe.style.left = '-9999px';
+    iframe.style.width = '350px';
+    iframe.style.height = '600px';
+    iframe.style.border = 'none';
+    iframe.style.opacity = '0.01';
+    iframe.style.pointerEvents = 'none';
     document.body.appendChild(iframe);
 
     const doc = iframe.contentWindow?.document;
@@ -315,11 +317,13 @@ export default function TableQrStandsAdminPage() {
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
+    iframe.style.top = '-9999px';
+    iframe.style.left = '-9999px';
+    iframe.style.width = '350px';
+    iframe.style.height = '600px';
+    iframe.style.border = 'none';
+    iframe.style.opacity = '0.01';
+    iframe.style.pointerEvents = 'none';
     document.body.appendChild(iframe);
 
     const doc = iframe.contentWindow?.document;

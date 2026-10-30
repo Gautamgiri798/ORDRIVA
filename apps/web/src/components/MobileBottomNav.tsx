@@ -16,7 +16,7 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   // Hide on customer portal (/order) and print views
-  if (pathname?.startsWith('/order')) {
+  if (pathname === '/order' || pathname?.startsWith('/order/')) {
     return null;
   }
 

@@ -1040,7 +1040,7 @@ function PosContent() {
             </div>
 
             {/* Print & Close Buttons */}
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2 pt-2 print:hidden">
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => print80mmReceipt(settledOrder, currentBranch, currentUser.name)}

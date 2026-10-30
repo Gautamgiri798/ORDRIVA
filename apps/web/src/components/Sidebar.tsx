@@ -21,7 +21,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   // Hide sidebar on the customer-facing ordering site
-  if (pathname?.startsWith('/order')) {
+  if (pathname === '/order' || pathname?.startsWith('/order/')) {
     return null;
   }
   const { inventory, tables } = usePosStore();
