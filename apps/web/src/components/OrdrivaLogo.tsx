@@ -86,12 +86,9 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 40 }: Log
             priority
           />
         </div>
-        <div className="flex items-center space-x-1.5">
+        <div className="flex items-center">
           <span className="font-serif font-black tracking-widest text-lg text-amber-200 drop-shadow-sm">
             ORDRIVA
-          </span>
-          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-950/90 text-[#60A5FA] border border-[#3B82F6]/50 shadow-sm tracking-wider">
-            POS 2.0
           </span>
         </div>
       </div>
@@ -117,8 +114,8 @@ export function OrdrivaLogo({ variant = 'full', className = '', size = 40 }: Log
   }
 
   // 5. Full Lockup Variant (Default - Ultra-sharp Precision Vector Brand for Navbar & Headers)
-  // Aspect ratio is 540 / 100 = 5.4
-  const horizontalWidth = Math.round(size * 5.4);
+  // Aspect ratio is 440 / 100 = 4.4
+  const horizontalWidth = Math.round(size * 4.4);
 
   return (
     <div className={`flex items-center shrink-0 select-none ${className}`}>

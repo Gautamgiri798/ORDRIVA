@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="apps/web/public/ordriva-logo.svg" alt="ORDRIVA Logo" width="460" />
+  <img src="apps/web/public/ordriva-logo.svg" alt="ORDRIVA Logo" width="440" />
 
   <br />
   <br />
@@ -19,6 +19,7 @@
     <a href="https://socket.io"><img src="https://img.shields.io/badge/Socket.IO-Realtime-010101?style=for-the-badge&logo=socketdotio" alt="Socket.IO" /></a>
     <img src="https://img.shields.io/badge/GST-Ready-16A34A?style=for-the-badge" alt="GST Ready" />
     <img src="https://img.shields.io/badge/UPI-Instant-3B82F6?style=for-the-badge" alt="UPI Instant" />
+    <img src="https://img.shields.io/badge/WCAG-2.1_AA-10B981?style=for-the-badge" alt="WCAG 2.1 AA" />
   </p>
 
   <p align="center">
@@ -27,6 +28,7 @@
     <a href="#-order--dining-lifecycle">Lifecycle Sequence</a> •
     <a href="#-customer-dining-portal">Customer Portal</a> •
     <a href="#-core-operating-modules">Core Modules</a> •
+    <a href="#-usability-heuristics--accessibility">Usability &amp; Design System</a> •
     <a href="#-repository-structure">Folder Structure</a> •
     <a href="#-quick-start-guide">Quick Start</a>
   </p>
@@ -38,7 +40,7 @@
 
 **ORDRIVA** is a modern, enterprise-grade restaurant operating system connecting guest dining tables, touch cashier counters, kitchen prep lines, recipe inventory ledgers, and financial tax audits into a unified, high-performance platform.
 
-Designed for high-throughput hospitality environments, ORDRIVA provides sub-300ms cashier response times, resilient offline capability, strict decimal monetary calculations (`NUMERIC(14,2)`), dual GST compliance (CGST + SGST + Service Charge), instant NPCI UPI digital payments, drag-and-drop culinary media management, and an isolated high-resolution table stand print engine.
+Designed for high-throughput hospitality environments, ORDRIVA provides sub-300ms cashier response times, resilient offline capability, strict decimal monetary calculations (`NUMERIC(14,2)`), dual GST compliance (CGST + SGST + Service Charge), instant NPCI UPI digital payments, drag-and-drop culinary media management, 2D architectural seating floor plans, and an isolated high-resolution table stand print engine.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -47,7 +49,7 @@ Designed for high-throughput hospitality environments, ORDRIVA provides sub-300m
 │   ADMIN & MANAGEMENT    │     STAFF & CASHIER      │        CUSTOMER EXPERIENCE        │
 │   • Executive KPI Board │     • 44px Touch POS     │        • Contactless QR Dining    │
 │   • Multi-Branch Admin  │     • KDS Station Kanban │        • Multi-Item Quantity Stepper│
-│   • Media Drag & Drop   │     • Architectural Map  │        • Live Order Round History │
+│   • Media Drag & Drop   │     • 2D Architectural Map│       • Live Order Round History │
 │   • Recipe BoM Stock    │     • 80mm Bill Printing │        • Running Tab & E-Bill     │
 │   • GST Statutory Audit │     • Sound Chime Alerts │        • Instant UPI QR & Invoice │
 │   • Z-Report Financials │     • Isolated Print QR  │        • Real-Time Table Seating  │
@@ -74,6 +76,7 @@ flowchart TD
         Store["Reactive POS State Store (Zustand & Hooks)"]
         MediaEngine["Drag & Drop Base64 Media Pipeline"]
         PrintEngine["Sandboxed Isolated Iframe Print Engine"]
+        FloorEngine["2D Architectural Blueprint Seating Engine"]
         QRGen["Dynamic NPCI UPI & Table QR Code Engine"]
     end
 
@@ -99,6 +102,7 @@ flowchart TD
     AppRouter --> Store
     Store --> MediaEngine
     Store --> PrintEngine
+    Store --> FloorEngine
     Store --> QRGen
 
     AppRouter -->|"REST API (JSON)"| APIGateway
@@ -253,21 +257,22 @@ The mobile-first digital dining portal for restaurant patrons scanning table QR 
 * **Elevated "+ Add New Dish" Card:** Prominent dashed hero card on the grid for quick, frictionless catalog expansion.
 
 ### 3. 🪑 Floor Plan &amp; Architectural Table Manager (`/tables`)
-* **Realistic Seating Geometries:**
-  * **2-Guest Bistro Tables:** Circular tables (`rounded-full`) with dual perimeter chair indicators.
-  * **4-Guest Booths:** Square dining tables (`rounded-2xl`) with four-corner seating indicators.
-  * **6 to 10-Guest Banquets:** Elongated rectangular tables with distributed multi-seat chair markers.
-* **Live Occupancy Analytics Ribbon:**
-  * Total floor capacity counter (`34 Seats`).
-  * Live occupancy rate percentage with interactive progress bar.
-  * Real-time running floor billing tab sum (₹).
-  * Active seated dining parties count.
-* **Four Real-Time Table States:**
-  * `Available` (Emerald `#10B981`): Ready to seat new guests.
-  * `Occupied` (Amber `#F59E0B`): Seated with live order ID, guest name, running bill, and dining duration timer.
-  * `Reserved` (Blue `#6366F1`): Booked for upcoming parties.
-  * `Billed` (Purple `#8B5CF6`): Final check presented, awaiting payment clearance.
-* **Quick POS & Seating Integration:** One-tap "Take Order" / "Manage" launches cashier workflow directly linked to the table.
+* **2D Architectural Seating Blueprint:**
+  * **2-Guest Bistro Tables:** Circular tables (`w-16 h-16 rounded-full`) with dual curved perimeter chair indicators.
+  * **4-Guest Dining Tables:** Rounded square tables (`w-24 h-14 rounded-2xl`) with four perimeter chair indicators.
+  * **8 to 10-Guest Banquets:** Elongated boardroom tables (`w-32 h-14 rounded-2xl`) with distributed multi-seat chair rows.
+* **Dynamic State-Reactive Geometry:**
+  * 🟠 **Occupied:** Chairs and surfaces illuminated in warm amber glow with live dining timer and guest name.
+  * 🔵 **Reserved:** Sapphire blue chairs with upcoming reservation notice.
+  * 🟣 **Billed:** Velvet purple chairs with folio summary and check presented indicator.
+  * 🟢 **Available:** Serene slate table and chairs ready for immediate walk-in seating.
+* **Executive Floor Analytics Ribbon:**
+  * Live seating capacity counter (`6 / 50 Guests Seated`).
+  * Floor utilization percentage with micro-progress bar.
+  * Ready for seating indicator with vacant table count.
+  * Active running dining tabs revenue sum (₹).
+* **Zero Label Hyphen Wrapping:** Precision-calibrated responsive grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`) and `whitespace-nowrap font-black` typography ensuring table labels (`T-01` through `T-10`, `VIP-1`, `VIP-2`) never wrap at hyphens.
+* **High-Affordance POS Actions:** Solid blue primary **"Take Order"** button with hover micro-scale and secondary **"Manage"** button triggering the table status management drawer.
 
 ### 4. 🖥️ Touch Cashier POS Terminal (`/pos`)
 * **Ergonomic Counter Workflow:** Large 44px touch-friendly targets built for peak counter rush hours.
@@ -297,9 +302,24 @@ The mobile-first digital dining portal for restaurant patrons scanning table QR 
 
 ---
 
+## 🎯 Usability Heuristics &amp; Design System Compliance
+
+ORDRIVA is rigorously engineered around Nielsen Norman Usability Heuristics and WCAG 2.1 AA accessibility guidelines:
+
+| Usability Heuristic | Engineering Implementation &amp; Safeguards |
+| :--- | :--- |
+| **Consistency &amp; Standards** | • Standardized unified CTA terminology (`"Launch POS"`) across header navigation and hero cards.<br>• Standardized badge tokens across sidebar navigation (`rounded-full px-2 py-0.5 text-[10px] border`).<br>• Status semaphoring: Actionable `Ready` tickets rendered in conventional Emerald Green (`bg-emerald-50 text-emerald-700`). |
+| **State Visibility &amp; Feedback** | • Live floor status legend complete with all 4 table states (`Available`, `Occupied`, `Reserved`, `Billed`).<br>• Fully decoded semantic state tags equipped with `aria-hidden="true"` and `role="listitem"`. |
+| **Visual Hierarchy &amp; Affordance** | • High-contrast dark button surface for `Kitchen KDS` (`bg-slate-900/80 hover:bg-slate-900`) with keyboard focus rings.<br>• Ambient logo watermarks dialed down to `opacity-5` with `aria-hidden="true"` to eliminate contrast vibration behind action buttons.<br>• Optical alignment: Added `px-2` to `<th>Status</th>` to align directly with badge text baselines. |
+| **Data Integrity &amp; Calculation** | • Fixed order item aggregation: Computes `totalQty` with accurate remaining breakdowns (`3 items (Name +2)`).<br>• Explicit flexbox separation (`gap-2`) preventing merged order type and table badge tokens (`Dine In [T-02]`). |
+| **Typographic Discipline** | • Streamlined 21 disparate color classes into a strict 6-tier token scale (`slate-900`, `slate-600`, `slate-500`, `emerald-700`, `amber-700`, `rose-600`). |
+
+---
+
 ## 👑 Management &amp; Admin Portal
 
 * **Admin-Exclusive Session:** Single-tenant administrative mode locked to **Vikram Malhotra** (`admin@ordriva.com`).
+* **Cleaned Enterprise Identity:** Timeless luxury vector lockup with metallic gold cloche emblem and Cinzel/Inter typography, free from transient version pill badges.
 * **System Console Popover:** Replaced unstyled browser dropdowns with a glassmorphic Administrative Console popover.
 * **Stabilized Navigation:** Fixed viewport layout (`h-screen overflow-hidden`) with dedicated scrolling modules and stabilized sidebar navigation with active indicator bar (`w-1 bg-[#3B82F6] rounded-r-full`).
 * **Enterprise Palette:** Precision color tokens adhering to user specifications:
@@ -332,14 +352,14 @@ ORDRIVA/
 ├── 📁 apps/
 │   ├── 🌐 web/                              # Next.js 15 App Router Frontend (:3000)
 │   │   ├── 📁 public/                       # High-Resolution Vector Assets
-│   │   │   ├── ordriva-logo.svg             # Primary Vector Lockup (Cloche + Wordmark)
+│   │   │   ├── ordriva-logo.svg             # Primary Vector Lockup (Cloche + Wordmark, 440×100)
 │   │   │   └── ordriva-mark.svg             # Gold Cloche Vector Emblem
 │   │   └── 📁 src/
 │   │       ├── 📁 app/                      # Application Route Handlers
-│   │       │   ├── 📊 page.tsx              # Executive Dashboard & Admin Center
+│   │       │   ├── 📊 page.tsx              # Executive Dashboard & Admin Center (Heuristic Audited)
 │   │       │   ├── ⚡ pos/                  # Touch POS Terminal with UPI & Denominations
 │   │       │   ├── 👨‍🍳 kitchen/              # Kitchen Display System (KDS Kanban)
-│   │       │   ├── 🪑 tables/               # Floor Plan Layout & Table Status Manager
+│   │       │   ├── 🪑 tables/               # 2D Architectural Seating Blueprint & Floor Map
 │   │       │   │   └── 🖨️ qr/               # Isolated Table QR Stand Print Studio
 │   │       │   ├── 📱 order/                # Customer QR Portal (Menu, Multi-Qty, Bills, Tables)
 │   │       │   ├── 🧾 orders/               # Order History Ledger & 80mm Print Receipts
@@ -349,9 +369,9 @@ ORDRIVA/
 │   │       │   ├── 🛡️ audit/                # Immutable Security Audit Trail
 │   │       │   └── ⚙️ settings/             # GSTIN, Tax Rates & Printer Configurations
 │   │       ├── 📁 components/               # Atomic & Reusable Component Library
-│   │       │   ├── OrdrivaLogo.tsx          # Multi-variant Responsive Vector Logo
-│   │       │   ├── Navbar.tsx               # Glassmorphic Header & Admin Console Popover
-│   │       │   └── Sidebar.tsx              # Stabilized Navigation Sidebar with Inset Badges
+│   │       │   ├── OrdrivaLogo.tsx          # Multi-variant Responsive Vector Logo (4.4 aspect)
+│   │       │   ├── Navbar.tsx               # Glassmorphic Header, Standardized POS & KDS Shortcuts
+│   │       │   └── Sidebar.tsx              # Stabilized Sidebar with Unified Token Badges
 │   │       ├── 📁 lib/                      # Core Business Logic & In-Memory Store
 │   │       │   ├── store.tsx                # Zustand-style Reactive Store & Initial State
 │   │       │   └── utils.ts                 # Currency Formatting & Tax Math
@@ -377,7 +397,7 @@ ORDRIVA/
 │   ├── TESTING.md                           # Acceptance Tests & Quality Gates
 │   └── RUNBOOK.md                           # Production Operations & Disaster Recovery
 │
-├── docker-compose.yml                       # Multi-Container Compose Orchestration
+├── docker-compose.yml                       # Multi-Container Compose Orchestraction
 └── package.json                             # Root Monorepo Configuration
 ```
 
