@@ -322,151 +322,297 @@ const INITIAL_INVENTORY: InventoryItem[] = [
   { id: 'inv-09', branchId: 'br-dt-01', name: 'Arabica Coffee Beans', unit: 'kg', currentStock: 12.5, minReorderLevel: 8.0, costPerUnit: 850.0, category: 'Beverage', lastUpdated: new Date(DEMO_BASE_TIME).toISOString() },
 ];
 
-const INITIAL_ORDERS: Order[] = [
-  {
-    id: 'ord-1001',
-    branchId: 'br-dt-01',
-    orderNumber: 1001,
-    orderType: 'dine_in',
-    status: 'preparing',
-    tableId: 'tbl-02',
-    tableLabel: 'T-02',
-    customerName: 'Ananya Roy',
-    customerPhone: '+91 98111 22334',
-    items: [
-      {
-        id: 'oi-1',
-        menuItemId: 'item-04',
-        name: 'Artisanal Margherita',
-        basePrice: 480,
-        quantity: 1,
-        taxRate: 5,
-        modifiers: [{ modifierId: 'crust-thin', name: 'Crispy Thin Crust', priceDelta: 30 }],
-        itemTotal: 510,
-        taxTotal: 25.5,
-      },
-      {
-        id: 'oi-2',
-        menuItemId: 'item-09',
-        name: 'Blueberry Basil Smash',
-        basePrice: 240,
-        quantity: 2,
-        taxRate: 5,
-        modifiers: [],
-        itemTotal: 480,
-        taxTotal: 24.0,
-      },
-    ],
-    subtotal: 990,
-    discountTotal: 0,
-    taxTotal: 49.5,
-    cgst: 24.75,
-    sgst: 24.75,
-    serviceChargeTotal: 49.5,
-    grandTotal: 1089,
-    createdBy: 'usr-waiter',
-    createdByName: 'Amit Patel',
-    createdAt: new Date(DEMO_BASE_TIME - 42 * 60000).toISOString(),
-    updatedAt: new Date(DEMO_BASE_TIME - 42 * 60000).toISOString(),
-    paymentStatus: 'pending',
-  },
-  {
-    id: 'ord-1002',
-    branchId: 'br-dt-01',
-    orderNumber: 1002,
-    orderType: 'dine_in',
-    status: 'ready',
-    tableId: 'tbl-06',
-    tableLabel: 'T-06',
-    customerName: 'Rohan Mehra',
-    customerPhone: '+91 97222 33445',
-    items: [
-      {
-        id: 'oi-3',
-        menuItemId: 'item-06',
-        name: 'ORDRIVA Prime Smash Burger',
-        basePrice: 490,
-        quantity: 1,
-        taxRate: 5,
-        modifiers: [{ modifierId: 'add-cheese', name: 'Extra Cheddar Slice', priceDelta: 60 }],
-        itemTotal: 550,
-        taxTotal: 27.5,
-      },
-      {
-        id: 'oi-4',
-        menuItemId: 'item-01',
-        name: 'Truffle Parmesan Fries',
-        basePrice: 290,
-        quantity: 1,
-        taxRate: 5,
-        modifiers: [{ modifierId: 'dip-aioli', name: 'Truffle Aioli', priceDelta: 40 }],
-        itemTotal: 330,
-        taxTotal: 16.5,
-      },
-    ],
-    subtotal: 880,
-    discountTotal: 0,
-    taxTotal: 44,
-    cgst: 22,
-    sgst: 22,
-    serviceChargeTotal: 44,
-    grandTotal: 968,
-    createdBy: 'usr-cashier',
-    createdByName: 'Rahul Verma',
-    createdAt: new Date(DEMO_BASE_TIME - 18 * 60000).toISOString(),
-    updatedAt: new Date(DEMO_BASE_TIME - 5 * 60000).toISOString(),
-    paymentStatus: 'pending',
-  },
-  {
-    id: 'ord-1003',
-    branchId: 'br-dt-01',
-    orderNumber: 1003,
-    orderType: 'dine_in',
-    status: 'served',
-    tableId: 'tbl-08',
-    tableLabel: 'T-08',
-    customerName: 'Kavita Chawla',
-    customerPhone: '+91 99333 44556',
-    items: [
-      {
-        id: 'oi-5',
-        menuItemId: 'item-08',
-        name: 'Grilled Norwegian Salmon',
-        basePrice: 890,
-        quantity: 1,
-        taxRate: 5,
-        modifiers: [],
-        itemTotal: 890,
-        taxTotal: 44.5,
-      },
-      {
-        id: 'oi-6',
-        menuItemId: 'item-11',
-        name: 'Valrhona Dark Chocolate Fondant',
-        basePrice: 360,
-        quantity: 1,
-        taxRate: 5,
-        modifiers: [],
-        itemTotal: 360,
-        taxTotal: 18,
-      },
-    ],
-    subtotal: 1250,
-    discountTotal: 125,
-    discountType: 'percentage',
-    discountValue: 10,
-    taxTotal: 56.25,
-    cgst: 28.13,
-    sgst: 28.12,
-    serviceChargeTotal: 56.25,
-    grandTotal: 1237.5,
-    createdBy: 'usr-waiter',
-    createdByName: 'Amit Patel',
-    createdAt: new Date(DEMO_BASE_TIME - 55 * 60000).toISOString(),
-    updatedAt: new Date(DEMO_BASE_TIME - 15 * 60000).toISOString(),
-    paymentStatus: 'pending',
-  },
-];
+function generateInitialOrders(): Order[] {
+  const activeOrders: Order[] = [
+    {
+      id: 'ord-1001',
+      branchId: 'br-dt-01',
+      orderNumber: 1001,
+      orderType: 'dine_in',
+      status: 'preparing',
+      tableId: 'tbl-02',
+      tableLabel: 'T-02',
+      customerName: 'Ananya Roy',
+      customerPhone: '+91 98111 22334',
+      items: [
+        {
+          id: 'oi-1',
+          menuItemId: 'item-04',
+          name: 'Artisanal Margherita',
+          basePrice: 480,
+          quantity: 1,
+          taxRate: 5,
+          modifiers: [{ modifierId: 'crust-thin', name: 'Crispy Thin Crust', priceDelta: 30 }],
+          itemTotal: 510,
+          taxTotal: 25.5,
+        },
+        {
+          id: 'oi-2',
+          menuItemId: 'item-09',
+          name: 'Blueberry Basil Smash',
+          basePrice: 240,
+          quantity: 2,
+          taxRate: 5,
+          modifiers: [],
+          itemTotal: 480,
+          taxTotal: 24.0,
+        },
+      ],
+      subtotal: 990,
+      discountTotal: 0,
+      taxTotal: 49.5,
+      cgst: 24.75,
+      sgst: 24.75,
+      serviceChargeTotal: 49.5,
+      grandTotal: 1089,
+      createdBy: 'usr-waiter',
+      createdByName: 'Amit Patel',
+      createdAt: new Date(Date.now() - 42 * 60000).toISOString(),
+      updatedAt: new Date(Date.now() - 42 * 60000).toISOString(),
+      paymentStatus: 'pending',
+    },
+    {
+      id: 'ord-1002',
+      branchId: 'br-dt-01',
+      orderNumber: 1002,
+      orderType: 'dine_in',
+      status: 'ready',
+      tableId: 'tbl-06',
+      tableLabel: 'T-06',
+      customerName: 'Rohan Mehra',
+      customerPhone: '+91 97222 33445',
+      items: [
+        {
+          id: 'oi-3',
+          menuItemId: 'item-06',
+          name: 'ORDRIVA Prime Smash Burger',
+          basePrice: 490,
+          quantity: 1,
+          taxRate: 5,
+          modifiers: [{ modifierId: 'add-cheese', name: 'Extra Cheddar Slice', priceDelta: 60 }],
+          itemTotal: 550,
+          taxTotal: 27.5,
+        },
+        {
+          id: 'oi-4',
+          menuItemId: 'item-01',
+          name: 'Truffle Parmesan Fries',
+          basePrice: 290,
+          quantity: 1,
+          taxRate: 5,
+          modifiers: [{ modifierId: 'dip-aioli', name: 'Truffle Aioli', priceDelta: 40 }],
+          itemTotal: 330,
+          taxTotal: 16.5,
+        },
+      ],
+      subtotal: 880,
+      discountTotal: 0,
+      taxTotal: 44,
+      cgst: 22,
+      sgst: 22,
+      serviceChargeTotal: 44,
+      grandTotal: 968,
+      createdBy: 'usr-cashier',
+      createdByName: 'Rahul Verma',
+      createdAt: new Date(Date.now() - 18 * 60000).toISOString(),
+      updatedAt: new Date(Date.now() - 5 * 60000).toISOString(),
+      paymentStatus: 'pending',
+    },
+    {
+      id: 'ord-1003',
+      branchId: 'br-dt-01',
+      orderNumber: 1003,
+      orderType: 'dine_in',
+      status: 'served',
+      tableId: 'tbl-08',
+      tableLabel: 'T-08',
+      customerName: 'Kavita Chawla',
+      customerPhone: '+91 99333 44556',
+      items: [
+        {
+          id: 'oi-5',
+          menuItemId: 'item-08',
+          name: 'Grilled Norwegian Salmon',
+          basePrice: 890,
+          quantity: 1,
+          taxRate: 5,
+          modifiers: [],
+          itemTotal: 890,
+          taxTotal: 44.5,
+        },
+        {
+          id: 'oi-6',
+          menuItemId: 'item-11',
+          name: 'Valrhona Dark Chocolate Fondant',
+          basePrice: 360,
+          quantity: 1,
+          taxRate: 5,
+          modifiers: [],
+          itemTotal: 360,
+          taxTotal: 18,
+        },
+      ],
+      subtotal: 1250,
+      discountTotal: 125,
+      discountType: 'percentage',
+      discountValue: 10,
+      taxTotal: 56.25,
+      cgst: 28.13,
+      sgst: 28.12,
+      serviceChargeTotal: 56.25,
+      grandTotal: 1237.5,
+      createdBy: 'usr-waiter',
+      createdByName: 'Amit Patel',
+      createdAt: new Date(Date.now() - 55 * 60000).toISOString(),
+      updatedAt: new Date(Date.now() - 15 * 60000).toISOString(),
+      paymentStatus: 'pending',
+    },
+  ];
+
+  const sampleMeals = [
+    {
+      name: 'Woodfired Pizza & Mocktail Feast',
+      subtotal: 1420,
+      items: [
+        { id: 'hi-1', menuItemId: 'item-04', name: 'Artisanal Margherita', basePrice: 480, quantity: 2, taxRate: 5, modifiers: [], itemTotal: 960, taxTotal: 48 },
+        { id: 'hi-2', menuItemId: 'item-09', name: 'Blueberry Basil Smash', basePrice: 240, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 240, taxTotal: 12 },
+        { id: 'hi-3', menuItemId: 'item-12', name: 'Arabica Flat White', basePrice: 220, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 220, taxTotal: 11 },
+      ],
+    },
+    {
+      name: 'Gourmet Salmon & Dessert Dinner',
+      subtotal: 2430,
+      items: [
+        { id: 'hi-4', menuItemId: 'item-08', name: 'Grilled Norwegian Salmon', basePrice: 890, quantity: 2, taxRate: 5, modifiers: [], itemTotal: 1780, taxTotal: 89 },
+        { id: 'hi-5', menuItemId: 'item-01', name: 'Truffle Parmesan Fries', basePrice: 290, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 290, taxTotal: 14.5 },
+        { id: 'hi-6', menuItemId: 'item-11', name: 'Valrhona Dark Chocolate Fondant', basePrice: 360, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 360, taxTotal: 18 },
+      ],
+    },
+    {
+      name: 'Smash Burgers & Fries Lunch',
+      subtotal: 1270,
+      items: [
+        { id: 'hi-7', menuItemId: 'item-06', name: 'ORDRIVA Prime Smash Burger', basePrice: 490, quantity: 2, taxRate: 5, modifiers: [], itemTotal: 980, taxTotal: 49 },
+        { id: 'hi-8', menuItemId: 'item-01', name: 'Truffle Parmesan Fries', basePrice: 290, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 290, taxTotal: 14.5 },
+      ],
+    },
+    {
+      name: 'Chef Luxury Tasting Banquet',
+      subtotal: 3950,
+      items: [
+        { id: 'hi-9', menuItemId: 'item-08', name: 'Grilled Norwegian Salmon', basePrice: 890, quantity: 2, taxRate: 5, modifiers: [], itemTotal: 1780, taxTotal: 89 },
+        { id: 'hi-10', menuItemId: 'item-04', name: 'Artisanal Margherita', basePrice: 480, quantity: 2, taxRate: 5, modifiers: [], itemTotal: 960, taxTotal: 48 },
+        { id: 'hi-11', menuItemId: 'item-01', name: 'Truffle Parmesan Fries', basePrice: 290, quantity: 2, taxRate: 5, modifiers: [], itemTotal: 580, taxTotal: 29 },
+        { id: 'hi-12', menuItemId: 'item-11', name: 'Valrhona Dark Chocolate Fondant', basePrice: 360, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 360, taxTotal: 18 },
+        { id: 'hi-13', menuItemId: 'item-09', name: 'Blueberry Basil Smash', basePrice: 270, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 270, taxTotal: 13.5 },
+      ],
+    },
+    {
+      name: 'Afternoon Tea & Artisanal Fries',
+      subtotal: 890,
+      items: [
+        { id: 'hi-14', menuItemId: 'item-01', name: 'Truffle Parmesan Fries', basePrice: 290, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 290, taxTotal: 14.5 },
+        { id: 'hi-15', menuItemId: 'item-09', name: 'Blueberry Basil Smash', basePrice: 240, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 240, taxTotal: 12 },
+        { id: 'hi-16', menuItemId: 'item-11', name: 'Valrhona Dark Chocolate Fondant', basePrice: 360, quantity: 1, taxRate: 5, modifiers: [], itemTotal: 360, taxTotal: 18 },
+      ],
+    },
+  ];
+
+  const guestNames = [
+    'Priya Sharma',
+    'Kabir Singhania',
+    'Neha Kapoor',
+    'Siddharth Varma',
+    'Tara Aluwalia',
+    'Aditya Roy',
+    'Meera Nair',
+    'Devendra Oberoi',
+    'Ishita Bose',
+    'Arjun Khanna',
+    'Rhea Chakraborty',
+    'Aman Sethi',
+    'Simran Gill',
+    'Rajesh Joshi',
+    'Tanvi Mathur',
+    'Gautam Chopra',
+  ];
+
+  const payMethods: PaymentMethod[] = ['upi', 'upi', 'card', 'card', 'cash'];
+  const diningTables = ['T-01', 'T-02', 'T-03', 'T-04', 'T-05', 'T-06', 'T-07', 'T-08', 'VIP-1', 'VIP-2'];
+
+  const historicalOrders: Order[] = [];
+  let orderNumberSeq = 1004;
+
+  // Generate 30 past days of realistic restaurant trading data
+  for (let day = 0; day < 30; day++) {
+    const dateObj = new Date(Date.now() - day * 86400000);
+    const dayOfWeek = dateObj.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
+    const ordersCount = day === 0 ? 5 : isWeekend ? 8 : 4;
+
+    for (let i = 0; i < ordersCount; i++) {
+      const template = sampleMeals[(day * 2 + i) % sampleMeals.length];
+      const guest = guestNames[(day * 3 + i) % guestNames.length];
+      const method = payMethods[(day + i) % payMethods.length];
+      const tableLabel = diningTables[(day * 2 + i) % diningTables.length];
+
+      const subtotal = template.subtotal;
+      const discount = i % 3 === 0 ? Math.round(subtotal * 0.1) : 0;
+      const taxable = subtotal - discount;
+      const cgst = Math.round(taxable * 0.025 * 100) / 100;
+      const sgst = Math.round(taxable * 0.025 * 100) / 100;
+      const taxTotal = cgst + sgst;
+      const serviceCharge = Math.round(taxable * 0.05 * 100) / 100;
+      const grandTotal = taxable + taxTotal + serviceCharge;
+
+      const hourOffset = 12 + ((i * 2) % 10);
+      const minuteOffset = (i * 17) % 60;
+      const orderDate = new Date(dateObj);
+      orderDate.setHours(hourOffset, minuteOffset, 0, 0);
+
+      historicalOrders.push({
+        id: `ord-hist-${orderNumberSeq}`,
+        branchId: 'br-dt-01',
+        orderNumber: orderNumberSeq,
+        orderType: i % 4 === 0 ? 'takeaway' : 'dine_in',
+        status: 'completed',
+        paymentStatus: 'succeeded',
+        paymentMethod: method,
+        tableLabel: i % 4 === 0 ? undefined : tableLabel,
+        customerName: guest,
+        customerPhone: `+91 98${Math.floor(10000000 + (day * 100 + i) * 12345) % 100000000}`,
+        items: template.items.map((it, idx) => ({ ...it, id: `oi-h-${orderNumberSeq}-${idx}` })),
+        subtotal,
+        discountTotal: discount,
+        taxTotal,
+        cgst,
+        sgst,
+        serviceChargeTotal: serviceCharge,
+        grandTotal,
+        createdBy: 'usr-cashier',
+        createdByName: 'Rahul Verma',
+        createdAt: orderDate.toISOString(),
+        updatedAt: orderDate.toISOString(),
+        payments: [
+          {
+            id: `pay-h-${orderNumberSeq}`,
+            orderId: `ord-hist-${orderNumberSeq}`,
+            method,
+            amount: grandTotal,
+            status: 'succeeded',
+            createdAt: orderDate.toISOString(),
+            providerReference: method === 'upi' ? `UPI-${998877 + orderNumberSeq}` : undefined,
+          },
+        ],
+      });
+      orderNumberSeq++;
+    }
+  }
+
+  return [...activeOrders, ...historicalOrders];
+}
+
+const INITIAL_ORDERS: Order[] = generateInitialOrders();
 
 const INITIAL_KITCHEN_TICKETS: KitchenTicket[] = [
   {

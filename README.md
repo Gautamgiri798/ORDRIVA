@@ -427,7 +427,6 @@ ORDRIVA/
 │   │       │   ├── 📋 menu/                 # Menu Catalog, Drag & Drop Media & Modifiers
 │   │       │   ├── 📦 inventory/            # Recipe BoM Stock Deductions & Alerts
 │   │       │   ├── 📈 reports/              # Financial Analytics, Taxes & Z-Report
-│   │       │   ├── 🛡️ audit/                # Immutable Security Audit Trail
 │   │       │   └── ⚙️ settings/             # GSTIN, Tax Rates & Printer Configurations
 │   │       ├── 📁 components/               # Atomic & Reusable Component Library
 │   │       │   ├── OrdrivaLogo.tsx          # Multi-variant Responsive Vector Logo (4.4 aspect)
@@ -518,7 +517,6 @@ docker-compose up -d
 | **Menu Catalog &amp; Media Management** | [http://localhost:3000/menu](http://localhost:3000/menu)                         | Head Chef / Manager               |
 | **Inventory &amp; Recipe BoM**          | [http://localhost:3000/inventory](http://localhost:3000/inventory)               | Stock &amp; Inventory Manager     |
 | **GST &amp; Sales Reports**             | [http://localhost:3000/reports](http://localhost:3000/reports)                   | Accountant / Auditor              |
-| **Security Audit Trail**                | [http://localhost:3000/audit](http://localhost:3000/audit)                       | Security / Compliance Officer     |
 | **Backend REST API Health**             | [http://localhost:4000/api/v1/health](http://localhost:4000/api/v1/health)       | API Gateway                       |
 
 ---

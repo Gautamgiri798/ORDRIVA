@@ -170,9 +170,6 @@ export function Navbar() {
     );
   }
 
-  const pendingTickets = kitchenTickets.filter(
-    (kt) => kt.status === 'pending' || kt.status === 'preparing'
-  );
   const lowStockCount = inventory.filter(
     (item) => item.currentStock <= item.minReorderLevel
   ).length;
@@ -189,13 +186,6 @@ export function Navbar() {
       href: '/pos',
       icon: ShoppingBag,
       badge: 'Touch',
-    },
-    {
-      label: 'Kitchen KDS',
-      href: '/kitchen',
-      icon: ChefHat,
-      count: pendingTickets.length > 0 ? pendingTickets.length : undefined,
-      countColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
     },
     {
       label: 'Floor & Tables',
@@ -220,7 +210,6 @@ export function Navbar() {
       countColor: 'bg-rose-500/20 text-rose-300 border border-rose-500/40',
     },
     { label: 'Analytics & GST', href: '/reports', icon: BarChart3 },
-    { label: 'Audit Trail', href: '/audit', icon: ShieldCheck },
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -347,20 +336,14 @@ export function Navbar() {
 
         {/* Right Controls: Staff Switcher & Quick Actions */}
         <div className="flex items-center space-x-1.5 sm:space-x-2.5">
-          {/* Live Kitchen KDS Shortcut */}
+          {/* Orders & Bills Shortcut */}
           <Link
-            href="/kitchen"
+            href="/orders"
             className="flex items-center space-x-1 sm:space-x-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 hover:text-white text-xs font-bold border border-slate-700/60 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            aria-label={`Kitchen Display System, ${pendingTickets.length} pending tickets`}
-            title="Kitchen Display System (KDS)"
+            title="Orders & Tax Invoices Ledger"
           >
-            <ChefHat className="w-4 h-4 text-[#A78BFA]" aria-hidden="true" />
-            <span className="hidden md:inline">Kitchen KDS</span>
-            {pendingTickets.length > 0 && (
-              <span className="bg-amber-500 text-slate-950 text-[10px] px-1.5 py-0.2 rounded-full font-black">
-                {pendingTickets.length}
-              </span>
-            )}
+            <Receipt className="w-4 h-4 text-[#60A5FA]" aria-hidden="true" />
+            <span className="hidden md:inline">Orders &amp; Bills</span>
           </Link>
 
           {/* Quick POS Terminal Button */}

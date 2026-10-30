@@ -7,7 +7,7 @@ import { usePosStore } from '@/lib/store';
 import {
   LayoutDashboard,
   ShoppingBag,
-  ChefHat,
+  Receipt,
   Grid,
   Menu,
 } from 'lucide-react';
@@ -20,11 +20,9 @@ export function MobileBottomNav() {
     return null;
   }
 
-  const { kitchenTickets, tables, cart } = usePosStore();
+  const { tables, cart, orders } = usePosStore();
 
-  const pendingTicketsCount = kitchenTickets.filter(
-    (kt) => kt.status === 'pending' || kt.status === 'preparing'
-  ).length;
+  const unpaidCount = orders.filter((o) => o.paymentStatus === 'pending').length;
 
   const occupiedTablesCount = tables.filter(
     (t) => t.status === 'occupied' || t.status === 'billed'
@@ -54,11 +52,11 @@ export function MobileBottomNav() {
       badgeColor: 'bg-blue-600 text-white',
     },
     {
-      label: 'KDS',
-      href: '/kitchen',
-      icon: ChefHat,
-      isActive: pathname === '/kitchen',
-      badge: pendingTicketsCount > 0 ? pendingTicketsCount : undefined,
+      label: 'Bills',
+      href: '/orders',
+      icon: Receipt,
+      isActive: pathname === '/orders',
+      badge: unpaidCount > 0 ? unpaidCount : undefined,
       badgeColor: 'bg-amber-500 text-slate-950 font-black',
     },
     {

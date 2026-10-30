@@ -8,12 +8,10 @@ import {
   LayoutDashboard,
   ShoppingBag,
   Receipt,
-  ChefHat,
   Grid,
   UtensilsCrossed,
   Boxes,
   BarChart3,
-  ShieldCheck,
   Settings,
   AlertTriangle,
   QrCode,
@@ -26,11 +24,7 @@ export function Sidebar() {
   if (pathname?.startsWith('/order')) {
     return null;
   }
-  const { kitchenTickets, inventory, tables } = usePosStore();
-
-  const pendingTicketsCount = kitchenTickets.filter(
-    (kt) => kt.status === 'pending' || kt.status === 'preparing'
-  ).length;
+  const { inventory, tables } = usePosStore();
 
   const lowStockCount = inventory.filter(
     (item) => item.currentStock <= item.minReorderLevel
@@ -48,13 +42,6 @@ export function Sidebar() {
       icon: ShoppingBag,
       highlight: true,
       badge: 'Touch',
-    },
-    {
-      label: 'Kitchen KDS',
-      href: '/kitchen',
-      icon: ChefHat,
-      count: pendingTicketsCount > 0 ? pendingTicketsCount : undefined,
-      countColor: 'bg-amber-50 text-amber-800 border-amber-200',
     },
     {
       label: 'Floor & Tables',
@@ -79,7 +66,6 @@ export function Sidebar() {
       countColor: 'bg-rose-50 text-rose-700 border-rose-200',
     },
     { label: 'Analytics & GST', href: '/reports', icon: BarChart3 },
-    { label: 'Audit Trail', href: '/audit', icon: ShieldCheck },
     { label: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -141,20 +127,6 @@ export function Sidebar() {
             </Link>
           );
         })}
-      </div>
-
-      {/* Bottom Info / System Status */}
-      <div className="p-3.5 mx-3 mb-8 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1 shrink-0">
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="font-bold text-slate-700">ORDRIVA POS</span>
-          <span className="font-extrabold text-[9px] uppercase px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-700 border border-purple-200/60">
-            v1.0 MVP
-          </span>
-        </div>
-        <div className="text-[10px] text-slate-400 flex items-center justify-between">
-          <span>Engine: <strong className="text-slate-600">Modular Monolith</strong></span>
-          <span className="text-emerald-600 font-bold">● Active</span>
-        </div>
       </div>
     </aside>
   );
