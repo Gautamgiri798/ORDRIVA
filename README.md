@@ -1,7 +1,7 @@
 <div align="center">
 
-  <!-- ORDRIVA Vector Brand Identity Lockup -->
-  <img src="apps/web/public/ordriva-logo.svg" alt="ORDRIVA Enterprise Restaurant OS" width="460" />
+  <!-- ORDRIVA Official Brand Identity Logo -->
+  <img src="apps/web/public/logo.png" alt="ORDRIVA Enterprise Restaurant OS" width="420" />
 
   <br />
   <br />
@@ -395,8 +395,9 @@ ORDRIVA has undergone rigorous usability auditing in accordance with Nielsen Nor
 ORDRIVA/
 ├── 📁 apps/
 │   ├── 🌐 web/                              # Next.js 15 App Router Frontend (:3000)
-│   │   ├── 📁 public/                       # High-Resolution Vector Assets
-│   │   │   ├── ordriva-logo.svg             # Primary Vector Lockup (Cloche + Wordmark, 440×100)
+│   │   ├── 📁 public/                       # High-Resolution Brand & Vector Assets
+│   │   │   ├── logo.png                     # Master High-Res 3D Metallic Cloche & Wordmark
+│   │   │   ├── ordriva-logo.svg             # Vector Lockup (Cloche + Wordmark, 440×100)
 │   │   │   ├── ordriva-mark.svg             # Gold Cloche Vector Emblem
 │   │   │   └── ordriva-mark-transparent.png # High-Density Favicon & PWA Mark
 │   │   └── 📁 src/
