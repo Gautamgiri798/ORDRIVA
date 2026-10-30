@@ -89,8 +89,8 @@ export default function KitchenKdsPage() {
         </div>
 
         {/* Station Filter Pills & Sound Toggle */}
-        <div className="flex items-center space-x-2">
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+        <div className="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold shrink-0">
             {[
               { id: 'all', label: 'All Stations' },
               { id: 'kitchen', label: 'Kitchen' },
@@ -100,7 +100,7 @@ export default function KitchenKdsPage() {
               <button
                 key={st.id}
                 onClick={() => setSelectedStation(st.id)}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${
                   selectedStation === st.id
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
@@ -115,7 +115,7 @@ export default function KitchenKdsPage() {
             onClick={() => setSoundEnabled(!soundEnabled)}
             aria-label={soundEnabled ? 'Mute Kitchen Chime' : 'Enable Kitchen Chime'}
             title={soundEnabled ? 'Kitchen Chime ON' : 'Kitchen Chime MUTED'}
-            className={`p-2 rounded-xl border text-xs font-semibold transition-all ${
+            className={`p-2 rounded-xl border text-xs font-semibold transition-all shrink-0 ${
               soundEnabled
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                 : 'bg-slate-100 text-slate-400 border-slate-200'

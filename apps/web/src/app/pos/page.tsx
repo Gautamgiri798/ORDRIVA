@@ -80,6 +80,9 @@ function PosContent() {
   const [settledOrder, setSettledOrder] = useState<Order | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState<boolean>(false);
 
+  // Mobile navigation tab ('menu' vs 'cart')
+  const [mobileTab, setMobileTab] = useState<'menu' | 'cart'>('menu');
+
   useEffect(() => {
     if (tableParam) {
       setSelectedTableId(tableParam);
@@ -165,11 +168,51 @@ function PosContent() {
 
   const selectedTable = tables.find((t) => t.id === selectedTableId);
   const changeDue = Math.max(0, tenderedAmount - cartCalculations.grandTotal);
+  const totalCartQty = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden bg-slate-100">
+    <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden bg-slate-100 relative">
+      {/* Mobile View Segmented Controller */}
+      <div className="lg:hidden flex items-center justify-between bg-[#0F172A] text-white px-3 py-2 border-b border-slate-800 shrink-0">
+        <div className="flex items-center space-x-1 bg-slate-900 p-0.5 rounded-xl border border-slate-700/60 w-full">
+          <button
+            onClick={() => setMobileTab('menu')}
+            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 ${
+              mobileTab === 'menu'
+                ? 'bg-[#3B82F6] text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <span>Menu Catalog</span>
+          </button>
+          <button
+            onClick={() => setMobileTab('cart')}
+            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 ${
+              mobileTab === 'cart'
+                ? 'bg-[#3B82F6] text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <span>Current Order</span>
+            {totalCartQty > 0 && (
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                  mobileTab === 'cart' ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'
+                }`}
+              >
+                {totalCartQty}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* LEFT: Menu Browsing & Filtering Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 bg-white">
+      <div
+        className={`flex-1 flex flex-col h-full overflow-hidden border-r border-slate-200 bg-white ${
+          mobileTab === 'cart' ? 'hidden lg:flex' : 'flex'
+        }`}
+      >
         {/* Top Control Bar: Search & Order Details */}
         <div className="p-3 border-b border-slate-200 bg-slate-50 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -377,21 +420,56 @@ function PosContent() {
             ))}
           </div>
         </div>
+
+        {/* Floating Mobile Cart Trigger (Visible on small screens when cart has items) */}
+        {cart.length > 0 && (
+          <div className="lg:hidden p-3 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg sticky bottom-0 z-20">
+            <button
+              onClick={() => setMobileTab('cart')}
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white font-extrabold text-sm shadow-md flex items-center justify-between active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-center space-x-2">
+                <span className="bg-white text-[#1D4ED8] text-xs px-2 py-0.5 rounded-full font-black">
+                  {totalCartQty}
+                </span>
+                <span>View Order Cart</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="tabular-nums font-black">{formatCurrency(cartCalculations.grandTotal)}</span>
+                <span>&rarr;</span>
+              </div>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* RIGHT: Active Order Cart & Rapid Checkout Panel */}
-      <div className="w-full lg:w-96 bg-white flex flex-col h-full border-t lg:border-t-0 lg:border-l border-slate-200 shadow-xl shrink-0">
+      <div
+        className={`w-full lg:w-96 bg-white flex flex-col h-full border-t lg:border-t-0 lg:border-l border-slate-200 shadow-xl shrink-0 ${
+          mobileTab === 'menu' ? 'hidden lg:flex' : 'flex'
+        }`}
+      >
         {/* Cart Header */}
         <div className="p-3 border-b border-[#3B82F6]/30 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-white flex items-center justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-wider text-[#60A5FA] font-bold">Current Order</div>
-            <div className="text-sm font-extrabold flex items-center space-x-1.5">
-              <span>{orderType.toUpperCase()}</span>
-              {selectedTable && (
-                <span className="bg-[#3B82F6] text-white px-2 py-0.5 rounded text-xs font-bold">
-                  {selectedTable.label}
-                </span>
-              )}
+          <div className="flex items-center space-x-2.5">
+            <button
+              onClick={() => setMobileTab('menu')}
+              className="lg:hidden px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-bold transition-colors flex items-center space-x-1"
+              aria-label="Back to menu"
+            >
+              <span>&larr;</span>
+              <span>Menu</span>
+            </button>
+            <div>
+              <div className="text-xs uppercase tracking-wider text-[#60A5FA] font-bold">Current Order</div>
+              <div className="text-sm font-extrabold flex items-center space-x-1.5">
+                <span>{orderType.toUpperCase()}</span>
+                {selectedTable && (
+                  <span className="bg-[#3B82F6] text-white px-2 py-0.5 rounded text-xs font-bold">
+                    {selectedTable.label}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           {cart.length > 0 && (

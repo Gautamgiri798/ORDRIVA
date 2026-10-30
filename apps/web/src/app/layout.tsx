@@ -3,6 +3,7 @@ import './globals.css';
 import { PosStoreProvider } from '@/lib/store';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 export const metadata: Metadata = {
   title: 'ORDRIVA - Restaurant POS & Management System',
@@ -24,10 +25,11 @@ export default function RootLayout({
           <Navbar />
           <div className="flex flex-1 overflow-hidden min-h-0 print:block print:overflow-visible">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto min-h-0 bg-[#F8FAFC] print:block print:overflow-visible print:bg-white print:p-0 print:m-0">
+            <main className="flex-1 overflow-y-auto min-h-0 pb-16 md:pb-0 bg-[#F8FAFC] print:block print:overflow-visible print:bg-white print:p-0 print:m-0">
               {children}
             </main>
           </div>
+          <MobileBottomNav />
         </PosStoreProvider>
       </body>
     </html>

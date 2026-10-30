@@ -46,6 +46,17 @@ body {
   background: #94a3b8;
 }
 
+/* Touch & Mobile Scroll Utilities */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 /* Global Print Styles */
 @media print {
   @page {

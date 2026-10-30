@@ -228,7 +228,7 @@ export default function MenuManagementPage() {
                 Menu &amp; Catalog Management
               </h1>
               <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100 text-[#1D4ED8] border border-blue-200">
-                POS 2.0 Catalog
+                Digital Catalog
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">

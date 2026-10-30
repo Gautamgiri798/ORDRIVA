@@ -94,8 +94,8 @@ export default function ReportsPage() {
         </div>
 
         {/* Date Filter & Export Button */}
-        <div className="flex items-center space-x-2">
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold overflow-x-auto">
             {['today', 'yesterday', 'week', 'month'].map((df) => (
               <button
                 key={df}

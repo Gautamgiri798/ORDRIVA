@@ -345,6 +345,19 @@ ORDRIVA is rigorously engineered around Nielsen Norman Usability Heuristics and 
 
 ---
 
+## 📱 Omni-Device & Mobile-First Architecture
+
+ORDRIVA is architected to deliver a responsive, touch-optimized experience spanning **smartphones (360px+)**, **handheld POS Android/iOS terminals (e.g., Sunmi, Clover, Toast)**, **kitchen bump-bar tablets (iPad, Galaxy Tab)**, and **wide desktop cashier monitors**:
+
+* **Fixed Safe-Area Mobile Tab Bar (`MobileBottomNav.tsx`)**: High-frequency staff bottom tab bar on `< md` screens (Overview, POS, KDS, Tables, and More Drawer) with native iOS safe-area inset support (`env(safe-area-inset-bottom)`).
+* **Slide-Over Navigation Drawer (`Navbar.tsx`)**: Reactive off-canvas drawer accessible via hamburger button or bottom "More" tab, providing 1-tap access to all 11 restaurant operational modules, branch switching, and root admin profiles.
+* **Dual-Mode Touch POS (`/pos`)**: On screens `< lg`, POS switches dynamically between Menu Browsing and Order Cart via a top segmented controller and a sticky floating bottom trigger (`🛒 View Order Cart • ₹Total →`), while preserving side-by-side split panels on desktop screens.
+* **Adaptive KDS Kanban (`/kitchen`)**: Seamlessly shifts from high-density multi-column desktop Kanban to a clean vertical feed with horizontal station filter bars on handheld tablets and mobile screens.
+* **Horizontal Scroll Containment**: All tabular data (orders, raw material inventories, security audit logs) and filter ribbons utilize `.no-scrollbar` overflow wrappers to prevent viewport horizontal blowout on narrow displays.
+* **WCAG Touch Target Compliance**: All buttons, stepper controls, and table cards conform to 44×44px minimum touch targets with haptic tap feedback states.
+
+---
+
 ## 📁 Repository Structure
 
 ```
@@ -370,8 +383,9 @@ ORDRIVA/
 │   │       │   └── ⚙️ settings/             # GSTIN, Tax Rates & Printer Configurations
 │   │       ├── 📁 components/               # Atomic & Reusable Component Library
 │   │       │   ├── OrdrivaLogo.tsx          # Multi-variant Responsive Vector Logo (4.4 aspect)
-│   │       │   ├── Navbar.tsx               # Glassmorphic Header, Standardized POS & KDS Shortcuts
-│   │       │   └── Sidebar.tsx              # Stabilized Sidebar with Unified Token Badges
+│   │       │   ├── Navbar.tsx               # Glassmorphic Header & Off-Canvas Mobile Drawer
+│   │       │   ├── Sidebar.tsx              # Stabilized Sidebar with Unified Token Badges
+│   │       │   └── MobileBottomNav.tsx      # Fixed Mobile Bottom Tab Bar (iOS Safe Area)
 │   │       ├── 📁 lib/                      # Core Business Logic & In-Memory Store
 │   │       │   ├── store.tsx                # Zustand-style Reactive Store & Initial State
 │   │       │   └── utils.ts                 # Currency Formatting & Tax Math
