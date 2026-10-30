@@ -11,7 +11,6 @@ import {
   Wifi,
   WifiOff,
   ShoppingBag,
-  ChefHat,
   ChevronDown,
   QrCode,
   Check,
@@ -60,7 +59,7 @@ const getRoleBadgeStyle = (role: UserRole) => {
       return {
         badge: 'bg-amber-950/80 text-amber-300 border-amber-500/40',
         avatarBg: 'bg-gradient-to-br from-amber-500 to-orange-700 text-white shadow-amber-500/30',
-        label: 'Chef / KDS',
+        label: 'Chef / Kitchen',
       };
     case 'inventory':
       return {
@@ -81,7 +80,6 @@ export function Navbar() {
     setCurrentBranch,
     availableBranches,
     isOnline,
-    kitchenTickets,
     cart,
     inventory,
     tables,
@@ -422,7 +420,7 @@ export function Navbar() {
 
                 {/* System Privileges Notice */}
                 <div className="px-2 pb-2 text-[11px] text-slate-400 leading-snug">
-                  Operating with <strong className="text-white font-bold">Full Admin Privileges</strong>. Full access to restaurant operations, KDS, POS, GST configuration, and financial reports.
+                  Operating with <strong className="text-white font-bold">Full Admin Privileges</strong>. Full access to restaurant operations, POS, GST configuration, and financial reports.
                 </div>
 
                 {/* Admin Quick Action Shortcuts */}
@@ -460,15 +458,15 @@ export function Navbar() {
                   </Link>
 
                   <Link
-                    href="/audit"
+                    href="/orders"
                     onClick={() => setIsUserDropdownOpen(false)}
                     className="flex items-center justify-between p-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition-all group"
                   >
                     <div className="flex items-center space-x-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-[#A78BFA] group-hover:bg-[#A78BFA] group-hover:text-slate-950 transition-colors">
-                        <ShieldCheck className="w-3.5 h-3.5" />
+                      <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[#60A5FA] group-hover:bg-[#3B82F6] group-hover:text-white transition-colors">
+                        <Receipt className="w-3.5 h-3.5" />
                       </div>
-                      <span>Security &amp; Audit Trail</span>
+                      <span>Orders &amp; Bills Ledger</span>
                     </div>
                     <span className="text-[10px] text-slate-500 group-hover:text-[#60A5FA]">&rarr;</span>
                   </Link>

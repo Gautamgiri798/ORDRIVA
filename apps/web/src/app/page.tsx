@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   ArrowRight,
   TrendingUp,
-  ChefHat,
   Clock,
   Sparkles,
   Receipt,
@@ -45,7 +44,6 @@ export default function AdminDashboardPage() {
     orders,
     tables,
     inventory,
-    kitchenTickets,
     currentUser,
     settlePayment,
   } = usePosStore();
@@ -383,7 +381,6 @@ export default function AdminDashboardPage() {
   // Active Floor Stats
   const occupiedTables = tables.filter((t) => t.status === 'occupied' || t.status === 'billed');
   const occupancyPercent = tables.length > 0 ? Math.round((occupiedTables.length / tables.length) * 100) : 0;
-  const pendingTickets = kitchenTickets.filter((kt) => kt.status === 'pending' || kt.status === 'preparing');
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 text-slate-800">
@@ -413,11 +410,11 @@ export default function AdminDashboardPage() {
               <span>Cashier POS</span>
             </Link>
             <Link
-              href="/kitchen"
+              href="/orders"
               className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 shadow-xs flex items-center space-x-2 transition-all active:scale-95"
             >
-              <ChefHat className="w-4 h-4 text-amber-400" />
-              <span>Kitchen KDS ({pendingTickets.length})</span>
+              <Receipt className="w-4 h-4 text-blue-400" />
+              <span>Orders &amp; Bills ({orders.length})</span>
             </Link>
             <Link
               href="/tables/qr"
@@ -965,7 +962,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* 4. RESTAURANT OPERATIONS FLOOR OVERVIEW */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Floor Occupancy Card */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
@@ -987,30 +984,6 @@ export default function AdminDashboardPage() {
           </div>
           <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
             <Grid className="w-6 h-6" />
-          </div>
-        </div>
-
-        {/* Kitchen Orders in Flight */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-              Kitchen Display Tickets
-            </span>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-2xl font-black text-slate-900 tabular-nums">
-                {pendingTickets.length}
-              </span>
-              <span className="text-xs text-amber-600 font-bold">
-                Tickets in Prep / Line
-              </span>
-            </div>
-            <Link href="/kitchen" className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center space-x-1 pt-1">
-              <span>Open Bump Bar KDS</span>
-              <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
-            <ChefHat className="w-6 h-6" />
           </div>
         </div>
 

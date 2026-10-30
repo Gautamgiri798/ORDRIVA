@@ -21,7 +21,7 @@ import {
   Split,
   CheckCircle,
   X,
-  ChefHat,
+  Receipt,
   Percent,
   User,
   Phone,
@@ -145,11 +145,11 @@ function PosContent() {
     setIsCheckoutOpen(true);
   };
 
-  const handleFireToKitchen = () => {
+  const handleSaveTab = () => {
     const created = createOrder();
     if (created) {
       confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-      alert(`KOT Ticket for Order #${created.orderNumber} successfully fired to Kitchen!`);
+      alert(`Order #${created.orderNumber} placed on active running tab.`);
     }
   };
 
@@ -488,7 +488,7 @@ function PosContent() {
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 p-6 text-center space-y-2">
               <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
-                <ChefHat className="w-8 h-8" />
+                <ShoppingBag className="w-8 h-8" />
               </div>
               <div className="font-semibold text-slate-600 text-sm">Cart is Empty</div>
               <p className="text-xs text-slate-400 max-w-[200px]">
@@ -614,12 +614,12 @@ function PosContent() {
         {/* Action Buttons */}
         <div className="p-3 bg-white border-t border-slate-200 grid grid-cols-2 gap-2">
           <button
-            onClick={handleFireToKitchen}
+            onClick={handleSaveTab}
             disabled={cart.length === 0}
-            className="py-3 px-3 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all disabled:opacity-50"
+            className="py-3 px-3 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all disabled:opacity-50"
           >
-            <ChefHat className="w-4 h-4 text-amber-600" />
-            <span>Fire KOT Ticket</span>
+            <Receipt className="w-4 h-4 text-blue-600" />
+            <span>Save Tab</span>
           </button>
 
           <button

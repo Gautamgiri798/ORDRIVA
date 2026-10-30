@@ -1,4 +1,4 @@
-run the project and also run the above command<div align="center">
+<div align="center">
 
   <!-- ORDRIVA Official Brand Identity Logo -->
   <img src="apps/web/public/logo.png" alt="ORDRIVA Enterprise Restaurant OS" width="420" />
@@ -7,7 +7,7 @@ run the project and also run the above command<div align="center">
   <br />
 
   <p align="center">
-    <strong>The Next-Generation Restaurant Operating System, Touch POS, KDS &amp; Contactless Dining Platform</strong>
+    <strong>The Next-Generation Restaurant Operating System, Touch POS &amp; Contactless Dining Platform</strong>
   </p>
 
   <p align="center">
@@ -46,7 +46,7 @@ run the project and also run the above command<div align="center">
 
 ## 📌 Executive Summary
 
-**ORDRIVA** is an enterprise-grade restaurant management ecosystem unifying dining table QR ordering, lightning-fast cashier POS terminals, kitchen bump-bar displays, real-time recipe inventory deductions, and statutory GST tax compliance into a single, high-performance platform.
+**ORDRIVA** is an enterprise-grade restaurant management ecosystem unifying dining table QR ordering, lightning-fast cashier POS terminals, revenue analytics & tax ledgers, real-time recipe inventory deductions, and statutory GST tax compliance into a single, high-performance platform.
 
 Built with a modular monolith architecture, ORDRIVA eliminates third-party aggregator commissions, slashes customer wait times by **65%**, ensures sub-300ms cashier transaction speeds, and operates with zero disruption during network drops through resilient local state caching.
 
@@ -54,12 +54,12 @@ Built with a modular monolith architecture, ORDRIVA eliminates third-party aggre
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                              ORDRIVA RESTAURANT OS PLATFORM                             │
 ├─────────────────────────┬──────────────────────────┬───────────────────────────────────┤
-│   MANAGEMENT & AUDIT    │     STAFF & CASHIER      │        GUEST & DINE-IN            │
+│   MANAGEMENT & REVENUE  │     STAFF & CASHIER      │        GUEST & DINE-IN            │
 │   • Executive KPI Board │     • 44px Touch POS     │        • Contactless QR Dining    │
-│   • Multi-Branch Admin  │     • KDS Station Kanban │        • Multi-Item Quantity Stepper│
-│   • Media Drag & Drop   │     • 2D Architectural Map│       • Live Order Round History │
+│   • Multi-Branch Admin  │     • Orders & Tax Bills │        • Multi-Item Quantity Stepper│
+│   • Day-by-Day Revenue  │     • 2D Architectural Map│       • Live Order Round History │
 │   • Recipe BoM Stock    │     • 80mm Bill Printing │        • Running Tab & E-Bill     │
-│   • GST Statutory Audit │     • Sound Chime Alerts │        • Instant UPI QR & Invoice │
+│   • GST Dual-Tax Ledger │     • Sound Chime Alerts │        • Instant UPI QR & Invoice │
 │   • Z-Report Financials │     • Isolated Print QR  │        • Real-Time Table Seating  │
 └─────────────────────────┴──────────────────────────┴───────────────────────────────────┘
 ```
@@ -310,12 +310,12 @@ erDiagram
 - **Dynamic UPI QR Engine**: Instant on-screen NPCI UPI QR code generation compatible with Google Pay, PhonePe, and Paytm.
 - **80mm Thermal Receipt Printing**: Clean monochrome bills formatted to statutory Indian GST regulations.
 
-### 3. 👨‍🍳 Kitchen Display System (KDS Kanban) (`/kitchen`)
+### 3. 🧾 Orders &amp; Bills Ledger (`/orders`)
 
-- **3-Stage Real-Time Kanban**: Categorized columns for **New Orders**, **In Preparation**, and **Ready for Pickup**.
-- **Station Filter Routing**: Instant station switching (_All Stations_, _Hot Kitchen_, _Grill & Fryer_, _Bar & Beverage_).
-- **Chromatic Aging Alerts**: Visual color warnings for ticket wait times (Green `<10m`, Amber `10–20m`, Red `>20m`).
-- **Web Audio Chimes**: Automated chime alerts notify line chefs immediately upon new ticket placement.
+- **Full Lifecycle Audit**: Centralized repository of all dine-in, takeaway, and QR online orders with real-time settlement badges.
+- **80mm Thermal Receipt Generator**: Instant client-side generation and direct printer dispatch for 80mm GST customer tax receipts.
+- **Instant Bill Settlement Modal**: Split-second payment recording across UPI, Debit/Credit Card, and Cash with change computation.
+- **Search & Multi-Filter Querying**: Filter instantly by guest name, order number, table, or settlement status (Paid vs. Running Tab).
 
 ### 4. 🪑 Floor Plan &amp; Architectural Table Manager (`/tables`)
 
@@ -383,7 +383,7 @@ ORDRIVA has undergone rigorous usability auditing in accordance with Nielsen Nor
 | :------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Consistency &amp; Standards**       | • Standardized unified CTA terminology (`"Launch POS"`) across header navigation and hero cards.<br>• Standardized badge tokens across sidebar navigation (`rounded-full px-2 py-0.5 text-[10px] border`).<br>• Status semaphoring: Actionable `Ready` tickets rendered in conventional Emerald Green (`bg-emerald-50 text-emerald-700`).                               |
 | **State Visibility &amp; Feedback**   | • Live floor status legend complete with all 4 table states (`Available`, `Occupied`, `Reserved`, `Billed`).<br>• Fully decoded semantic state tags equipped with `aria-hidden="true"` and `role="listitem"`.                                                                                                                                                           |
-| **Visual Hierarchy &amp; Affordance** | • High-contrast dark button surface for `Kitchen KDS` (`bg-slate-900/80 hover:bg-slate-900`) with keyboard focus rings.<br>• Ambient logo watermarks dialed down to `opacity-5` with `aria-hidden="true"` to eliminate contrast vibration behind action buttons.<br>• Optical alignment: Added `px-2` to `<th>Status</th>` to align directly with badge text baselines. |
+| **Visual Hierarchy &amp; Affordance** | • High-contrast dark button surface for `Orders & Bills` (`bg-slate-900/80 hover:bg-slate-900`) with keyboard focus rings.<br>• Ambient logo watermarks dialed down to `opacity-5` with `aria-hidden="true"` to eliminate contrast vibration behind action buttons.<br>• Optical alignment: Added `px-2` to `<th>Status</th>` to align directly with badge text baselines. |
 | **Data Integrity &amp; Calculation**  | • Fixed order item aggregation: Computes `totalQty` with accurate remaining breakdowns (`3 items (Name +2)`).<br>• Explicit flexbox separation (`gap-2`) preventing merged order type and table badge tokens (`Dine In [T-02]`).                                                                                                                                        |
 | **Typographic Discipline**            | • Streamlined disparate color classes into a strict 6-tier token scale (`slate-900`, `slate-600`, `slate-500`, `emerald-700`, `amber-700`, `rose-600`).                                                                                                                                                                                                                 |
 
@@ -417,13 +417,12 @@ ORDRIVA/
 │   │   │   └── ordriva-mark-transparent.png # High-Density Favicon & PWA Mark
 │   │   └── 📁 src/
 │   │       ├── 📁 app/                      # Application Route Handlers
-│   │       │   ├── 📊 page.tsx              # Executive Dashboard & Admin Center (Heuristic Audited)
+│   │       │   ├── 📊 page.tsx              # Executive Dashboard, Day-by-Day Revenue & Bills Ledger
 │   │       │   ├── ⚡ pos/                  # Touch POS Terminal with UPI & Denominations
-│   │       │   ├── 👨‍🍳 kitchen/              # Kitchen Display System (KDS Kanban)
+│   │       │   ├── 🧾 orders/               # Orders & Bills Ledger with 80mm Print Receipts
 │   │       │   ├── 🪑 tables/               # 2D Architectural Seating Blueprint & Floor Map
 │   │       │   │   └── 🖨️ qr/               # Isolated Table QR Stand Print Studio
 │   │       │   ├── 📱 order/                # Customer QR Portal (Menu, Multi-Qty, Bills, Tables)
-│   │       │   ├── 🧾 orders/               # Order History Ledger & 80mm Print Receipts
 │   │       │   ├── 📋 menu/                 # Menu Catalog, Drag & Drop Media & Modifiers
 │   │       │   ├── 📦 inventory/            # Recipe BoM Stock Deductions & Alerts
 │   │       │   ├── 📈 reports/              # Financial Analytics, Taxes & Z-Report
