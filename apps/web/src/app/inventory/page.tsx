@@ -356,8 +356,13 @@ export default function InventoryPage() {
 
       {/* 5. Enterprise Inventory Table */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+        {/* Mobile Swipe Hint */}
+        <div className="sm:hidden flex items-center justify-between text-[11px] font-bold text-blue-700 bg-blue-50/80 px-4 py-2 border-b border-blue-100">
+          <span>← Swipe horizontally to view all inventory columns →</span>
+          <span className="text-blue-500">Stock Table</span>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm min-w-[850px]">
             <thead>
               <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80 border-b border-slate-200">
                 <th className="py-3.5 px-5 whitespace-nowrap">Ingredient / Raw Material</th>

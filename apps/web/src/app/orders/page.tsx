@@ -351,8 +351,13 @@ export default function OrdersHistoryPage() {
 
       {/* 4. ORDERS & BILLS LEDGER TABLE WITH DATE & TIME */}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+        {/* Mobile Swipe Hint */}
+        <div className="sm:hidden flex items-center justify-between text-[11px] font-bold text-blue-700 bg-blue-50/80 px-4 py-2 border-b border-blue-100">
+          <span>← Swipe horizontally to view full order details →</span>
+          <span className="text-blue-500">Invoices</span>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[820px]">
             <thead className="bg-slate-50/80 border-b border-slate-200">
               <tr className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
                 <th className="py-3.5 px-4">Invoice #</th>

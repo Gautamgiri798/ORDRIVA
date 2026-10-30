@@ -61,6 +61,10 @@ export default function AdminDashboardPage() {
   const [orderTab, setOrderTab] = useState<OrderFilterTab>('all');
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
 
+  // Mobile View Toggles (Cards vs Table)
+  const [ledgerViewMode, setLedgerViewMode] = useState<'cards' | 'table'>('cards');
+  const [ordersViewMode, setOrdersViewMode] = useState<'cards' | 'table'>('cards');
+
   // Settlement Modal State
   const [settlingOrder, setSettlingOrder] = useState<Order | null>(null);
   const [settleMethod, setSettleMethod] = useState<PaymentMethod>('cash');
@@ -282,16 +286,16 @@ export default function AdminDashboardPage() {
   const occupancyPercent = tables.length > 0 ? Math.round((occupiedTables.length / tables.length) * 100) : 0;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 text-slate-800">
+    <div className="p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 text-slate-800">
       {/* 1. EXECUTIVE WELCOME BANNER */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-white p-6 sm:p-8 shadow-xl border border-blue-500/30">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-white p-5 sm:p-8 shadow-xl border border-blue-500/30">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-xs font-semibold text-[#60A5FA]">
               <Sparkles className="w-3.5 h-3.5 text-[#A78BFA]" />
               <span>ORDRIVA Executive Management Suite</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white">
               Welcome back, {currentUser.name}
             </h1>
             <p className="text-slate-300 text-xs sm:text-sm max-w-xl">
@@ -300,7 +304,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Quick Hub Navigation */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
             <Link
               href="/pos"
               className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/30 flex items-center space-x-2 transition-all active:scale-95"
@@ -335,7 +339,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* 2. REVENUE INTELLIGENCE DASHBOARD (1 Day, 1 Week, 1 Month & Day-by-Day) */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-sm space-y-6">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-4 sm:p-7 shadow-sm space-y-6">
         {/* Dashboard Header with Period Filters */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="space-y-1">
@@ -492,7 +496,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* 2B. LUXURY DAY-BY-DAY REVENUE PROGRESSION CANVAS */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-b from-white via-slate-50/50 to-slate-50/90 border border-slate-200/90 shadow-sm space-y-6">
+        <div className="p-4 sm:p-7 rounded-2xl sm:rounded-3xl bg-gradient-to-b from-white via-slate-50/50 to-slate-50/90 border border-slate-200/90 shadow-sm space-y-5 sm:space-y-6">
           {/* Header & Meta Ribbon */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
             <div>
@@ -547,8 +551,14 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Luxury Chart Canvas with Benchmark Grid & Slender Columns */}
-          <div className="pt-4 pb-2 px-1 overflow-x-auto">
-            <div className="relative min-w-[560px]">
+          <div className="pt-2 sm:pt-4 pb-2 px-0 sm:px-1 overflow-x-auto">
+            {dailyBreakdown.length > 7 && (
+              <div className="sm:hidden flex items-center justify-between text-[11px] font-bold text-blue-700 bg-blue-50/80 px-3 py-1.5 rounded-xl border border-blue-200/60 mb-2">
+                <span>← Swipe horizontally to explore full {dailyBreakdown.length}-day timeline →</span>
+                <span className="text-blue-600 font-extrabold uppercase">30D</span>
+              </div>
+            )}
+            <div className={`relative ${dailyBreakdown.length > 7 ? 'min-w-[700px]' : 'min-w-0 w-full'}`}>
               {/* Benchmark Horizontal Guide Lines & Left Y-Axis */}
               {(() => {
                 const maxVal = periodTotals.maxDailyRevenue || 10000;
@@ -564,7 +574,7 @@ export default function AdminDashboardPage() {
                 return (
                   <div className="relative">
                     {/* Background Grid Guide Lines */}
-                    <div className="absolute inset-0 left-12 bottom-12 pointer-events-none flex flex-col justify-between">
+                    <div className="absolute inset-0 left-9 sm:left-12 bottom-10 sm:bottom-12 pointer-events-none flex flex-col justify-between">
                       {gridLevels.map((lvl, idx) => (
                         <div key={idx} className="w-full border-b border-dashed border-slate-200/80 flex items-center">
                           <span className="text-[9px] font-mono text-slate-300 ml-auto pr-1"></span>
@@ -576,17 +586,17 @@ export default function AdminDashboardPage() {
                     {/* Chart Container: Left Y-Axis + Bars */}
                     <div className="flex items-end">
                       {/* Left Y-Axis Labels */}
-                      <div className="w-12 h-52 flex flex-col justify-between pb-12 pr-2 text-right shrink-0 select-none">
+                      <div className="w-9 sm:w-12 h-44 sm:h-52 flex flex-col justify-between pb-10 sm:pb-12 pr-1.5 sm:pr-2 text-right shrink-0 select-none">
                         {gridLevels.map((lvl, idx) => (
-                          <span key={idx} className="text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">
+                          <span key={idx} className="text-[8.5px] sm:text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">
                             {lvl.label}
                           </span>
                         ))}
-                        <span className="text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">₹0</span>
+                        <span className="text-[8.5px] sm:text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">₹0</span>
                       </div>
 
                       {/* Bars Flex Strip */}
-                      <div className="flex-1 flex items-end justify-between gap-2 sm:gap-4 relative z-10 pb-2">
+                      <div className="flex-1 flex items-end justify-between gap-1 sm:gap-4 relative z-10 pb-2">
                         {dailyBreakdown.map((day) => {
                           const heightPercent = Math.max(
                             8,
@@ -630,10 +640,10 @@ export default function AdminDashboardPage() {
                               </div>
 
                               {/* Floating Value Pill Badge Above Bar */}
-                              <div className="mb-1.5 transition-transform duration-200 group-hover:-translate-y-0.5">
+                              <div className="mb-1 sm:mb-1.5 transition-transform duration-200 group-hover:-translate-y-0.5">
                                 {day.grossRevenue > 0 ? (
                                   <span
-                                    className={`text-[10px] font-black tabular-nums tracking-tight px-1.5 py-0.5 rounded-md border shadow-2xs transition-colors ${
+                                    className={`text-[8px] sm:text-[10px] font-black tabular-nums tracking-tight px-1 sm:px-1.5 py-0.5 rounded-md border shadow-2xs transition-colors ${
                                       day.isPeak
                                         ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 shadow-amber-500/30'
                                         : day.isToday
@@ -643,16 +653,16 @@ export default function AdminDashboardPage() {
                                         : 'bg-white/95 text-slate-700 border-slate-200 group-hover:border-blue-400 group-hover:text-blue-700'
                                     }`}
                                   >
-                                    ₹{(day.grossRevenue / 1000).toFixed(1)}k
+                                    ₹{(day.grossRevenue / 1000).toFixed(0)}k
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] font-bold text-slate-300">₹0</span>
+                                  <span className="text-[7.5px] sm:text-[9px] font-bold text-slate-300">₹0</span>
                                 )}
                               </div>
 
                               {/* Slender Architectural Bar Column */}
                               <div
-                                className={`w-10 sm:w-12 max-w-[44px] h-44 bg-slate-100/70 rounded-2xl flex items-end p-1 relative border transition-all duration-300 group-hover:bg-slate-100 ${
+                                className={`w-7 sm:w-11 max-w-[44px] h-36 sm:h-44 bg-slate-100/70 rounded-xl sm:rounded-2xl flex items-end p-0.5 sm:p-1 relative border transition-all duration-300 group-hover:bg-slate-100 ${
                                   isSelected
                                     ? 'border-blue-500 ring-2 ring-blue-500/40 bg-blue-50/30'
                                     : 'border-slate-200/70 group-hover:border-blue-300'
@@ -660,7 +670,7 @@ export default function AdminDashboardPage() {
                               >
                                 <div
                                   style={{ height: `${heightPercent}%` }}
-                                  className={`w-full rounded-xl transition-all duration-500 relative overflow-hidden group-hover:brightness-105 ${
+                                  className={`w-full rounded-lg sm:rounded-xl transition-all duration-500 relative overflow-hidden group-hover:brightness-105 ${
                                     day.isPeak
                                       ? 'bg-gradient-to-t from-amber-600 via-amber-500 to-yellow-300 border-t-2 border-white/70 shadow-md shadow-amber-500/30 ring-2 ring-amber-400/50'
                                       : day.isToday
@@ -674,22 +684,22 @@ export default function AdminDashboardPage() {
                               </div>
 
                               {/* X-Axis Date Pill Container */}
-                              <div className="mt-2.5 text-center transition-all duration-200">
-                                <span className={`block text-xs font-black tracking-tight ${
+                              <div className="mt-2 sm:mt-2.5 text-center transition-all duration-200">
+                                <span className={`block text-[10px] sm:text-xs font-black tracking-tight ${
                                   day.isToday ? 'text-blue-700' : day.isPeak ? 'text-amber-800' : 'text-slate-800'
                                 }`}>
                                   {day.dayName}
                                 </span>
-                                <span className="block text-[10px] text-slate-500 font-semibold whitespace-nowrap">
+                                <span className="block text-[8px] sm:text-[10px] text-slate-500 font-semibold whitespace-nowrap">
                                   {day.displayDate.split(' ')[0]} {day.displayDate.split(' ')[1]}
                                 </span>
                                 {day.isToday && (
-                                  <span className="inline-block px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[8.5px] font-black uppercase mt-0.5 shadow-2xs">
+                                  <span className="inline-block px-1 sm:px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[7.5px] sm:text-[8.5px] font-black uppercase mt-0.5 shadow-2xs">
                                     Today
                                   </span>
                                 )}
                                 {day.isPeak && !day.isToday && (
-                                  <span className="inline-block px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[8.5px] font-black uppercase mt-0.5">
+                                  <span className="inline-block px-1 sm:px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[7.5px] sm:text-[8.5px] font-black uppercase mt-0.5">
                                     Peak
                                   </span>
                                 )}
@@ -767,28 +777,157 @@ export default function AdminDashboardPage() {
 
         {/* 2C. DAY-BY-DAY REVENUE DETAILED HISTORICAL TABLE */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 tracking-tight">
-              Day-by-Day Historical Ledger
-            </h3>
-            <span className="text-xs text-slate-500">
-              Showing {tableDailyList.length} trading days in selected period
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 tracking-tight">
+                Day-by-Day Historical Ledger
+              </h3>
+              <span className="text-xs text-slate-500">
+                Showing {tableDailyList.length} trading days in selected period
+              </span>
+            </div>
+
+            {/* Mobile View Toggle: Cards vs Table */}
+            <div className="sm:hidden inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold self-start">
+              <button
+                onClick={() => setLedgerViewMode('cards')}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  ledgerViewMode === 'cards'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Card View
+              </button>
+              <button
+                onClick={() => setLedgerViewMode('table')}
+                className={`px-3 py-1 rounded-lg transition-all ${
+                  ledgerViewMode === 'table'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Table View
+              </button>
+            </div>
           </div>
 
-          <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+          {/* 1. Mobile Cards View (sm:hidden when in card mode) */}
+          <div className={`${ledgerViewMode === 'cards' ? 'block' : 'hidden'} sm:hidden space-y-2.5`}>
+            {tableDailyList.map((day) => (
+              <div
+                key={day.key}
+                onClick={() => setSelectedDayKey(selectedDayKey === day.key ? null : day.key)}
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                  day.isToday
+                    ? 'bg-blue-50/40 border-blue-200 shadow-xs ring-1 ring-blue-400/30'
+                    : day.isPeak
+                    ? 'bg-amber-50/30 border-amber-200'
+                    : 'bg-white border-slate-200/80 shadow-2xs hover:border-blue-200'
+                }`}
+              >
+                {/* Top Row: Date, Day Badges, Orders Count */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-extrabold text-sm text-slate-900">{day.displayDate}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                      {day.dayName}
+                    </span>
+                    {day.isToday && (
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-600 text-white shadow-2xs">
+                        Today
+                      </span>
+                    )}
+                    {day.isPeak && !day.isToday && (
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-bold">
+                        Peak 🔥
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg">
+                    {day.orderCount} orders
+                  </span>
+                </div>
+
+                {/* 2x2 Complete Metrics Grid: Every metric is visible with zero cutoffs */}
+                <div className="grid grid-cols-2 gap-2 pt-2.5 text-xs">
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">
+                      Gross Revenue
+                    </span>
+                    <span className="text-sm font-black text-slate-900 tabular-nums mt-0.5 block">
+                      {formatCurrency(day.grossRevenue)}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">
+                      Net Food Sales
+                    </span>
+                    <span className="text-sm font-extrabold text-slate-800 tabular-nums mt-0.5 block">
+                      {formatCurrency(day.netSales)}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">
+                      GST (5% Pool)
+                    </span>
+                    <span className="text-xs font-extrabold text-emerald-700 tabular-nums mt-0.5 block">
+                      {formatCurrency(day.tax)}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">
+                      Avg Ticket (AOV)
+                    </span>
+                    <span className="text-xs font-extrabold text-blue-700 tabular-nums mt-0.5 block">
+                      {formatCurrency(day.aov)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom Row: Channel & Performance */}
+                <div className="flex items-center justify-between pt-2.5 text-[11px] text-slate-500">
+                  <div className="flex items-center space-x-1.5">
+                    <span>Dominant:</span>
+                    <span className="font-extrabold uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                      {day.dominantMethod}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-blue-600 flex items-center space-x-1">
+                    <span>Inspect details</span>
+                    <span>→</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 2. Full Table View (Desktop always; Mobile when in table mode) */}
+          <div
+            className={`${
+              ledgerViewMode === 'table' ? 'block' : 'hidden sm:block'
+            } border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs`}
+          >
+            {/* Mobile Swipe Hint */}
+            <div className="sm:hidden flex items-center justify-between text-[11px] font-bold text-blue-700 bg-blue-50/80 px-3 py-1.5 border-b border-blue-100">
+              <span>← Swipe table horizontally to explore all 8 columns →</span>
+              <span className="text-blue-500">8 Columns</span>
+            </div>
+
             <div className="overflow-x-auto max-h-72 overflow-y-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+              <table className="w-full text-left text-xs min-w-[760px]">
+                <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-20">
                   <tr className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
-                    <th className="py-2.5 px-4">Date &amp; Day</th>
-                    <th className="py-2.5 px-4">Settled Bills</th>
-                    <th className="py-2.5 px-4">Net Sales</th>
-                    <th className="py-2.5 px-4">GST (5%)</th>
-                    <th className="py-2.5 px-4">Gross Revenue</th>
-                    <th className="py-2.5 px-4">Avg Ticket (AOV)</th>
-                    <th className="py-2.5 px-4">Dominant Channel</th>
-                    <th className="py-2.5 px-4 text-right">Performance</th>
+                    <th className="py-2.5 px-4 sticky left-0 bg-slate-50 z-20 shadow-xs whitespace-nowrap">
+                      Date &amp; Day
+                    </th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">Settled Bills</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">Net Sales</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">GST (5%)</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">Gross Revenue</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">Avg Ticket (AOV)</th>
+                    <th className="py-2.5 px-4 whitespace-nowrap">Dominant Channel</th>
+                    <th className="py-2.5 px-4 text-right whitespace-nowrap">Performance</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -799,7 +938,7 @@ export default function AdminDashboardPage() {
                         day.isToday ? 'bg-blue-50/20 font-semibold' : ''
                       }`}
                     >
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-3 px-4 whitespace-nowrap sticky left-0 bg-white z-10 shadow-xs">
                         <div className="flex items-center space-x-2">
                           <span className="font-bold text-slate-900">
                             {day.displayDate}
@@ -819,27 +958,27 @@ export default function AdminDashboardPage() {
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-slate-700 font-medium tabular-nums">
+                      <td className="py-3 px-4 text-slate-700 font-medium tabular-nums whitespace-nowrap">
                         {day.orderCount} orders
                       </td>
-                      <td className="py-3 px-4 text-slate-700 tabular-nums">
+                      <td className="py-3 px-4 text-slate-700 tabular-nums whitespace-nowrap">
                         {formatCurrency(day.netSales)}
                       </td>
-                      <td className="py-3 px-4 text-slate-500 tabular-nums">
+                      <td className="py-3 px-4 text-slate-500 tabular-nums whitespace-nowrap font-medium text-emerald-700">
                         {formatCurrency(day.tax)}
                       </td>
-                      <td className="py-3 px-4 font-black text-slate-900 tabular-nums text-sm">
+                      <td className="py-3 px-4 font-black text-slate-900 tabular-nums text-sm whitespace-nowrap">
                         {formatCurrency(day.grossRevenue)}
                       </td>
-                      <td className="py-3 px-4 text-slate-700 tabular-nums">
+                      <td className="py-3 px-4 text-slate-700 tabular-nums whitespace-nowrap">
                         {formatCurrency(day.aov)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 whitespace-nowrap">
                         <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                           {day.dominantMethod}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
                         {day.isPeak ? (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 inline-flex items-center space-x-1">
                             <span>🔥</span>
@@ -865,11 +1004,11 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* 3. ORDER AND BILL SECTION IN ADMIN PORTAL */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 shadow-sm space-y-6">
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-7 shadow-sm space-y-6">
         {/* Orders Header & Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
@@ -910,35 +1049,163 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2">
-          {(
-            [
-              { key: 'all', label: 'All Orders' },
-              { key: 'succeeded', label: 'Paid / Settled Bills' },
-              { key: 'pending', label: 'Unpaid / Running Tabs' },
-              { key: 'dine_in', label: 'Dine-In Tables' },
-              { key: 'takeaway', label: 'Takeaway' },
-            ] as const
-          ).map((tab) => (
+        {/* Filter Pills with Horizontal Scroll on Mobile & View Switch */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {(
+              [
+                { key: 'all', label: 'All Orders' },
+                { key: 'succeeded', label: 'Paid / Settled' },
+                { key: 'pending', label: 'Unpaid Tabs' },
+                { key: 'dine_in', label: 'Dine-In' },
+                { key: 'takeaway', label: 'Takeaway' },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setOrderTab(tab.key)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  orderTab === tab.key
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile Orders View Switch */}
+          <div className="sm:hidden inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold self-start">
             <button
-              key={tab.key}
-              onClick={() => setOrderTab(tab.key)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                orderTab === tab.key
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              onClick={() => setOrdersViewMode('cards')}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                ordersViewMode === 'cards'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              {tab.label}
+              Card View
             </button>
-          ))}
+            <button
+              onClick={() => setOrdersViewMode('table')}
+              className={`px-3 py-1 rounded-lg transition-all ${
+                ordersViewMode === 'table'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Table View
+            </button>
+          </div>
         </div>
 
-        {/* Orders Table */}
-        <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+        {/* 1. Mobile Orders Cards View */}
+        <div className={`${ordersViewMode === 'cards' ? 'block' : 'hidden'} sm:hidden space-y-3`}>
+          {filteredOrders.slice(0, 15).map((order) => {
+            const totalItems = order.items.reduce((s, i) => s + i.quantity, 0);
+            const isPaid = order.paymentStatus === 'succeeded';
+
+            return (
+              <div
+                key={order.id}
+                className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2.5"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-black text-sm text-slate-900">#{order.orderNumber}</span>
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                      {order.orderType === 'dine_in'
+                        ? order.tableLabel
+                          ? `Table ${order.tableLabel}`
+                          : 'Dine-In'
+                        : 'Takeaway'}
+                    </span>
+                  </div>
+                  {isPaid ? (
+                    <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <CheckCircle className="w-3 h-3" />
+                      <span>Paid ({order.paymentMethod?.toUpperCase() || 'CASH'})</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                      <Clock className="w-3 h-3 text-amber-600" />
+                      <span>Unpaid Tab</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-600">
+                  <span className="font-semibold text-slate-800">{order.customerName || 'Walk-in Guest'}</span>
+                  <span className="text-slate-400">
+                    {new Date(order.createdAt).toLocaleTimeString('en-IN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}
+                  </span>
+                </div>
+
+                <div className="text-[11px] text-slate-500 line-clamp-1">
+                  {totalItems} items ({order.items.map((i) => i.name).slice(0, 2).join(', ')}
+                  {order.items.length > 2 ? '...' : ''})
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <div>
+                    <span className="text-[9.5px] uppercase font-bold text-slate-400 block">Bill Total</span>
+                    <span className="text-base font-black text-slate-900 tabular-nums">
+                      {formatCurrency(order.grandTotal)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      onClick={() => setViewingOrder(order)}
+                      className="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center space-x-1"
+                    >
+                      <Receipt className="w-3.5 h-3.5" />
+                      <span>View Bill</span>
+                    </button>
+                    <button
+                      onClick={() => executePrintBill(order)}
+                      className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700"
+                      title="Print 80mm Slip"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                    </button>
+                    {!isPaid && (
+                      <button
+                        onClick={() => {
+                          setSettlingOrder(order);
+                          setTenderedInput(order.grandTotal.toString());
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                      >
+                        Settle
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 2. Full Orders Table (Desktop always; Mobile when in table mode) */}
+        <div
+          className={`${
+            ordersViewMode === 'table' ? 'block' : 'hidden sm:block'
+          } border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs`}
+        >
+          {/* Mobile Swipe Hint */}
+          <div className="sm:hidden flex items-center justify-between text-[11px] font-bold text-blue-700 bg-blue-50/80 px-3 py-1.5 border-b border-blue-100">
+            <span>← Swipe table horizontally to view all columns →</span>
+            <span className="text-blue-500">8 Columns</span>
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[760px]">
               <thead className="bg-slate-50/80 border-b border-slate-200">
                 <tr className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
                   <th className="py-3 px-4">Invoice #</th>
@@ -999,16 +1266,16 @@ export default function AdminDashboardPage() {
                           <span className="text-slate-400 font-medium">Counter</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-700">
+                      <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                         {order.customerName || 'Walk-in Guest'}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-600">
+                      <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
                         <span>
                           {totalItems} items ({order.items.map((i) => i.name).slice(0, 2).join(', ')}
                           {order.items.length > 2 ? '...' : ''})
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-black text-slate-900 tabular-nums text-sm">
+                      <td className="py-3.5 px-4 font-black text-slate-900 tabular-nums text-sm whitespace-nowrap">
                         {formatCurrency(order.grandTotal)}
                       </td>
                       <td className="py-3.5 px-4 whitespace-nowrap">
@@ -1052,7 +1319,8 @@ export default function AdminDashboardPage() {
                                 setSettlingOrder(order);
                                 setTenderedInput(order.grandTotal.toString());
                               }}
-                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-xs"
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors"
+                              title="Settle Outstanding Tab"
                             >
                               Settle
                             </button>
