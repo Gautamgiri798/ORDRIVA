@@ -86,13 +86,11 @@ export function Navbar() {
   } = usePosStore();
 
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const userDropdownRef = useRef<HTMLDivElement>(null);
-  const branchDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on click outside
+  // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -100,12 +98,6 @@ export function Navbar() {
         !userDropdownRef.current.contains(event.target as Node)
       ) {
         setIsUserDropdownOpen(false);
-      }
-      if (
-        branchDropdownRef.current &&
-        !branchDropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsBranchDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -232,76 +224,14 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Middle: Custom Branch Selector & Sync State */}
+        {/* Middle: Operating Restaurant & Sync State */}
         <div className="flex items-center space-x-2 sm:space-x-3">
-          {/* Custom Branch Selector (Hidden on Mobile, available in drawer) */}
-          <div className="relative hidden md:block" ref={branchDropdownRef}>
-            <button
-              onClick={() => {
-                setIsBranchDropdownOpen(!isBranchDropdownOpen);
-                setIsUserDropdownOpen(false);
-              }}
-              className={`flex items-center space-x-2 bg-slate-900/90 hover:bg-slate-800 border transition-all rounded-xl px-3 py-1.5 text-xs text-slate-200 shadow-sm ${
-                isBranchDropdownOpen
-                  ? 'border-[#3B82F6] ring-2 ring-[#3B82F6]/20'
-                  : 'border-[#3B82F6]/30 hover:border-[#60A5FA]/60'
-              }`}
-            >
-              <MapPin className="w-3.5 h-3.5 text-[#60A5FA]" />
-              <span className="font-semibold text-slate-100 max-w-[200px] truncate">
-                {currentBranch.name}
-              </span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                  isBranchDropdownOpen ? 'rotate-180 text-[#60A5FA]' : ''
-                }`}
-              />
-            </button>
-
-            {/* Branch Dropdown Popover */}
-            {isBranchDropdownOpen && (
-              <div className="absolute left-0 mt-2 w-72 rounded-2xl bg-[#0F172A] border border-[#3B82F6]/40 shadow-2xl backdrop-blur-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase border-b border-slate-800">
-                  Operating Branch
-                </div>
-                <div className="py-1 space-y-1">
-                  {availableBranches.map((br) => {
-                    const isSelected = br.id === currentBranch.id;
-                    return (
-                      <button
-                        key={br.id}
-                        onClick={() => {
-                          setCurrentBranch(br);
-                          setIsBranchDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all ${
-                          isSelected
-                            ? 'bg-[#3B82F6]/20 border border-[#3B82F6]/50 text-white'
-                            : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                              isSelected
-                                ? 'bg-[#3B82F6] text-white'
-                                : 'bg-slate-800 text-slate-400'
-                            }`}
-                          >
-                            <Store className="w-3.5 h-3.5" />
-                          </div>
-                          <div>
-                            <div className="text-xs font-bold leading-tight">{br.name}</div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">{br.address}</div>
-                          </div>
-                        </div>
-                        {isSelected && <Check className="w-4 h-4 text-[#60A5FA]" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+          {/* Operating Restaurant Badge */}
+          <div className="hidden md:flex items-center space-x-2 bg-slate-900/90 border border-[#3B82F6]/30 rounded-xl px-3 py-1.5 text-xs text-slate-200 shadow-sm">
+            <MapPin className="w-3.5 h-3.5 text-[#60A5FA]" />
+            <span className="font-semibold text-slate-100 max-w-[260px] truncate">
+              {currentBranch.name}
+            </span>
           </div>
 
           {/* Online / Offline Sync Badge */}
@@ -530,7 +460,7 @@ export function Navbar() {
             {/* Operating Branch Pill in Mobile Drawer */}
             <div className="p-3 bg-slate-900/60 border-b border-slate-800">
               <div className="text-[10px] font-black tracking-widest text-[#60A5FA] uppercase mb-1">
-                Operating Branch
+                Operating Restaurant
               </div>
               <div className="flex items-center justify-between text-xs font-bold text-slate-200">
                 <div className="flex items-center space-x-2 truncate">
