@@ -1,7 +1,7 @@
 {
   "name": "web",
   "version": "1.0.0",
-  "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "node ../../clean_next.js && next dev -H 0.0.0.0",
     "build": "next build",

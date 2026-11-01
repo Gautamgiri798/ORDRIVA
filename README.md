@@ -16,6 +16,7 @@
 
   <!-- High-Caliber Technology Shields -->
   <p align="center">
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge&logo=open-source-initiative&logoColor=white" alt="MIT License" /></a>
     <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15.5_App_Router-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 15.5" /></a>
     <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19_Concurrent-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 19" /></a>
     <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5.8_Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5.8" /></a>
@@ -544,6 +545,7 @@ ORDRIVA/
 │   └── RUNBOOK.md                           # Production Operations & Disaster Recovery
 │
 ├── docker-compose.yml                       # Multi-Container Compose Orchestration
+├── LICENSE                                  # Official Open-Source MIT License
 └── package.json                             # Root Monorepo Configuration
 ```
 
@@ -614,5 +616,5 @@ docker-compose up -d
 
 ## 📄 License &amp; Attribution
 
-ORDRIVA is engineered for enterprise culinary and hospitality operations. Released under the **MIT License**.  
-All brand identities, trademarks, and logos are property of their respective owners.
+ORDRIVA is engineered for enterprise culinary and hospitality operations. Released under the [MIT License](LICENSE).  
+See the full text in the [`LICENSE`](LICENSE) file.

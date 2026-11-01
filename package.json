@@ -1,7 +1,7 @@
 {
   "name": "ordriva-pos-monorepo",
   "version": "1.0.0",
-  "private": true,
+  "license": "MIT",
   "description": "ORDRIVA - Restaurant POS & Management System (Product & Engineering Blueprint implementation)",
   "scripts": {
     "dev": "pnpm --filter web dev",
