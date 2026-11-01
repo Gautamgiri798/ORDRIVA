@@ -15,7 +15,6 @@ import {
   Settings,
   AlertTriangle,
   QrCode,
-  ChefHat,
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -25,7 +24,7 @@ export function Sidebar() {
   if (pathname === '/order' || pathname?.startsWith('/order/')) {
     return null;
   }
-  const { inventory, tables, kitchenTickets } = usePosStore();
+  const { inventory, tables } = usePosStore();
 
   const lowStockCount = inventory.filter(
     (item) => item.currentStock <= item.minReorderLevel
@@ -33,10 +32,6 @@ export function Sidebar() {
 
   const occupiedTablesCount = tables.filter(
     (t) => t.status === 'occupied' || t.status === 'billed'
-  ).length;
-
-  const activeKitchenCount = (kitchenTickets || []).filter(
-    (t) => t.status === 'pending' || t.status === 'preparing'
   ).length;
 
   const navItems = [
@@ -47,14 +42,6 @@ export function Sidebar() {
       icon: ShoppingBag,
       highlight: true,
       badge: 'Touch',
-    },
-    {
-      label: 'Kitchen KDS',
-      href: '/kitchen',
-      icon: ChefHat,
-      count: activeKitchenCount > 0 ? activeKitchenCount : undefined,
-      countColor: 'bg-amber-50 text-amber-800 border-amber-200/80',
-      badge: 'Live',
     },
     {
       label: 'Floor & Tables',

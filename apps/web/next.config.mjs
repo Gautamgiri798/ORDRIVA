@@ -1,9 +1,14 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootNodeModules = path.resolve(__dirname, '../../node_modules');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    allowedDevOrigins: ['10.212.16.102:3000', 'localhost:3000'],
-  },
+  allowedDevOrigins: ['10.212.16.102:3000', 'localhost:3000'],
   images: {
     remotePatterns: [
       {
@@ -11,6 +16,15 @@ const nextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      next: path.resolve(rootNodeModules, 'next'),
+      'socket.io-client': path.resolve(rootNodeModules, 'socket.io/client-dist/socket.io.min.js'),
+    };
+    config.resolve.modules = [rootNodeModules, ...config.resolve.modules];
+    return config;
   },
 };
 

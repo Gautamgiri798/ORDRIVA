@@ -55,7 +55,6 @@ export default function AdminDashboardPage() {
 
   // Selected Day for drill-down focus (null = aggregate for entire period)
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
-  const [chartViewMode, setChartViewMode] = useState<'curve' | 'bar'>('curve');
 
   // Orders & Bills Section State
   const [orderSearch, setOrderSearch] = useState<string>('');
@@ -519,40 +518,12 @@ export default function AdminDashboardPage() {
                 )}
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Trading volume curve across {dailyBreakdown.length} days with Dual GST statutory tax pools. Hover or click a bar to inspect.
+                Trading volume curve across {dailyBreakdown.length} days with Dual GST statutory tax pools. Hover or click data points to inspect.
               </p>
             </div>
 
-            {/* Quick KPI Run Rate, Mode Switcher & Legend */}
+            {/* Quick KPI Run Rate & Legend */}
             <div className="flex flex-wrap items-center gap-3">
-              {/* Smooth Graph vs Column Bars Mode Switcher */}
-              <div className="inline-flex rounded-2xl bg-white border border-slate-200/90 p-1 shadow-2xs text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => setChartViewMode('curve')}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                    chartViewMode === 'curve'
-                      ? 'bg-blue-600 text-white shadow-xs font-black'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Area Graph</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartViewMode('bar')}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                    chartViewMode === 'bar'
-                      ? 'bg-blue-600 text-white shadow-xs font-black'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Column Bars</span>
-                </button>
-              </div>
-
               <div className="hidden sm:flex items-center space-x-3 px-3.5 py-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-xs">
                 <div className="text-right">
                   <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">Daily Run Rate</span>
@@ -643,9 +614,9 @@ export default function AdminDashboardPage() {
                   ? `${linePathD} L ${curvePoints[curvePoints.length - 1].x.toFixed(1)} ${baseY} L ${curvePoints[0].x.toFixed(1)} ${baseY} Z`
                   : '';
 
-                return chartViewMode === 'curve' ? (
+                return (
                   /* =========================================================================
-                     MODE A: LUXURY CONTINUOUS SMOOTH SVG LINE & AREA CURVE GRAPH
+                     LUXURY CONTINUOUS SMOOTH SVG LINE & AREA CURVE GRAPH
                      ========================================================================= */
                   <div className="relative">
                     {/* SVG Chart Container */}
@@ -908,166 +879,6 @@ export default function AdminDashboardPage() {
                           </div>
                         );
                       })}
-                    </div>
-                  </div>
-                ) : (
-                  /* =========================================================================
-                     MODE B: COLUMN BARS VIEW
-                     ========================================================================= */
-                  <div className="relative">
-                    {/* Background Grid Guide Lines */}
-                    <div className="absolute inset-0 left-9 sm:left-12 bottom-10 sm:bottom-12 pointer-events-none flex flex-col justify-between">
-                      {gridLevels.map((lvl, idx) => (
-                        <div key={idx} className="w-full border-b border-dashed border-slate-200/80 flex items-center">
-                          <span className="text-[9px] font-mono text-slate-300 ml-auto pr-1"></span>
-                        </div>
-                      ))}
-                      <div className="w-full border-b border-slate-300"></div>
-                    </div>
-
-                    {/* Chart Container: Left Y-Axis + Bars */}
-                    <div className="flex items-end">
-                      {/* Left Y-Axis Labels */}
-                      <div className="w-9 sm:w-12 h-44 sm:h-52 flex flex-col justify-between pb-10 sm:pb-12 pr-1.5 sm:pr-2 text-right shrink-0 select-none">
-                        {gridLevels.map((lvl, idx) => (
-                          <span key={idx} className="text-[8.5px] sm:text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">
-                            {lvl.label}
-                          </span>
-                        ))}
-                        <span className="text-[8.5px] sm:text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">₹0</span>
-                      </div>
-
-                      {/* Bars Flex Strip */}
-                      <div className="flex-1 flex items-end justify-between gap-1 sm:gap-4 relative z-10 pb-2">
-                        {dailyBreakdown.map((day, idx) => {
-                          const heightPercent = Math.max(
-                            8,
-                            Math.min(100, Math.round((day.grossRevenue / gridCeil) * 100))
-                          );
-                          const isSelected = selectedDayKey === day.key;
-
-                          const isSingleOrSmall = dailyBreakdown.length <= 4;
-                          const isNearLeft = !isSingleOrSmall && idx < 2;
-                          const isNearRight = !isSingleOrSmall && idx >= dailyBreakdown.length - 2;
-
-                          const tooltipAlignClasses = isNearLeft
-                            ? 'left-0 translate-x-0'
-                            : isNearRight
-                            ? 'right-0 translate-x-0'
-                            : 'left-1/2 -translate-x-1/2';
-
-                          const arrowAlignClasses = isNearLeft
-                            ? 'left-4 sm:left-5'
-                            : isNearRight
-                            ? 'right-4 sm:right-5'
-                            : 'left-1/2 -translate-x-1/2';
-
-                          return (
-                            <div
-                              key={day.key}
-                              onClick={() => setSelectedDayKey(isSelected ? null : day.key)}
-                              className="flex-1 flex flex-col items-center group cursor-pointer relative"
-                            >
-                              {/* Rich Floating Luxury Tooltip on Hover */}
-                              <div
-                                className={`absolute top-6 sm:top-7 z-30 hidden group-hover:flex flex-col pointer-events-none whitespace-nowrap bg-slate-950/95 backdrop-blur-md text-white p-2.5 sm:p-3 rounded-2xl shadow-2xl border border-slate-700/80 min-w-[170px] sm:min-w-[185px] animate-in fade-in zoom-in-95 duration-150 ${tooltipAlignClasses}`}
-                              >
-                                <div className="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[10px]">
-                                  <span className="font-extrabold text-slate-300">{day.dayName}, {day.displayDate}</span>
-                                  {day.isPeak ? (
-                                    <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 font-black text-[9px] border border-amber-500/30">PEAK</span>
-                                  ) : day.isToday ? (
-                                    <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 font-black text-[9px] border border-blue-500/30">TODAY</span>
-                                  ) : (
-                                    <span className="text-slate-500 text-[9px] uppercase font-bold">TRADING</span>
-                                  )}
-                                </div>
-                                <div className="pt-1.5">
-                                  <div className="text-sm font-black text-white tabular-nums tracking-tight">
-                                    {formatCurrency(day.grossRevenue)}
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-x-2.5 gap-y-0.5 text-[9.5px] text-slate-400 pt-1 border-t border-slate-800/60 mt-1">
-                                    <div>Net: <span className="text-slate-200 font-bold">{formatCurrency(day.netSales)}</span></div>
-                                    <div>GST: <span className="text-slate-200 font-bold">{formatCurrency(day.tax)}</span></div>
-                                    <div>Bills: <span className="text-slate-200 font-bold">{day.orderCount}</span></div>
-                                    <div>AOV: <span className="text-slate-200 font-bold">{formatCurrency(day.aov)}</span></div>
-                                  </div>
-                                  <div className="text-[9px] text-blue-400 font-bold pt-1 text-center">
-                                    Click bar to inspect in ledger
-                                  </div>
-                                </div>
-                                <div className={`w-2.5 h-2.5 bg-slate-950 border-l border-t border-slate-700 rotate-45 absolute -top-1.5 ${arrowAlignClasses}`} />
-                              </div>
-
-                              {/* Floating Value Pill Badge Above Bar */}
-                              <div className="mb-1 sm:mb-1.5 transition-transform duration-200 group-hover:-translate-y-0.5">
-                                {day.grossRevenue > 0 ? (
-                                  <span
-                                    className={`text-[8px] sm:text-[10px] font-black tabular-nums tracking-tight px-1 sm:px-1.5 py-0.5 rounded-md border shadow-2xs transition-colors ${
-                                      day.isPeak
-                                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 shadow-amber-500/30'
-                                        : day.isToday
-                                        ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/30'
-                                        : isSelected
-                                        ? 'bg-slate-900 text-white border-slate-800'
-                                        : 'bg-white/95 text-slate-700 border-slate-200 group-hover:border-blue-400 group-hover:text-blue-700'
-                                    }`}
-                                  >
-                                    ₹{(day.grossRevenue / 1000).toFixed(0)}k
-                                  </span>
-                                ) : (
-                                  <span className="text-[7.5px] sm:text-[9px] font-bold text-slate-300">₹0</span>
-                                )}
-                              </div>
-
-                              {/* Slender Architectural Bar Column */}
-                              <div
-                                className={`w-7 sm:w-11 max-w-[44px] h-36 sm:h-44 bg-slate-100/70 rounded-xl sm:rounded-2xl flex items-end p-0.5 sm:p-1 relative border transition-all duration-300 group-hover:bg-slate-100 ${
-                                  isSelected
-                                    ? 'border-blue-500 ring-2 ring-blue-500/40 bg-blue-50/30'
-                                    : 'border-slate-200/70 group-hover:border-blue-300'
-                                }`}
-                              >
-                                <div
-                                  style={{ height: `${heightPercent}%` }}
-                                  className={`w-full rounded-lg sm:rounded-xl transition-all duration-500 relative overflow-hidden group-hover:brightness-105 ${
-                                    day.isPeak
-                                      ? 'bg-gradient-to-t from-amber-600 via-amber-500 to-yellow-300 border-t-2 border-white/70 shadow-md shadow-amber-500/30 ring-2 ring-amber-400/50'
-                                      : day.isToday
-                                      ? 'bg-gradient-to-t from-indigo-700 via-blue-600 to-cyan-400 border-t-2 border-white/70 shadow-md shadow-blue-500/25 ring-2 ring-blue-400/50'
-                                      : 'bg-gradient-to-t from-blue-700 via-blue-600 to-sky-400 border-t-2 border-white/50 shadow-sm shadow-blue-500/20'
-                                  }`}
-                                >
-                                  {/* Glass Shimmer Accent */}
-                                  <div className="absolute inset-x-0 top-0 h-1 bg-white/40" />
-                                </div>
-                              </div>
-
-                              {/* X-Axis Date Pill Container */}
-                              <div className="mt-2 sm:mt-2.5 text-center transition-all duration-200">
-                                <span className={`block text-[10px] sm:text-xs font-black tracking-tight ${
-                                  day.isToday ? 'text-blue-700' : day.isPeak ? 'text-amber-800' : 'text-slate-800'
-                                }`}>
-                                  {day.dayName}
-                                </span>
-                                <span className="block text-[8px] sm:text-[10px] text-slate-500 font-semibold whitespace-nowrap">
-                                  {day.displayDate.split(' ')[0]} {day.displayDate.split(' ')[1]}
-                                </span>
-                                {day.isToday && (
-                                  <span className="inline-block px-1 sm:px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[7.5px] sm:text-[8.5px] font-black uppercase mt-0.5 shadow-2xs">
-                                    Today
-                                  </span>
-                                )}
-                                {day.isPeak && !day.isToday && (
-                                  <span className="inline-block px-1 sm:px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[7.5px] sm:text-[8.5px] font-black uppercase mt-0.5">
-                                    Peak
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
                   </div>
                 );

@@ -1,8 +1,12 @@
 'use client';
 
-import { io, Socket } from 'socket.io-client';
+import ioPkg from 'socket.io-client';
 
-let socketInstance: Socket | null = null;
+export type Socket = any;
+
+const io: any = typeof ioPkg === 'function' ? ioPkg : (ioPkg as any)?.io || (ioPkg as any)?.default || ioPkg;
+
+let socketInstance: any = null;
 
 export function getSocketUrl(): string {
   if (process.env.NEXT_PUBLIC_SOCKET_URL) {
