@@ -43,6 +43,7 @@ export interface Branch {
   address: string;
   phone: string;
   gstin: string;
+  fssaiLicense?: string;
   timezone: string;
   currency: string;
   taxRates: {

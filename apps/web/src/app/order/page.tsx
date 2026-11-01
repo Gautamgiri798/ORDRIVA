@@ -7,6 +7,7 @@ import { usePosStore } from '@/lib/store';
 import { MenuItem, SelectedModifier, OrderType, Order } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { OrdrivaLogo } from '@/components/OrdrivaLogo';
+import { downloadOrderInvoicePdf } from '@/lib/pdfInvoice';
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
 import {
@@ -108,6 +109,7 @@ function ClientOrderContent() {
   const [showUpiModal, setShowUpiModal] = useState<boolean>(false);
   const [tableUpiQr, setTableUpiQr] = useState<string>('');
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
   const [callStaffNotified, setCallStaffNotified] = useState<boolean>(false);
 
@@ -615,11 +617,20 @@ ${line}`;
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadOrderBill = (order: Order) => {
-    const text = formatOrderBillText(order);
-    downloadTextFile(`ORDRIVA-Bill-Table-${order.tableLabel || 'Direct'}-Order-${order.orderNumber}.txt`, text);
-    setBillToast(`Downloaded receipt for Order #${order.orderNumber}!`);
-    setTimeout(() => setBillToast(null), 3500);
+  const handleDownloadOrderPdf = async (order: Order) => {
+    try {
+      setIsGeneratingPdf(true);
+      setBillToast(`Generating official GST Tax Invoice PDF for Order #${order.orderNumber}...`);
+      await downloadOrderInvoicePdf(order, currentBranch);
+      setBillToast(`✓ Downloaded ORDRIVA-Invoice-INV-${order.orderNumber}.pdf!`);
+      setTimeout(() => setBillToast(null), 4000);
+    } catch (err) {
+      console.error('Failed to generate PDF bill:', err);
+      setBillToast('Failed to generate PDF bill. Please try again.');
+      setTimeout(() => setBillToast(null), 3000);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handleDownloadTableTab = () => {
@@ -976,6 +987,17 @@ ${line}`;
                         <span>Pay Bill ({formatCurrency(trackedOrder.grandTotal)})</span>
                       </button>
                     )}
+
+                    {/* Professional PDF Tax Invoice Download */}
+                    <button
+                      onClick={() => handleDownloadOrderPdf(trackedOrder)}
+                      disabled={isGeneratingPdf}
+                      className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-1.5 shadow transition-all active:scale-95 disabled:opacity-60"
+                      title="Download Official Tax Invoice PDF"
+                    >
+                      <Download className="w-3.5 h-3.5 text-[#60A5FA]" />
+                      <span>{isGeneratingPdf ? 'Generating PDF...' : 'Download Bill (PDF)'}</span>
+                    </button>
 
                     {/* Share on WhatsApp */}
                     <button
