@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getSocket, getApiBaseUrl } from './socket';
+import { playChimeSound } from './soundAlert';
 import {
   User,
   Branch,
@@ -740,6 +742,39 @@ interface PosStoreContextType {
     grandTotal: number;
   };
 
+  isSocketConnected: boolean;
+  incomingAlert: {
+    id: string;
+    orderNumber: number;
+    tableLabel?: string;
+    grandTotal: number;
+    itemsCount: number;
+    createdAt: string;
+  } | null;
+  dismissIncomingAlert: () => void;
+  submitCustomerOrder: (payload: {
+    orderType: OrderType;
+    tableLabel?: string;
+    tableId?: string;
+    customerName?: string;
+    customerPhone?: string;
+    customerEmail?: string;
+    notes?: string;
+    paymentMethod: PaymentMethod;
+    items: {
+      menuItem: MenuItem;
+      quantity: number;
+      selectedModifiers: SelectedModifier[];
+      notes?: string;
+      itemTotal: number;
+    }[];
+    subtotal: number;
+    cgst: number;
+    sgst: number;
+    serviceCharge: number;
+    grandTotal: number;
+  }) => Promise<Order>;
+
   // Actions
   createOrder: () => Order | null;
   settlePayment: (orderId: string, method: PaymentMethod, tendered?: number, splitData?: any) => { success: boolean; order?: Order };
@@ -770,6 +805,118 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
   const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY);
   const [auditLogs, setAuditLogs] = useState<AuditEvent[]>(INITIAL_AUDIT_LOGS);
   const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [isSocketConnected, setIsSocketConnected] = useState<boolean>(false);
+  const [incomingAlert, setIncomingAlert] = useState<{
+    id: string;
+    orderNumber: number;
+    tableLabel?: string;
+    grandTotal: number;
+    itemsCount: number;
+    createdAt: string;
+  } | null>(null);
+
+  const dismissIncomingAlert = () => setIncomingAlert(null);
+
+  // Real-time Socket.IO Connection & Event Listeners
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const onConnect = () => setIsSocketConnected(true);
+    const onDisconnect = () => setIsSocketConnected(false);
+
+    const onOrderCreated = (incomingOrder: Order) => {
+      setOrders((prev) => {
+        if (prev.some((o) => o.id === incomingOrder.id)) return prev;
+        return [incomingOrder, ...prev];
+      });
+
+      if (incomingOrder.tableId || incomingOrder.tableLabel) {
+        setTables((prev) =>
+          prev.map((t) => {
+            const isMatch =
+              (incomingOrder.tableId && t.id === incomingOrder.tableId) ||
+              (incomingOrder.tableLabel && t.label.toLowerCase() === incomingOrder.tableLabel.toLowerCase());
+            if (isMatch) {
+              return {
+                ...t,
+                status: 'occupied',
+                activeOrderId: incomingOrder.id,
+                seatedAt: t.seatedAt || new Date().toISOString(),
+              };
+            }
+            return t;
+          })
+        );
+      }
+
+      setIncomingAlert({
+        id: incomingOrder.id,
+        orderNumber: incomingOrder.orderNumber,
+        tableLabel: incomingOrder.tableLabel || (incomingOrder.orderType === 'takeaway' ? 'Takeaway' : undefined),
+        grandTotal: incomingOrder.grandTotal,
+        itemsCount: (incomingOrder.items || []).reduce((sum, it) => sum + it.quantity, 0),
+        createdAt: incomingOrder.createdAt,
+      });
+
+      playChimeSound('new_order');
+    };
+
+    const onKitchenTicketCreated = (newTicket: KitchenTicket) => {
+      setKitchenTickets((prev) => {
+        if (prev.some((kt) => kt.id === newTicket.id)) return prev;
+        return [newTicket, ...prev];
+      });
+    };
+
+    const onKitchenTicketUpdated = (updatedTicket: KitchenTicket) => {
+      setKitchenTickets((prev) =>
+        prev.map((kt) => (kt.id === updatedTicket.id ? { ...kt, ...updatedTicket } : kt))
+      );
+      if (updatedTicket.status === 'ready') {
+        playChimeSound('kitchen_ready');
+      }
+    };
+
+    const onPaymentStatusChanged = (paymentRecord: PaymentRecord) => {
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id === paymentRecord.orderId) {
+            return {
+              ...o,
+              paymentStatus: paymentRecord.status,
+              status: 'completed',
+              paymentMethod: paymentRecord.method,
+              payments: [...(o.payments || []), paymentRecord],
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return o;
+        })
+      );
+      playChimeSound('payment');
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('order.created', onOrderCreated);
+    socket.on('kitchen.ticket_created', onKitchenTicketCreated);
+    socket.on('kitchen.ticket_updated', onKitchenTicketUpdated);
+    socket.on('payment.status_changed', onPaymentStatusChanged);
+
+    if (socket.connected) {
+      setIsSocketConnected(true);
+    }
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('order.created', onOrderCreated);
+      socket.off('kitchen.ticket_created', onKitchenTicketCreated);
+      socket.off('kitchen.ticket_updated', onKitchenTicketUpdated);
+      socket.off('payment.status_changed', onPaymentStatusChanged);
+    };
+  }, []);
 
   // Cart State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -1204,18 +1351,242 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateKitchenTicketStatus = (ticketId: string, newStatus: KitchenTicket['status']) => {
+    const now = new Date().toISOString();
+    let updatedTicket: KitchenTicket | undefined;
+
     setKitchenTickets((prev) =>
       prev.map((kt) => {
         if (kt.id !== ticketId) return kt;
-        const now = new Date().toISOString();
-        return {
+        updatedTicket = {
           ...kt,
           status: newStatus,
           startedAt: newStatus === 'preparing' && !kt.startedAt ? now : kt.startedAt,
           readyAt: newStatus === 'ready' && !kt.readyAt ? now : kt.readyAt,
         };
+        return updatedTicket;
       })
     );
+
+    if (newStatus === 'ready') {
+      playChimeSound('kitchen_ready');
+    }
+
+    // Network dispatch to API & Socket.IO
+    try {
+      fetch(`${getApiBaseUrl()}/kitchen/tickets/${ticketId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      }).catch(() => {});
+    } catch {}
+
+    const socket = getSocket();
+    if (socket && socket.connected && updatedTicket) {
+      socket.emit('kitchen.ticket_updated', updatedTicket);
+    }
+  };
+
+  const submitCustomerOrder = async (payload: {
+    orderType: OrderType;
+    tableLabel?: string;
+    tableId?: string;
+    customerName?: string;
+    customerPhone?: string;
+    customerEmail?: string;
+    notes?: string;
+    paymentMethod: PaymentMethod;
+    items: {
+      menuItem: MenuItem;
+      quantity: number;
+      selectedModifiers: SelectedModifier[];
+      notes?: string;
+      itemTotal: number;
+    }[];
+    subtotal: number;
+    cgst: number;
+    sgst: number;
+    serviceCharge: number;
+    grandTotal: number;
+  }): Promise<Order> => {
+    const nextOrderNum = orders.length > 0 ? Math.max(...orders.map((o) => o.orderNumber)) + 1 : 1001;
+    const orderId = `ord-${nextOrderNum}`;
+
+    const items: OrderItemSnapshot[] = payload.items.map((ci, idx) => ({
+      id: `oi-${orderId}-${idx + 1}`,
+      menuItemId: ci.menuItem.id,
+      name: ci.menuItem.name,
+      basePrice: ci.menuItem.price,
+      quantity: ci.quantity,
+      taxRate: ci.menuItem.taxRate,
+      modifiers: ci.selectedModifiers,
+      itemTotal: ci.itemTotal * ci.quantity,
+      taxTotal: Math.round(((ci.itemTotal * ci.quantity * ci.menuItem.taxRate) / 100) * 100) / 100,
+      notes: ci.notes,
+    }));
+
+    const newOrder: Order = {
+      id: orderId,
+      branchId: currentBranch.id,
+      orderNumber: nextOrderNum,
+      orderType: payload.orderType,
+      status: 'placed',
+      tableId: payload.tableId,
+      tableLabel: payload.tableLabel,
+      customerName: payload.customerName || (payload.tableLabel ? `Guest (${payload.tableLabel})` : 'Customer QR'),
+      customerPhone: payload.customerPhone || undefined,
+      customerEmail: payload.customerEmail || undefined,
+      items,
+      subtotal: payload.subtotal,
+      discountTotal: 0,
+      taxTotal: payload.cgst + payload.sgst,
+      cgst: payload.cgst,
+      sgst: payload.sgst,
+      serviceChargeTotal: payload.serviceCharge,
+      grandTotal: payload.grandTotal,
+      notes: payload.notes,
+      createdBy: 'customer-qr',
+      createdByName: payload.customerName || (payload.tableLabel ? `Guest (${payload.tableLabel})` : 'Customer QR'),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      paymentStatus: 'pending',
+      paymentMethod: payload.paymentMethod,
+    };
+
+    // Auto-create KDS tickets grouped by station
+    const kitchenItems = payload.items.filter((ci) => ci.menuItem.station === 'kitchen' || !ci.menuItem.station);
+    const grillItems = payload.items.filter((ci) => ci.menuItem.station === 'grill');
+    const barItems = payload.items.filter((ci) => ci.menuItem.station === 'bar');
+
+    const newTickets: KitchenTicket[] = [];
+
+    if (kitchenItems.length > 0) {
+      newTickets.push({
+        id: `kt-${Date.now()}-1`,
+        orderId,
+        orderNumber: nextOrderNum,
+        tableLabel: payload.tableLabel || (payload.orderType === 'takeaway' ? 'Takeaway' : undefined),
+        orderType: payload.orderType,
+        station: 'kitchen',
+        status: 'pending',
+        items: kitchenItems.map((ki) => ({
+          name: ki.menuItem.name,
+          quantity: ki.quantity,
+          notes: ki.notes,
+          modifiers: ki.selectedModifiers.map((m) => m.name),
+        })),
+        orderNotes: payload.notes,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    if (grillItems.length > 0) {
+      newTickets.push({
+        id: `kt-${Date.now()}-2`,
+        orderId,
+        orderNumber: nextOrderNum,
+        tableLabel: payload.tableLabel || (payload.orderType === 'takeaway' ? 'Takeaway' : undefined),
+        orderType: payload.orderType,
+        station: 'grill',
+        status: 'pending',
+        items: grillItems.map((gi) => ({
+          name: gi.menuItem.name,
+          quantity: gi.quantity,
+          notes: gi.notes,
+          modifiers: gi.selectedModifiers.map((m) => m.name),
+        })),
+        orderNotes: payload.notes,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    if (barItems.length > 0) {
+      newTickets.push({
+        id: `kt-${Date.now()}-3`,
+        orderId,
+        orderNumber: nextOrderNum,
+        tableLabel: payload.tableLabel || (payload.orderType === 'takeaway' ? 'Takeaway' : undefined),
+        orderType: payload.orderType,
+        station: 'bar',
+        status: 'pending',
+        items: barItems.map((bi) => ({
+          name: bi.menuItem.name,
+          quantity: bi.quantity,
+          notes: bi.notes,
+          modifiers: bi.selectedModifiers.map((m) => m.name),
+        })),
+        orderNotes: payload.notes,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    // 1. Optimistic React State update (Immediate 0ms response)
+    setOrders((prev) => [newOrder, ...prev]);
+    setKitchenTickets((prev) => [...newTickets, ...prev]);
+
+    if (payload.tableId || payload.tableLabel) {
+      setTables((prev) =>
+        prev.map((t) => {
+          const isMatch =
+            (payload.tableId && t.id === payload.tableId) ||
+            (payload.tableLabel && t.label.toLowerCase() === payload.tableLabel.toLowerCase());
+          if (isMatch) {
+            return {
+              ...t,
+              status: 'occupied',
+              activeOrderId: orderId,
+              seatedAt: t.seatedAt || new Date().toISOString(),
+            };
+          }
+          return t;
+        })
+      );
+    }
+
+    addAuditEvent('CUSTOMER_ORDER_PLACED', 'ORDER', orderId, {
+      orderNumber: nextOrderNum,
+      grandTotal: payload.grandTotal,
+      table: payload.tableLabel,
+      itemsCount: payload.items.length,
+      method: payload.paymentMethod,
+    });
+
+    // 2. Network Dispatch to Backend API & Socket Relay
+    try {
+      const apiEndpoint = `${getApiBaseUrl()}/branches/${currentBranch.id}/orders`;
+      fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': orderId,
+        },
+        body: JSON.stringify({
+          orderType: payload.orderType,
+          tableId: payload.tableId,
+          customerName: newOrder.customerName,
+          customerPhone: payload.customerPhone,
+          notes: payload.notes,
+          items: payload.items.map((it) => ({
+            menuItemId: it.menuItem.id,
+            name: it.menuItem.name,
+            price: it.menuItem.price,
+            quantity: it.quantity,
+            modifiers: it.selectedModifiers,
+            notes: it.notes,
+          })),
+        }),
+      }).catch((err) => {
+        console.warn('[ORDRIVA API] Backend order dispatch deferred:', err.message);
+      });
+    } catch {}
+
+    // 3. Fallback direct socket broadcast
+    const socket = getSocket();
+    if (socket && socket.connected) {
+      socket.emit('order.created', newOrder);
+      newTickets.forEach((tk) => socket.emit('kitchen.ticket_created', tk));
+    }
+
+    return newOrder;
   };
 
   const toggleItemAvailability = (itemId: string) => {
@@ -1386,6 +1757,10 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
         logStockAdjustment,
         addAuditEvent,
         updateBranchTaxSettings,
+        isSocketConnected,
+        incomingAlert,
+        dismissIncomingAlert,
+        submitCustomerOrder,
       }}
     >
       {children}

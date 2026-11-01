@@ -42,12 +42,15 @@ function PosContent() {
     menuItems,
     tables,
     cart,
+    orders,
     selectedTableId,
     orderType,
     customerName,
     customerPhone,
     orderNotes,
     discountPercentage,
+    incomingAlert,
+    dismissIncomingAlert,
     setSelectedTableId,
     setOrderType,
     setCustomerName,
@@ -169,11 +172,51 @@ function PosContent() {
   };
 
   const selectedTable = tables.find((t) => t.id === selectedTableId);
+  const activeTableOrder = selectedTable?.activeOrderId
+    ? orders.find((o) => o.id === selectedTable.activeOrderId && o.paymentStatus === 'pending')
+    : undefined;
   const changeDue = Math.max(0, tenderedAmount - cartCalculations.grandTotal);
   const totalCartQty = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden bg-slate-100 relative">
+    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-slate-100 relative">
+      {/* Live QR Order Incoming Notification Banner */}
+      {incomingAlert && (
+        <div className="bg-amber-500 text-slate-950 px-4 py-2 flex items-center justify-between text-xs font-black shadow-md shrink-0 border-b border-amber-600 animate-fadeIn z-30">
+          <div className="flex items-center space-x-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping inline-block" />
+            <span>
+              ⚡ NEW ORDER #{incomingAlert.orderNumber} for {incomingAlert.tableLabel || 'Guest'} • {formatCurrency(incomingAlert.grandTotal)} ({incomingAlert.itemsCount} items)
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                const matchedTable = tables.find(
+                  (t) => t.label.toLowerCase() === incomingAlert.tableLabel?.toLowerCase()
+                );
+                if (matchedTable) {
+                  setSelectedTableId(matchedTable.id);
+                  setOrderType('dine_in');
+                }
+                dismissIncomingAlert();
+              }}
+              className="bg-slate-950 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-slate-800 transition-all shadow-xs"
+            >
+              View Table
+            </button>
+            <button
+              onClick={dismissIncomingAlert}
+              className="p-1 text-slate-900 hover:text-white rounded"
+              aria-label="Dismiss alert"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
       {/* Mobile View Segmented Controller */}
       <div className="lg:hidden flex items-center justify-between bg-[#0F172A] text-white px-3 py-2 border-b border-slate-800 shrink-0">
         <div className="flex items-center space-x-1 bg-slate-900 p-0.5 rounded-xl border border-slate-700/60 w-full">
@@ -487,6 +530,36 @@ function PosContent() {
 
         {/* Cart Items List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+          {/* Active Table Tab Check */}
+          {activeTableOrder && (
+            <div className="p-3 bg-blue-50/90 border border-blue-200 rounded-xl space-y-2 text-xs mb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-1.5 font-extrabold text-blue-950">
+                  <Receipt className="w-4 h-4 text-blue-600" />
+                  <span>Active Check: #{activeTableOrder.orderNumber}</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white font-black text-[10px] uppercase">
+                  {activeTableOrder.status}
+                </span>
+              </div>
+              <div className="text-[11px] text-blue-800 flex justify-between">
+                <span>Running Total ({activeTableOrder.items.length} items):</span>
+                <span className="font-extrabold tabular-nums">{formatCurrency(activeTableOrder.grandTotal)}</span>
+              </div>
+              <div className="pt-1.5 border-t border-blue-200/80 flex items-center justify-between gap-1.5">
+                <button
+                  onClick={() => {
+                    setTenderedAmount(activeTableOrder.grandTotal);
+                    setIsCheckoutOpen(true);
+                  }}
+                  className="flex-1 py-1.5 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-center font-bold text-[11px] transition-all shadow-xs"
+                >
+                  Settle Running Tab ({formatCurrency(activeTableOrder.grandTotal)})
+                </button>
+              </div>
+            </div>
+          )}
+
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 p-6 text-center space-y-2">
               <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
@@ -633,6 +706,7 @@ function PosContent() {
             <span>Pay {formatCurrency(cartCalculations.grandTotal)}</span>
           </button>
         </div>
+      </div>
       </div>
 
       {/* MODAL 1: Item Modifiers Customizer */}

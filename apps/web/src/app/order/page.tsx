@@ -73,6 +73,7 @@ function ClientOrderContent() {
     kitchenTickets,
     updateTableStatus,
     settlePayment,
+    submitCustomerOrder,
   } = usePosStore();
 
   // Navigation State
@@ -374,136 +375,42 @@ function ClientOrderContent() {
   };
 
   // Place Customer Order
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (clientCart.length === 0) return;
 
     const matchedTable = tables.find(
       (t) => t.label.toLowerCase() === selectedTable.toLowerCase()
     );
 
-    const nextOrderNum =
-      orders.length > 0 ? Math.max(...orders.map((o) => o.orderNumber)) + 1 : 1001;
-    const orderId = `ord-${nextOrderNum}`;
+    const paymentMethod = selectedPaymentMethod === 'tab' ? 'cash' : selectedPaymentMethod;
+    const finalNotes = guestNotes
+      ? `${guestNotes} • Payment: ${selectedPaymentMethod.toUpperCase()}`
+      : `Digital QR Order • Payment: ${selectedPaymentMethod.toUpperCase()}`;
 
-    const items = clientCart.map((ci, idx) => ({
-      id: `oi-${orderId}-${idx + 1}`,
-      menuItemId: ci.menuItem.id,
-      name: ci.menuItem.name,
-      basePrice: ci.menuItem.price,
-      quantity: ci.quantity,
-      taxRate: ci.menuItem.taxRate,
-      modifiers: ci.selectedModifiers,
-      itemTotal: ci.itemTotal * ci.quantity,
-      taxTotal: Math.round(((ci.itemTotal * ci.quantity * ci.menuItem.taxRate) / 100) * 100) / 100,
-      notes: ci.notes,
-    }));
-
-    const newOrder: Order = {
-      id: orderId,
-      branchId: currentBranch.id,
-      orderNumber: nextOrderNum,
+    const newOrder = await submitCustomerOrder({
       orderType,
-      status: 'placed',
-      tableId: matchedTable ? matchedTable.id : undefined,
+      tableId: matchedTable?.id,
       tableLabel: orderType === 'dine_in' ? selectedTable : undefined,
       customerName: guestName || `Guest (${selectedTable})`,
       customerPhone: guestPhone || undefined,
       customerEmail: guestEmail || undefined,
-      items,
+      notes: finalNotes,
+      paymentMethod,
+      items: clientCart.map((ci) => ({
+        menuItem: ci.menuItem,
+        quantity: ci.quantity,
+        selectedModifiers: ci.selectedModifiers,
+        notes: ci.notes,
+        itemTotal: ci.itemTotal,
+      })),
       subtotal: totals.subtotal,
-      discountTotal: 0,
-      taxTotal: totals.taxTotal,
       cgst: totals.cgst,
       sgst: totals.sgst,
-      serviceChargeTotal: totals.serviceCharge,
+      serviceCharge: totals.serviceCharge,
       grandTotal: totals.grandTotal,
-      notes: guestNotes
-        ? `${guestNotes} • Payment: ${selectedPaymentMethod.toUpperCase()}`
-        : `Digital QR Order • Payment: ${selectedPaymentMethod.toUpperCase()}`,
-      createdBy: 'customer-qr',
-      createdByName: guestName || `Guest (${selectedTable})`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      paymentMethod: selectedPaymentMethod === 'tab' ? 'cash' : selectedPaymentMethod,
-      paymentStatus: 'pending',
-    };
+    });
 
-    // Auto update table occupancy
-    if (matchedTable) {
-      updateTableStatus(matchedTable.id, 'occupied', orderId);
-    }
-
-    // Push into store orders
-    orders.unshift(newOrder);
-
-    // Auto-create KDS tickets for kitchen
-    const kitchenItems = clientCart.filter(
-      (ci) => ci.menuItem.station === 'kitchen' || !ci.menuItem.station
-    );
-    const grillItems = clientCart.filter((ci) => ci.menuItem.station === 'grill');
-    const barItems = clientCart.filter((ci) => ci.menuItem.station === 'bar');
-
-    if (kitchenItems.length > 0) {
-      kitchenTickets.unshift({
-        id: `kt-${Date.now()}-1`,
-        orderId,
-        orderNumber: nextOrderNum,
-        tableLabel: orderType === 'dine_in' ? selectedTable : 'Takeaway',
-        orderType,
-        station: 'kitchen',
-        status: 'pending',
-        items: kitchenItems.map((ki) => ({
-          name: ki.menuItem.name,
-          quantity: ki.quantity,
-          notes: ki.notes,
-          modifiers: ki.selectedModifiers.map((m) => m.name),
-        })),
-        orderNotes: guestNotes,
-        createdAt: new Date().toISOString(),
-      });
-    }
-
-    if (grillItems.length > 0) {
-      kitchenTickets.unshift({
-        id: `kt-${Date.now()}-2`,
-        orderId,
-        orderNumber: nextOrderNum,
-        tableLabel: orderType === 'dine_in' ? selectedTable : 'Takeaway',
-        orderType,
-        station: 'grill',
-        status: 'pending',
-        items: grillItems.map((gi) => ({
-          name: gi.menuItem.name,
-          quantity: gi.quantity,
-          notes: gi.notes,
-          modifiers: gi.selectedModifiers.map((m) => m.name),
-        })),
-        orderNotes: guestNotes,
-        createdAt: new Date().toISOString(),
-      });
-    }
-
-    if (barItems.length > 0) {
-      kitchenTickets.unshift({
-        id: `kt-${Date.now()}-3`,
-        orderId,
-        orderNumber: nextOrderNum,
-        tableLabel: orderType === 'dine_in' ? selectedTable : 'Takeaway',
-        orderType,
-        station: 'bar',
-        status: 'pending',
-        items: barItems.map((bi) => ({
-          name: bi.menuItem.name,
-          quantity: bi.quantity,
-          notes: bi.notes,
-          modifiers: bi.selectedModifiers.map((m) => m.name),
-        })),
-        orderNotes: guestNotes,
-        createdAt: new Date().toISOString(),
-      });
-    }
-
-    setPlacedOrderId(orderId);
+    setPlacedOrderId(newOrder.id);
     setClientCart([]);
     setIsCartOpen(false);
     confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
@@ -512,13 +419,13 @@ function ClientOrderContent() {
       setPayingOrder(newOrder);
       setShowUpiModal(true);
     } else if (selectedPaymentMethod === 'cash') {
-      setBillToast(`Order #${nextOrderNum} confirmed! Please pay ₹${newOrder.grandTotal} in cash to your server when served.`);
+      setBillToast(`Order #${newOrder.orderNumber} confirmed! Please pay ₹${newOrder.grandTotal} in cash to your server when served.`);
       setTimeout(() => setBillToast(null), 5000);
     } else if (selectedPaymentMethod === 'card') {
-      setBillToast(`Order #${nextOrderNum} confirmed! Our server will bring the wireless card terminal to Table ${selectedTable}.`);
+      setBillToast(`Order #${newOrder.orderNumber} confirmed! Our server will bring the wireless card terminal to Table ${selectedTable}.`);
       setTimeout(() => setBillToast(null), 5000);
     } else {
-      setBillToast(`Order #${nextOrderNum} confirmed! Added ₹${newOrder.grandTotal} to Table ${selectedTable} running tab.`);
+      setBillToast(`Order #${newOrder.orderNumber} confirmed! Added ₹${newOrder.grandTotal} to Table ${selectedTable} running tab.`);
       setTimeout(() => setBillToast(null), 5000);
     }
   };
