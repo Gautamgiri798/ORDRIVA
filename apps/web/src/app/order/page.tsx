@@ -29,7 +29,6 @@ import {
   User,
   Check,
   Receipt,
-  Printer,
   Share2,
   Copy,
   CreditCard,
@@ -109,9 +108,6 @@ function ClientOrderContent() {
   const [showUpiModal, setShowUpiModal] = useState<boolean>(false);
   const [tableUpiQr, setTableUpiQr] = useState<string>('');
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
-
-  // Invoice / Receipt Modal State
-  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
 
   const [callStaffNotified, setCallStaffNotified] = useState<boolean>(false);
 
@@ -981,16 +977,6 @@ ${line}`;
                       </button>
                     )}
 
-                    {/* Download Bill Button */}
-                    <button
-                      onClick={() => handleDownloadOrderBill(trackedOrder)}
-                      className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center space-x-1.5 border border-slate-200 transition-colors"
-                      title="Download Formatted Receipt (.txt)"
-                    >
-                      <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
-                      <span>Download Bill</span>
-                    </button>
-
                     {/* Share on WhatsApp */}
                     <button
                       onClick={() => handleShareWhatsAppOrder(trackedOrder)}
@@ -1012,16 +998,6 @@ ${line}`;
                       ) : (
                         <Copy className="w-3.5 h-3.5 text-slate-500" />
                       )}
-                    </button>
-
-                    {/* Full GST Tax Invoice Modal */}
-                    <button
-                      onClick={() => setSelectedInvoiceOrder(trackedOrder)}
-                      className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center space-x-1.5 shadow transition-colors"
-                      title="View Official GST Invoice"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-[#60A5FA]" />
-                      <span>Tax Invoice</span>
                     </button>
                   </div>
                 </div>
@@ -2215,230 +2191,6 @@ ${line}`;
               >
                 Cancel / Pay with Cash Later
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          MODAL: DIGITAL GST TAX INVOICE & PRINTABLE RECEIPT
-          ========================================================================= */}
-      {selectedInvoiceOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-200 my-8">
-            {/* Modal Header Actions */}
-            <div className="p-3 bg-slate-900 text-white flex items-center justify-between text-xs font-bold">
-              <span className="flex items-center space-x-1.5">
-                <Receipt className="w-4 h-4 text-[#60A5FA]" />
-                <span>GST Tax Invoice #{selectedInvoiceOrder.orderNumber}</span>
-              </span>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => window.print()}
-                  className="px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] flex items-center space-x-1"
-                >
-                  <Printer className="w-3 h-3" />
-                  <span>Print</span>
-                </button>
-                <button
-                  onClick={() => setSelectedInvoiceOrder(null)}
-                  className="p-1 rounded-full hover:bg-white/10"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Printable Thermal Invoice Body */}
-            <div className="p-6 font-mono text-xs space-y-4 bg-white text-slate-900">
-              {/* Receipt Logo & Header */}
-              <div className="text-center space-y-1 border-b border-dashed border-slate-300 pb-4">
-                <OrdrivaLogo variant="receipt" size={32} />
-                <h4 className="font-extrabold text-sm tracking-wide mt-2">
-                  {currentBranch.name}
-                </h4>
-                <p className="text-[11px] text-slate-600 leading-tight">
-                  {currentBranch.address}
-                </p>
-                <p className="text-[10px] text-slate-500">
-                  GSTIN: {currentBranch.gstin || '27AABCU9603R1ZM'} | FSSAI: {currentBranch.fssaiLicense || '10019022009876'}
-                </p>
-                <p className="text-[10px] text-slate-500">Phone: {currentBranch.phone}</p>
-              </div>
-
-              {/* Tax Invoice Metadata */}
-              <div className="grid grid-cols-2 gap-1 text-[11px] border-b border-dashed border-slate-300 pb-3">
-                <div>
-                  <span className="text-slate-500 block">Invoice No:</span>
-                  <span className="font-bold">INV-{selectedInvoiceOrder.orderNumber}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-slate-500 block">Date &amp; Time:</span>
-                  <span className="font-bold">
-                    {new Date(selectedInvoiceOrder.createdAt).toLocaleDateString()}{' '}
-                    {new Date(selectedInvoiceOrder.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </div>
-                <div className="mt-1">
-                  <span className="text-slate-500 block">Table:</span>
-                  <span className="font-bold">{selectedInvoiceOrder.tableLabel || selectedTable}</span>
-                </div>
-                <div className="mt-1 text-right">
-                  <span className="text-slate-500 block">Server / Order:</span>
-                  <span className="font-bold">Digital QR Self-Service</span>
-                </div>
-              </div>
-
-              {/* Itemized Table */}
-              <div className="space-y-2 border-b border-dashed border-slate-300 pb-3">
-                <div className="flex justify-between font-bold text-[11px] text-slate-500 uppercase border-b border-slate-200 pb-1">
-                  <span>Item</span>
-                  <div className="flex space-x-4">
-                    <span>Qty</span>
-                    <span>Total</span>
-                  </div>
-                </div>
-
-                {selectedInvoiceOrder.items.map((it, idx) => (
-                  <div key={idx} className="space-y-0.5 text-[11px]">
-                    <div className="flex justify-between items-start">
-                      <span className="font-bold text-slate-900 leading-tight">
-                        {it.name}
-                      </span>
-                      <div className="flex space-x-5 tabular-nums">
-                        <span className="text-slate-500">{it.quantity}</span>
-                        <span className="font-bold text-slate-900">
-                          {formatCurrency(it.itemTotal)}
-                        </span>
-                      </div>
-                    </div>
-                    {it.modifiers && it.modifiers.length > 0 && (
-                      <div className="text-[10px] text-slate-500">
-                        + {it.modifiers.map((m) => m.name).join(', ')}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Tax Computation Breakdown */}
-              <div className="space-y-1.5 text-[11px] border-b border-dashed border-slate-300 pb-3">
-                <div className="flex justify-between text-slate-600">
-                  <span>Subtotal:</span>
-                  <span className="tabular-nums font-semibold">
-                    {formatCurrency(selectedInvoiceOrder.subtotal)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>CGST ({currentBranch.taxRates.cgst}%):</span>
-                  <span className="tabular-nums">
-                    {formatCurrency(selectedInvoiceOrder.cgst)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>SGST ({currentBranch.taxRates.sgst}%):</span>
-                  <span className="tabular-nums">
-                    {formatCurrency(selectedInvoiceOrder.sgst)}
-                  </span>
-                </div>
-                {(selectedInvoiceOrder.serviceChargeTotal || 0) > 0 && (
-                  <div className="flex justify-between text-slate-600">
-                    <span>Service Charge ({currentBranch.taxRates.serviceCharge}%):</span>
-                    <span className="tabular-nums">
-                      {formatCurrency(selectedInvoiceOrder.serviceChargeTotal || 0)}
-                    </span>
-                  </div>
-                )}
-                <div className="pt-2 border-t border-slate-300 flex justify-between font-black text-sm text-slate-900">
-                  <span>Net Grand Total:</span>
-                  <span className="tabular-nums text-base">
-                    {formatCurrency(selectedInvoiceOrder.grandTotal)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Payment Status Stamp */}
-              <div className="text-center pt-1">
-                {selectedInvoiceOrder.paymentStatus === 'succeeded' ? (
-                  <div className="inline-block px-4 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs border border-emerald-300 uppercase tracking-widest">
-                    ✓ PAID IN FULL (UPI / SETTLED)
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="inline-block px-4 py-1 rounded-full bg-amber-100 text-amber-900 font-black text-xs border border-amber-300 uppercase tracking-widest">
-                      ⚠ PAYMENT PENDING
-                    </div>
-                    <button
-                      onClick={() => {
-                        setPayingOrder(selectedInvoiceOrder);
-                        setSelectedInvoiceOrder(null);
-                        setShowUpiModal(true);
-                      }}
-                      className="w-full py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black text-xs shadow"
-                    >
-                      Pay Now via UPI ({formatCurrency(selectedInvoiceOrder.grandTotal)})
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer Note */}
-              <div className="text-center text-[10px] text-slate-400 space-y-0.5 pt-2">
-                <p>Thank you for dining with us at {currentBranch.name}!</p>
-                <p>This is a computer-generated GST tax invoice.</p>
-              </div>
-            </div>
-
-            {/* Modal Bottom Actions */}
-            <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center space-x-1.5">
-                <button
-                  onClick={() => handleDownloadOrderBill(selectedInvoiceOrder)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs flex items-center space-x-1 transition-colors"
-                  title="Download File (.txt)"
-                >
-                  <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
-                  <span>Download</span>
-                </button>
-                <button
-                  onClick={() => handleShareWhatsAppOrder(selectedInvoiceOrder)}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs flex items-center space-x-1 transition-colors"
-                  title="Share on WhatsApp"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Share</span>
-                </button>
-                <button
-                  onClick={() => handleCopyOrderBill(selectedInvoiceOrder)}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs flex items-center space-x-1 transition-colors"
-                  title="Copy Text"
-                >
-                  {copiedBillId === selectedInvoiceOrder.id ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                </button>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setSelectedInvoiceOrder(null)}
-                  className="px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => window.print()}
-                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-1.5 shadow"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print Tax Invoice</span>
-                </button>
-              </div>
             </div>
           </div>
         </div>
