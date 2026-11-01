@@ -232,10 +232,16 @@ ORDRIVA is purpose-built to deliver an ergonomic touch experience across any scr
   $$\text{🛒 View Order Cart (}N\text{ items) • ₹Total } \rightarrow$$
 - Retains a side-by-side dual-pane terminal on desktop displays (`lg:flex`).
 
-### 4. Full-Width 7-Day Revenue Progression Scaling
+### 4. Continuous Smooth Area Graph & Full-Width 7-Day Revenue Scaling
 
-- The **Day-by-Day Revenue Progression Chart** dynamically switches between viewport modes:
-  - **7-Day Period (Week View)**: Adopts `w-full min-w-0` with slender architectural columns (`w-7 sm:w-11`), compact Y-axis labels (`w-9 sm:w-12`), and proportional gaps. **All 7 trading days (Sat through Fri) render side-by-side on any mobile phone (360px–430px) with zero cutoffs or overflow.**
+- **Continuous SVG Line & Area Curve Graph**:
+  - Engineered with a monotonic cubic bezier curve (`M ... C ...`) that connects daily trading volumes into a silky, continuous financial trend wave.
+  - **Luminescent Multi-Stop Gradient Fill**: Fades from royal blue (`#2563EB`, 40% opacity) down to transparent at the baseline with soft elevation glow shadow (`filter="url(#curveShadow)"`).
+  - **Dynamic Interactive Nodes**: White core nodes with colored borders; Peak Days feature an amber pulsing aura (`#F59E0B`), and Today features an electric blue ring (`#2563EB`).
+  - **Floating Value Badges & Vertical Tracking**: Value pill badges (`₹16k`, `₹8k`, `₹9k`, `₹17k`) anchored above each node on the curve, paired with dashed cursor guidelines and floating inspection tooltips.
+  - **Dual Mode Switcher**: Seamless 1-tap header toggle between **`[ 📈 Area Graph ]`** (active by default) and **`[ 📊 Column Bars ]`** (slender capsule columns).
+- **Viewport Scaling & Horizontal Containment**:
+  - **7-Day Period (Week View)**: Adopts `w-full min-w-0`. All 7 trading days render side-by-side on any mobile phone (360px–430px) with zero cutoffs or overflow.
   - **30-Day Period (Month View)**: Activates smooth horizontal scrolling (`min-w-[700px]`) accompanied by a persistent mobile swipe affordance banner (`← Swipe horizontally to explore full 30-day timeline →`).
 
 ### 5. Mobile Dual-View Ledger & Orders (Compact Cards vs. Pinned Table Mode)
@@ -358,10 +364,19 @@ erDiagram
 
 ### 6. 📱 Contactless Customer Dining Portal (`/order`)
 
-- **Multi-Item Quantity Stepper**: Patron can tap `[-] Qty [+]` directly on any dish to increment quantities effortlessly.
+- **Multi-Item Quantity Stepper**: Patrons can tap `[-] Qty [+]` directly on any dish to increment quantities effortlessly with live subtotal updates.
 - **Artisanal Modifier Customizer**: Modals for selecting dips, crusts, temperatures, and custom chef instructions.
-- **Live Running Tab**: Chronological order rounds (R1 appetizers, R2 entrees) with instant running balance computation.
-- **Digital GST E-Invoice**: Patrons can download or print verified GST tax invoices directly from their phones.
+- **Executive Native PDF Tax Invoice Engine (`pdfInvoice.ts`)**:
+  - Replaces raw ASCII text downloads with genuine, high-resolution (300 DPI) **`ORDRIVA-Invoice-INV-xxxx.pdf`** downloads.
+  - **Luxury Corporate Layout**: Midnight Navy brand header (`#0F172A`), royal blue accent lines, verified GSTIN/FSSAI credentials, 4-column guest/order metadata ribbon, itemized table with HSN/SAC `996331`, Dual GST statutory breakdown (CGST 2.5% + SGST 2.5% + Service Charge 5.0%), official payment settlement status stamp, and Rule 46 legal compliance disclaimer.
+  - Opens natively in Android Google Drive PDF Viewer, Files, iOS Safari/Books, and Adobe Acrobat with zero layout distortion.
+- **Live Interactive Tables & Seating Map**:
+  - Full real-time floor availability view with vacant/occupied/reserved counters and filters (Status, Section, Capacity).
+  - One-tap table switching (`Sit at Table & Order`, `Switch Table`) with smooth scroll restoration (`switchTab`).
+- **Clean Customer-Safe Experience**:
+  - Removed internal staff portal links, print triggers, and complex thermal receipt modals from customer view; customer actions focus on ordering, live tracking, UPI payments, PDF downloads, and WhatsApp sharing.
+- **Global Multi-Field Menu Search**:
+  - Unlocked search bar that queries across dish names, ingredient descriptions, and categories simultaneously with 1-tap clear button (`X`).
 
 ### 7. 📋 Menu &amp; Culinary Catalog Management (`/menu`)
 
@@ -458,6 +473,7 @@ ORDRIVA/
 │   │       ├── 📁 lib/                      # Core Business Logic & In-Memory Store
 │   │       │   ├── store.tsx                # Zustand-style Reactive Store & Initial State
 │   │       │   ├── receiptPrinter.ts        # Isolated 80mm Thermal & A4 Invoice Print Engines
+│   │       │   ├── pdfInvoice.ts            # Native 300-DPI A4 GST Tax Invoice PDF Generator
 │   │       │   └── utils.ts                 # Currency Formatting & Tax Math
 │   │       └── 📁 types/                    # Domain Type Definitions & Schema
 │   │           └── index.ts                 # TypeScript Interfaces & Enums
@@ -511,14 +527,18 @@ pnpm install
 #### Option A: Running with Monorepo Scripts
 
 ```bash
-# Terminal 1: Start Next.js Web Frontend
+# Terminal 1: Start Next.js Web Frontend (Bound to 0.0.0.0 for LAN/Mobile access)
 cd apps/web
-pnpm run dev
+npm run dev
+# Or with explicit host flag:
+npm run dev -- --host
 
 # Terminal 2: Start API Server
 cd apps/api
-pnpm run dev
+npm run dev
 ```
+
+> **Mobile Device Testing**: When running with `0.0.0.0`, any smartphone on the same local Wi-Fi network can scan and access the customer portal directly via your machine's LAN IP (e.g. `http://<your-lan-ip>:3000/order?table=T-01`).
 
 #### Option B: Running with Docker Compose
 
@@ -535,7 +555,8 @@ docker-compose up -d
 | **Touch Cashier POS**                   | [http://localhost:3000/pos](http://localhost:3000/pos)                           | Cashier / Billing Staff           |
 | **Orders History & Tax Invoices**       | [http://localhost:3000/orders](http://localhost:3000/orders)                     | Cashier / Manager / Auditor       |
 | **Kitchen Display System (KDS)**        | [http://localhost:3000/kitchen](http://localhost:3000/kitchen)                   | Kitchen Line / Head Chef          |
-| **Customer QR Portal**                  | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01)        |
+| **Customer QR Portal (Local)**          | [http://localhost:3000/order?table=T-01](http://localhost:3000/order?table=T-01) | Dining Guests (Table T-01)        |
+| **Customer QR Portal (Mobile Wi-Fi)**   | `http://<lan-ip>:3000/order?table=T-01`                                          | Smartphone QR Scanner             |
 | **Floor Plan &amp; Table Management**   | [http://localhost:3000/tables](http://localhost:3000/tables)                     | Host / Floor Manager              |
 | **Table QR Stands &amp; Print Studio**  | [http://localhost:3000/tables/qr](http://localhost:3000/tables/qr)               | Admin / Restaurant Manager        |
 | **Menu Catalog &amp; Media Management** | [http://localhost:3000/menu](http://localhost:3000/menu)                         | Head Chef / Manager               |

@@ -78,6 +78,17 @@ function ClientOrderContent() {
   // Navigation State
   const [activeTab, setActiveTab] = useState<CustomerTab>('menu');
 
+  const switchTab = (tab: CustomerTab) => {
+    setActiveTab(tab);
+    if (typeof document !== 'undefined') {
+      const mainEl = document.querySelector('main');
+      if (mainEl) {
+        mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Table & Ordering State
   const [selectedTable, setSelectedTable] = useState<string>(tableParam || 'T-01');
   const [orderType, setOrderType] = useState<OrderType>('dine_in');
@@ -810,8 +821,9 @@ ${line}`;
           <div className="flex items-center space-x-2">
             {/* Tab 1: Food Menu */}
             <button
-              onClick={() => setActiveTab('menu')}
-              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap ${
+              type="button"
+              onClick={() => switchTab('menu')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer active:scale-95 ${
                 activeTab === 'menu'
                   ? 'bg-[#3B82F6] text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -823,8 +835,9 @@ ${line}`;
 
             {/* Tab 2: Live Tables & Seating */}
             <button
-              onClick={() => setActiveTab('tables')}
-              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap relative ${
+              type="button"
+              onClick={() => switchTab('tables')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap relative cursor-pointer active:scale-95 ${
                 activeTab === 'tables'
                   ? 'bg-[#3B82F6] text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -928,8 +941,9 @@ ${line}`;
 
               <div className="flex items-center space-x-2 shrink-0">
                 <button
-                  onClick={() => setActiveTab('tables')}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all flex items-center space-x-1.5"
+                  type="button"
+                  onClick={() => switchTab('tables')}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all flex items-center space-x-1.5 cursor-pointer active:scale-95"
                 >
                   <LayoutGrid className="w-3.5 h-3.5 text-[#60A5FA]" />
                   <span>Switch Table</span>
@@ -1328,6 +1342,24 @@ ${line}`;
           ========================================================================= */}
       {activeTab === 'tables' && (
         <div className="max-w-5xl mx-auto px-4 mt-6 space-y-8">
+          {/* Back to Menu Quick Ribbon */}
+          <div className="flex items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs">
+            <button
+              type="button"
+              onClick={() => switchTab('menu')}
+              className="px-4 py-2 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-extrabold text-xs flex items-center space-x-2 shadow-xs active:scale-95 transition-all cursor-pointer"
+            >
+              <Utensils className="w-4 h-4" />
+              <span>← Back to Food &amp; Drinks Menu</span>
+            </button>
+            <div className="text-xs font-semibold text-slate-600 flex items-center space-x-1.5">
+              <span>Ordering for:</span>
+              <span className="font-black text-slate-900 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 text-blue-700">
+                Table {selectedTable}
+              </span>
+            </div>
+          </div>
+
           {/* Header Summary Banner */}
           <div className="bg-gradient-to-br from-[#0B1120] via-[#111C38] to-[#1E3A8A] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-[#3B82F6]/30">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/10">
@@ -1616,33 +1648,46 @@ ${line}`;
 
                     {/* Table Interactive Actions */}
                     <div className="pt-2">
-                      {isVacant ? (
+                      {isSelected ? (
                         <button
+                          type="button"
+                          onClick={() => switchTab('menu')}
+                          className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow active:scale-95 transition-all cursor-pointer"
+                        >
+                          <Utensils className="w-3.5 h-3.5 text-[#60A5FA]" />
+                          <span>Selected Table • Order Food</span>
+                        </button>
+                      ) : isVacant ? (
+                        <button
+                          type="button"
                           onClick={() => {
                             setSelectedTable(tbl.label);
-                            setActiveTab('menu');
+                            switchTab('menu');
                             setTableSwitchedToast(
                               `You have selected Table ${tbl.label}! Browse our menu to send food to the kitchen.`
                             );
                             setTimeout(() => setTableSwitchedToast(null), 4000);
                           }}
-                          className="w-full py-2.5 px-3 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow transition-all active:scale-95"
+                          className="w-full py-2.5 px-3 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow transition-all active:scale-95 cursor-pointer"
                         >
                           <Utensils className="w-3.5 h-3.5" />
                           <span>Sit at Table &amp; Order</span>
                         </button>
-                      ) : isSelected ? (
-                        <button
-                          onClick={() => setActiveTab('bills')}
-                          className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 shadow"
-                        >
-                          <Receipt className="w-3.5 h-3.5 text-[#60A5FA]" />
-                          <span>View Your Table Bill</span>
-                        </button>
                       ) : (
-                        <div className="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs text-center border border-slate-200">
-                          {isOccupied ? 'Currently Seated' : isReserved ? 'Reserved' : 'Clearing Soon'}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedTable(tbl.label);
+                            switchTab('menu');
+                            setTableSwitchedToast(
+                              `Joined Table ${tbl.label}! Browse menu to add dishes.`
+                            );
+                            setTimeout(() => setTableSwitchedToast(null), 4000);
+                          }}
+                          className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center space-x-1 border border-slate-200 transition-colors cursor-pointer"
+                        >
+                          <span>{isOccupied ? 'Occupied • Switch to Table' : 'Switch to Table'}</span>
+                        </button>
                       )}
                     </div>
                   </div>

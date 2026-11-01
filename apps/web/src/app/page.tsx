@@ -55,6 +55,7 @@ export default function AdminDashboardPage() {
 
   // Selected Day for drill-down focus (null = aggregate for entire period)
   const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
+  const [chartViewMode, setChartViewMode] = useState<'curve' | 'bar'>('curve');
 
   // Orders & Bills Section State
   const [orderSearch, setOrderSearch] = useState<string>('');
@@ -522,8 +523,36 @@ export default function AdminDashboardPage() {
               </p>
             </div>
 
-            {/* Quick KPI Run Rate & Legend */}
+            {/* Quick KPI Run Rate, Mode Switcher & Legend */}
             <div className="flex flex-wrap items-center gap-3">
+              {/* Smooth Graph vs Column Bars Mode Switcher */}
+              <div className="inline-flex rounded-2xl bg-white border border-slate-200/90 p-1 shadow-2xs text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setChartViewMode('curve')}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    chartViewMode === 'curve'
+                      ? 'bg-blue-600 text-white shadow-xs font-black'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Area Graph</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartViewMode('bar')}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    chartViewMode === 'bar'
+                      ? 'bg-blue-600 text-white shadow-xs font-black'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  <span>Column Bars</span>
+                </button>
+              </div>
+
               <div className="hidden sm:flex items-center space-x-3 px-3.5 py-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-xs">
                 <div className="text-right">
                   <span className="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">Daily Run Rate</span>
@@ -536,11 +565,11 @@ export default function AdminDashboardPage() {
               <div className="flex items-center space-x-3 text-xs text-slate-600 px-3 py-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs font-semibold">
                 <span className="flex items-center space-x-1.5">
                   <span className="w-2.5 h-2.5 rounded-md bg-gradient-to-t from-blue-700 to-sky-400 shadow-xs shadow-blue-500/30" />
-                  <span>Standard Volume</span>
+                  <span>Standard</span>
                 </span>
                 <span className="flex items-center space-x-1.5">
                   <span className="w-2.5 h-2.5 rounded-md bg-gradient-to-t from-amber-600 to-yellow-300 shadow-xs shadow-amber-500/30 ring-1 ring-amber-400" />
-                  <span>Peak Volume</span>
+                  <span>Peak</span>
                 </span>
                 <span className="flex items-center space-x-1.5">
                   <span className="w-2.5 h-2.5 rounded-md bg-gradient-to-t from-indigo-700 to-cyan-400 shadow-xs ring-1 ring-blue-500" />
@@ -571,7 +600,320 @@ export default function AdminDashboardPage() {
                   { label: `₹${Math.round((gridCeil * 0.25) / 1000)}k`, percent: 25 },
                 ];
 
-                return (
+                const n = dailyBreakdown.length;
+                const svgW = 1000;
+                const svgH = 260;
+                const padL = 35;
+                const padR = 35;
+                const padT = 38;
+                const padB = 25;
+                const plotW = svgW - padL - padR;
+                const plotH = svgH - padT - padB;
+                const baseY = svgH - padB;
+
+                const curvePoints = dailyBreakdown.map((day, idx) => {
+                  const x = n > 1 ? padL + (idx / (n - 1)) * plotW : padL + plotW / 2;
+                  const pct = Math.max(0.04, Math.min(1, day.grossRevenue / gridCeil));
+                  const y = baseY - pct * plotH;
+                  return { ...day, idx, x, y };
+                });
+
+                let linePathD = '';
+                if (curvePoints.length === 1) {
+                  linePathD = `M ${curvePoints[0].x} ${curvePoints[0].y}`;
+                } else if (curvePoints.length === 2) {
+                  linePathD = `M ${curvePoints[0].x.toFixed(1)} ${curvePoints[0].y.toFixed(1)} L ${curvePoints[1].x.toFixed(1)} ${curvePoints[1].y.toFixed(1)}`;
+                } else {
+                  linePathD = `M ${curvePoints[0].x.toFixed(1)} ${curvePoints[0].y.toFixed(1)}`;
+                  for (let i = 0; i < curvePoints.length - 1; i++) {
+                    const p0 = curvePoints[Math.max(0, i - 1)];
+                    const p1 = curvePoints[i];
+                    const p2 = curvePoints[i + 1];
+                    const p3 = curvePoints[Math.min(curvePoints.length - 1, i + 2)];
+                    const k = 0.22;
+                    const cp1x = p1.x + (p2.x - p0.x) * k;
+                    const cp1y = p1.y + (p2.y - p0.y) * k;
+                    const cp2x = p2.x - (p3.x - p1.x) * k;
+                    const cp2y = p2.y - (p3.y - p1.y) * k;
+                    linePathD += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+                  }
+                }
+
+                const areaPathD = curvePoints.length > 1
+                  ? `${linePathD} L ${curvePoints[curvePoints.length - 1].x.toFixed(1)} ${baseY} L ${curvePoints[0].x.toFixed(1)} ${baseY} Z`
+                  : '';
+
+                return chartViewMode === 'curve' ? (
+                  /* =========================================================================
+                     MODE A: LUXURY CONTINUOUS SMOOTH SVG LINE & AREA CURVE GRAPH
+                     ========================================================================= */
+                  <div className="relative">
+                    {/* SVG Chart Container */}
+                    <div className="flex items-end">
+                      {/* Left Y-Axis Labels */}
+                      <div className="w-9 sm:w-12 h-52 sm:h-60 flex flex-col justify-between pb-8 sm:pb-9 pr-1.5 sm:pr-2 text-right shrink-0 select-none">
+                        {gridLevels.map((lvl, idx) => (
+                          <span key={idx} className="text-[8.5px] sm:text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">
+                            {lvl.label}
+                          </span>
+                        ))}
+                        <span className="text-[8.5px] sm:text-[9.5px] font-mono font-bold text-slate-400 tabular-nums">₹0</span>
+                      </div>
+
+                      {/* SVG Canvas Area with Responsive ViewBox */}
+                      <div className="flex-1 relative">
+                        <svg
+                          viewBox={`0 0 ${svgW} ${svgH}`}
+                          className="w-full h-52 sm:h-60 overflow-visible"
+                          preserveAspectRatio="none"
+                        >
+                          <defs>
+                            <linearGradient id="revenueAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#2563EB" stopOpacity="0.4" />
+                              <stop offset="45%" stopColor="#3B82F6" stopOpacity="0.15" />
+                              <stop offset="90%" stopColor="#60A5FA" stopOpacity="0.02" />
+                              <stop offset="100%" stopColor="#60A5FA" stopOpacity="0.0" />
+                            </linearGradient>
+                            <linearGradient id="revenueStrokeGrad" x1="0" y1="0" x2="1" y2="0">
+                              <stop offset="0%" stopColor="#1D4ED8" />
+                              <stop offset="50%" stopColor="#3B82F6" />
+                              <stop offset="100%" stopColor="#06B6D4" />
+                            </linearGradient>
+                            <filter id="curveShadow" x="-10%" y="-20%" width="120%" height="150%">
+                              <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#2563EB" floodOpacity="0.32" />
+                            </filter>
+                          </defs>
+
+                          {/* Horizontal Benchmark Lines */}
+                          {gridLevels.map((lvl, idx) => {
+                            const gy = baseY - (lvl.percent / 100) * plotH;
+                            return (
+                              <line
+                                key={idx}
+                                x1={padL}
+                                y1={gy}
+                                x2={svgW - padR}
+                                y2={gy}
+                                stroke="#E2E8F0"
+                                strokeDasharray="4 4"
+                                strokeWidth="1.2"
+                              />
+                            );
+                          })}
+                          {/* Baseline */}
+                          <line
+                            x1={padL}
+                            y1={baseY}
+                            x2={svgW - padR}
+                            y2={baseY}
+                            stroke="#CBD5E1"
+                            strokeWidth="1.5"
+                          />
+
+                          {/* Area Fill */}
+                          {areaPathD && (
+                            <path d={areaPathD} fill="url(#revenueAreaGrad)" />
+                          )}
+
+                          {/* Glowing Stroke Line */}
+                          {linePathD && (
+                            <path
+                              d={linePathD}
+                              fill="none"
+                              stroke="url(#revenueStrokeGrad)"
+                              strokeWidth="4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              filter="url(#curveShadow)"
+                            />
+                          )}
+
+                          {/* Nodes & Vertical Drop lines */}
+                          {curvePoints.map((pt) => {
+                            const isSelected = selectedDayKey === pt.key;
+                            return (
+                              <g key={pt.key}>
+                                {/* Vertical Cursor Guide */}
+                                <line
+                                  x1={pt.x}
+                                  y1={pt.y}
+                                  x2={pt.x}
+                                  y2={baseY}
+                                  stroke={isSelected ? '#2563EB' : pt.isPeak ? '#F59E0B' : '#94A3B8'}
+                                  strokeWidth={isSelected ? '2' : '1'}
+                                  strokeDasharray={isSelected ? '0' : '3 3'}
+                                  opacity={isSelected ? 1 : 0.6}
+                                />
+
+                                {/* Glowing Outer Ring for Peak, Today, or Selected */}
+                                {(pt.isPeak || pt.isToday || isSelected) && (
+                                  <circle
+                                    cx={pt.x}
+                                    cy={pt.y}
+                                    r={isSelected ? 13 : pt.isPeak ? 11 : 9}
+                                    fill={pt.isPeak ? '#F59E0B' : '#3B82F6'}
+                                    fillOpacity={isSelected ? 0.35 : 0.22}
+                                  />
+                                )}
+
+                                {/* Core Node Circle */}
+                                <circle
+                                  cx={pt.x}
+                                  cy={pt.y}
+                                  r={isSelected ? 6.5 : pt.isPeak ? 6 : 5}
+                                  fill="#FFFFFF"
+                                  stroke={pt.isPeak ? '#F59E0B' : pt.isToday ? '#2563EB' : '#1D4ED8'}
+                                  strokeWidth="3.2"
+                                />
+
+                                {/* Value Pill Badge above Point */}
+                                <g transform={`translate(${pt.x}, ${pt.y - 18})`}>
+                                  <rect
+                                    x="-22"
+                                    y="-13"
+                                    width="44"
+                                    height="18"
+                                    rx="5"
+                                    fill={
+                                      pt.isPeak
+                                        ? '#D97706'
+                                        : pt.isToday
+                                        ? '#2563EB'
+                                        : isSelected
+                                        ? '#0F172A'
+                                        : '#FFFFFF'
+                                    }
+                                    stroke={
+                                      pt.isPeak
+                                        ? '#B45309'
+                                        : pt.isToday
+                                        ? '#1D4ED8'
+                                        : isSelected
+                                        ? '#0F172A'
+                                        : '#CBD5E1'
+                                    }
+                                    strokeWidth="1"
+                                    filter="drop-shadow(0 1px 2px rgba(0,0,0,0.08))"
+                                  />
+                                  <text
+                                    x="0"
+                                    y="0"
+                                    textAnchor="middle"
+                                    fill={pt.isPeak || pt.isToday || isSelected ? '#FFFFFF' : '#334155'}
+                                    fontSize="9.5"
+                                    fontWeight="800"
+                                    fontFamily="sans-serif"
+                                  >
+                                    ₹{(pt.grossRevenue / 1000).toFixed(0)}k
+                                  </text>
+                                </g>
+                              </g>
+                            );
+                          })}
+                        </svg>
+
+                        {/* Interactive Hit Areas & Hover Tooltips Overlay */}
+                        <div className="absolute inset-0 flex items-stretch pointer-events-auto">
+                          {dailyBreakdown.map((day, idx) => {
+                            const isSelected = selectedDayKey === day.key;
+                            const isSingleOrSmall = dailyBreakdown.length <= 4;
+                            const isNearLeft = !isSingleOrSmall && idx < 2;
+                            const isNearRight = !isSingleOrSmall && idx >= dailyBreakdown.length - 2;
+
+                            const tooltipAlignClasses = isNearLeft
+                              ? 'left-0 translate-x-0'
+                              : isNearRight
+                              ? 'right-0 translate-x-0'
+                              : 'left-1/2 -translate-x-1/2';
+
+                            const arrowAlignClasses = isNearLeft
+                              ? 'left-4 sm:left-5'
+                              : isNearRight
+                              ? 'right-4 sm:right-5'
+                              : 'left-1/2 -translate-x-1/2';
+
+                            return (
+                              <div
+                                key={day.key}
+                                onClick={() => setSelectedDayKey(isSelected ? null : day.key)}
+                                className="flex-1 flex flex-col justify-end group cursor-pointer relative"
+                              >
+                                {/* Rich Floating Luxury Tooltip */}
+                                <div
+                                  className={`absolute top-6 sm:top-8 z-30 hidden group-hover:flex flex-col pointer-events-none whitespace-nowrap bg-slate-950/95 backdrop-blur-md text-white p-2.5 sm:p-3 rounded-2xl shadow-2xl border border-slate-700/80 min-w-[170px] sm:min-w-[185px] animate-in fade-in zoom-in-95 duration-150 ${tooltipAlignClasses}`}
+                                >
+                                  <div className="flex items-center justify-between pb-1.5 border-b border-slate-800 text-[10px]">
+                                    <span className="font-extrabold text-slate-300">{day.dayName}, {day.displayDate}</span>
+                                    {day.isPeak ? (
+                                      <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 font-black text-[9px] border border-amber-500/30">PEAK</span>
+                                    ) : day.isToday ? (
+                                      <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 font-black text-[9px] border border-blue-500/30">TODAY</span>
+                                    ) : (
+                                      <span className="text-slate-500 text-[9px] uppercase font-bold">TRADING</span>
+                                    )}
+                                  </div>
+                                  <div className="pt-1.5">
+                                    <div className="text-sm font-black text-white tabular-nums tracking-tight">
+                                      {formatCurrency(day.grossRevenue)}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-2.5 gap-y-0.5 text-[9.5px] text-slate-400 pt-1 border-t border-slate-800/60 mt-1">
+                                      <div>Net: <span className="text-slate-200 font-bold">{formatCurrency(day.netSales)}</span></div>
+                                      <div>GST: <span className="text-slate-200 font-bold">{formatCurrency(day.tax)}</span></div>
+                                      <div>Bills: <span className="text-slate-200 font-bold">{day.orderCount}</span></div>
+                                      <div>AOV: <span className="text-slate-200 font-bold">{formatCurrency(day.aov)}</span></div>
+                                    </div>
+                                    <div className="text-[9px] text-blue-400 font-bold pt-1 text-center">
+                                      Click point to inspect in ledger
+                                    </div>
+                                  </div>
+                                  <div className={`w-2.5 h-2.5 bg-slate-950 border-l border-t border-slate-700 rotate-45 absolute -top-1.5 ${arrowAlignClasses}`} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* X-Axis Day Labels Strip */}
+                    <div className="flex items-center justify-between ml-9 sm:ml-12 pt-2 border-t border-slate-200/80">
+                      {dailyBreakdown.map((day) => {
+                        const isSelected = selectedDayKey === day.key;
+                        return (
+                          <div
+                            key={day.key}
+                            onClick={() => setSelectedDayKey(isSelected ? null : day.key)}
+                            className="flex-1 text-center cursor-pointer transition-all"
+                          >
+                            <span
+                              className={`block text-[10px] sm:text-xs font-black tracking-tight ${
+                                day.isToday ? 'text-blue-700' : day.isPeak ? 'text-amber-800' : isSelected ? 'text-blue-600' : 'text-slate-800'
+                              }`}
+                            >
+                              {day.dayName}
+                            </span>
+                            <span className="block text-[8px] sm:text-[10px] text-slate-500 font-semibold whitespace-nowrap">
+                              {day.displayDate.split(' ')[0]} {day.displayDate.split(' ')[1]}
+                            </span>
+                            {day.isToday && (
+                              <span className="inline-block px-1 sm:px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[7.5px] sm:text-[8.5px] font-black uppercase mt-0.5 shadow-2xs">
+                                Today
+                              </span>
+                            )}
+                            {day.isPeak && !day.isToday && (
+                              <span className="inline-block px-1 sm:px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[7.5px] sm:text-[8.5px] font-black uppercase mt-0.5">
+                                Peak
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  /* =========================================================================
+                     MODE B: COLUMN BARS VIEW
+                     ========================================================================= */
                   <div className="relative">
                     {/* Background Grid Guide Lines */}
                     <div className="absolute inset-0 left-9 sm:left-12 bottom-10 sm:bottom-12 pointer-events-none flex flex-col justify-between">
@@ -626,7 +968,7 @@ export default function AdminDashboardPage() {
                               onClick={() => setSelectedDayKey(isSelected ? null : day.key)}
                               className="flex-1 flex flex-col items-center group cursor-pointer relative"
                             >
-                              {/* Rich Floating Luxury Tooltip on Hover (Positioned cleanly below the badge to prevent overflow clipping) */}
+                              {/* Rich Floating Luxury Tooltip on Hover */}
                               <div
                                 className={`absolute top-6 sm:top-7 z-30 hidden group-hover:flex flex-col pointer-events-none whitespace-nowrap bg-slate-950/95 backdrop-blur-md text-white p-2.5 sm:p-3 rounded-2xl shadow-2xl border border-slate-700/80 min-w-[170px] sm:min-w-[185px] animate-in fade-in zoom-in-95 duration-150 ${tooltipAlignClasses}`}
                               >
