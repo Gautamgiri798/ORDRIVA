@@ -462,6 +462,20 @@ export default function OrdersHistoryPage() {
                             <CheckCircle className="w-3 h-3" />
                             <span>Paid ({order.paymentMethod?.toUpperCase() || 'CASH'})</span>
                           </span>
+                        ) : order.paymentStatus === 'processing' ? (
+                          <div className="inline-flex items-center space-x-1.5">
+                            <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-300 animate-pulse">
+                              <Clock className="w-3 h-3 text-blue-600" />
+                              <span>UPI Verification Pending</span>
+                            </span>
+                            <button
+                              onClick={() => settlePayment(order.id, 'upi', order.grandTotal)}
+                              className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] shadow-xs transition-all active:scale-95"
+                              title="Verify Soundbox & Settle Bill"
+                            >
+                              Verify &amp; Settle
+                            </button>
+                          </div>
                         ) : order.paymentStatus === 'refunded' ? (
                           <span className="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
                             <RotateCcw className="w-3 h-3" />
@@ -691,7 +705,7 @@ export default function OrdersHistoryPage() {
                 </button>
               </div>
 
-              {selectedOrder.paymentStatus === 'pending' && (
+              {(selectedOrder.paymentStatus === 'pending' || selectedOrder.paymentStatus === 'processing') && (
                 <button
                   onClick={() => {
                     setIsSettling(true);

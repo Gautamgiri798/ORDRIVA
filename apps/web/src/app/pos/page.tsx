@@ -555,9 +555,16 @@ function PosContent() {
                   <Receipt className="w-4 h-4 text-blue-600" />
                   <span>Active Check: #{activeTableOrder.orderNumber}</span>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white font-black text-[10px] uppercase">
-                  {activeTableOrder.status}
-                </span>
+                <div className="flex items-center space-x-1">
+                  {activeTableOrder.paymentStatus === 'processing' && (
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-black text-[10px] uppercase animate-pulse">
+                      UPI Claimed
+                    </span>
+                  )}
+                  <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white font-black text-[10px] uppercase">
+                    {activeTableOrder.status}
+                  </span>
+                </div>
               </div>
               <div className="text-[11px] text-blue-800 flex justify-between">
                 <span>Running Total ({activeTableOrder.items?.length || 0} items):</span>

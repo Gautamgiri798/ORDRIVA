@@ -73,6 +73,7 @@ function ClientOrderContent() {
     kitchenTickets,
     updateTableStatus,
     settlePayment,
+    requestUpiVerification,
     submitCustomerOrder,
   } = usePosStore();
 
@@ -121,6 +122,7 @@ function ClientOrderContent() {
   const [showUpiModal, setShowUpiModal] = useState<boolean>(false);
   const [tableUpiQr, setTableUpiQr] = useState<string>('');
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
+  const [upiUtrInput, setUpiUtrInput] = useState<string>('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
   const [callStaffNotified, setCallStaffNotified] = useState<boolean>(false);
@@ -639,19 +641,26 @@ ${line}`;
 
   const totalCartCount = clientCart.reduce((sum, ci) => sum + ci.quantity, 0);
 
-  // Settle Payment Handler
+  // Settle Payment Handler (Secured with Cashier Verification Queue)
   const handleConfirmUpiPayment = () => {
+    let lastRef = '';
     if (payingOrder) {
-      settlePayment(payingOrder.id, 'upi', payingOrder.grandTotal);
+      const res = requestUpiVerification(payingOrder.id, upiUtrInput);
+      lastRef = res.ref;
     } else {
-      // Settle all pending orders for this table
       tableOrders
         .filter((o) => o.paymentStatus !== 'succeeded')
-        .forEach((o) => settlePayment(o.id, 'upi', o.grandTotal));
+        .forEach((o) => {
+          const res = requestUpiVerification(o.id, upiUtrInput);
+          lastRef = res.ref;
+        });
     }
     setShowUpiModal(false);
     setPayingOrder(null);
-    confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } });
+    setUpiUtrInput('');
+    setBillToast(`✓ UPI payment reported (${lastRef}). Cashier will verify on SoundBox & settle.`);
+    setTimeout(() => setBillToast(null), 5000);
+    confetti({ particleCount: 70, spread: 60, origin: { y: 0.5 } });
   };
 
   return (
@@ -2149,17 +2158,36 @@ ${line}`;
               </div>
             )}
 
+            {/* UPI Reference / UTR Input */}
+            <div className="text-left space-y-1">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                UPI Reference / UTR (Optional)
+              </label>
+              <input
+                type="text"
+                value={upiUtrInput}
+                onChange={(e) => setUpiUtrInput(e.target.value)}
+                placeholder="e.g. 432109876543 or last 4 digits"
+                className="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-200 focus:border-[#3B82F6] focus:outline-none bg-slate-50 text-slate-800"
+              />
+              <p className="text-[10px] text-slate-400">
+                Cashier verifies soundbox confirmation before marking settled.
+              </p>
+            </div>
+
             <div className="space-y-2">
               <button
                 onClick={handleConfirmUpiPayment}
-                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow transition-all"
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow transition-all flex items-center justify-center space-x-1"
               >
-                ✓ I Have Paid with UPI
+                <span>✓ I Have Paid via UPI</span>
+                <span className="text-[10px] opacity-80">(Submit for Verification)</span>
               </button>
               <button
                 onClick={() => {
                   setShowUpiModal(false);
                   setPayingOrder(null);
+                  setUpiUtrInput('');
                 }}
                 className="w-full py-2 rounded-xl text-slate-600 font-semibold text-xs hover:bg-slate-100"
               >

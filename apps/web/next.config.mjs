@@ -9,6 +9,19 @@ const rootNodeModules = path.resolve(__dirname, '../../node_modules');
 const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['10.212.16.102:3000', 'localhost:3000'],
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

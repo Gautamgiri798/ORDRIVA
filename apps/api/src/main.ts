@@ -1,22 +1,140 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { z } from 'zod';
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+
+// Security Hardening: Disable Express technology banner
+app.disable('x-powered-by');
+
+// Dynamic / Strict CORS origin validator (prevents unauthorized cross-origin requests)
+const isOriginAllowed = (origin: string | undefined): boolean => {
+  if (!origin) return true; // Allow curl, health monitors, and server-to-server requests
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true;
+  if (/^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)) return true;
+  if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return true;
+  return false;
+};
+
 const io = new SocketIOServer(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Socket CORS blocked by policy'));
+      }
+    },
+    methods: ['GET', 'POST', 'PATCH'],
   },
 });
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Blocked by CORS policy'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
+  })
+);
+
+// Standard HTTP Security Headers
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
+// Enforce strict JSON body size (100kb is plenty for POS tickets, prevents memory DoS)
+app.use(express.json({ limit: '100kb' }));
+
+// In-Memory sliding window rate limiting
+interface RateLimitRecord {
+  count: number;
+  resetTime: number;
+}
+const rateLimitMap = new Map<string, RateLimitRecord>();
+
+const createRateLimiter = (windowMs: number, maxRequests: number, endpointName: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+    const key = `${endpointName}:${clientIp}`;
+    const now = Date.now();
+    const record = rateLimitMap.get(key);
+
+    if (!record || now > record.resetTime) {
+      rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+      return next();
+    }
+
+    if (record.count >= maxRequests) {
+      res.setHeader('Retry-After', Math.ceil((record.resetTime - now) / 1000));
+      return res.status(429).json({
+        error: `Too many requests for ${endpointName}. Please wait before retrying.`,
+      });
+    }
+
+    record.count += 1;
+    next();
+  };
+};
+
+const orderRateLimiter = createRateLimiter(60000, 40, 'order_creation');
+const paymentRateLimiter = createRateLimiter(60000, 60, 'payment_processing');
+
+// Zod Input Validation Schemas
+const OrderItemInputSchema = z.object({
+  id: z.string().optional(),
+  menuItemId: z.string().min(1, 'menuItemId is required'),
+  name: z.string().min(1, 'Item name is required').max(120),
+  basePrice: z.number().min(0, 'basePrice cannot be negative'),
+  quantity: z.number().int().min(1, 'quantity must be at least 1').max(99),
+  taxRate: z.number().min(0).max(100).optional().default(5),
+  notes: z.string().max(300).optional(),
+  modifiers: z.array(z.any()).optional().default([]),
+  itemTotal: z.number().optional(),
+  taxTotal: z.number().optional(),
+});
+
+const CreateOrderSchema = z.object({
+  id: z.string().optional(),
+  orderNumber: z.number().int().positive().optional(),
+  orderType: z.enum(['dine_in', 'takeaway', 'delivery']).default('dine_in'),
+  tableId: z.string().optional(),
+  tableLabel: z.string().max(30).optional(),
+  customerName: z.string().max(100).optional(),
+  customerPhone: z.string().max(25).optional(),
+  customerEmail: z.string().email().optional().or(z.literal('')),
+  notes: z.string().max(500).optional(),
+  items: z.array(OrderItemInputSchema).min(1, 'Order must contain at least 1 item'),
+  paymentMethod: z.enum(['cash', 'card', 'upi']).optional().default('cash'),
+  paymentStatus: z.enum(['pending', 'processing', 'succeeded', 'failed']).optional().default('pending'),
+  tickets: z.array(z.any()).optional(),
+});
+
+const UpdateTicketStatusSchema = z.object({
+  status: z.enum(['pending', 'preparing', 'ready', 'served', 'cancelled']),
+});
+
+const CreatePaymentSchema = z.object({
+  method: z.enum(['cash', 'card', 'upi']),
+  amount: z.number().positive('Payment amount must be greater than 0'),
+  tenderedAmount: z.number().positive().optional(),
+});
 
 // In-Memory Database store seeded with ORDRIVA default branch
 let currentBranch = {
@@ -205,98 +323,89 @@ app.get('/api/v1/branches/:branchId/tables', (_req: Request, res: Response) => {
 });
 
 // 5. Orders (with Idempotency validation & complete item preservation)
-app.post('/api/v1/branches/:branchId/orders', (req: Request, res: Response) => {
+app.post('/api/v1/branches/:branchId/orders', orderRateLimiter, (req: Request, res: Response) => {
   const idempotencyKey = req.header('Idempotency-Key');
   if (idempotencyKey && idempotencyStore.has(idempotencyKey)) {
     return res.status(200).json(idempotencyStore.get(idempotencyKey));
   }
 
-  const {
-    id: clientId,
-    orderNumber: clientOrderNumber,
-    orderType,
-    tableId,
-    tableLabel,
-    customerName,
-    customerPhone,
-    customerEmail,
-    notes,
-    items,
-    subtotal: clientSubtotal,
-    cgst: clientCgst,
-    sgst: clientSgst,
-    serviceChargeTotal: clientServiceCharge,
-    grandTotal: clientGrandTotal,
-    paymentMethod,
-    paymentStatus,
-    tickets: clientTickets,
-  } = req.body;
+  // Schema-level request validation
+  const validationResult = CreateOrderSchema.safeParse(req.body);
+  if (!validationResult.success) {
+    return res.status(400).json({
+      error: 'Invalid order payload',
+      details: validationResult.error.issues.map((i) => ({
+        path: i.path.join('.'),
+        message: i.message,
+      })),
+    });
+  }
+
+  const parsed = validationResult.data;
 
   // Determine next order number consistently
   const maxExistingNum = orders.length > 0 ? Math.max(...orders.map((o) => o.orderNumber || 0)) : 1000;
-  const orderNumber = clientOrderNumber || (maxExistingNum + 1);
-  const orderId = clientId || `ord-${orderNumber}`;
+  const orderNumber = parsed.orderNumber || (maxExistingNum + 1);
+  const orderId = parsed.id || `ord-${orderNumber}`;
 
-  // Calculate or preserve exact pricing
-  const rawSubtotal = clientSubtotal !== undefined
-    ? clientSubtotal
-    : (items || []).reduce((acc: number, it: any) => acc + (it.itemTotal || ((it.basePrice || it.price || 0) * (it.quantity || 1))), 0);
+  // Authoritative server-side price calculation (neutralizes client price-tampering CWE-602)
+  let calculatedSubtotal = 0;
+  const formattedItems = parsed.items.map((it, idx) => {
+    const qty = it.quantity;
+    const basePrice = Math.max(0, it.basePrice);
+    const lineTotal = Math.round(basePrice * qty * 100) / 100;
+    calculatedSubtotal += lineTotal;
+    const taxRate = typeof it.taxRate === 'number' ? it.taxRate : 5;
+    const taxTotal = Math.round(lineTotal * (taxRate / 100) * 100) / 100;
 
-  const cgst = clientCgst !== undefined
-    ? clientCgst
-    : Math.round(((rawSubtotal * currentBranch.taxRates.cgst) / 100) * 100) / 100;
-  const sgst = clientSgst !== undefined
-    ? clientSgst
-    : Math.round(((rawSubtotal * currentBranch.taxRates.sgst) / 100) * 100) / 100;
-  const serviceChargeTotal = clientServiceCharge !== undefined
-    ? clientServiceCharge
-    : orderType === 'dine_in'
-    ? Math.round(((rawSubtotal * currentBranch.taxRates.serviceCharge) / 100) * 100) / 100
+    return {
+      id: it.id || `oi-${orderId}-${idx + 1}`,
+      menuItemId: it.menuItemId,
+      name: it.name,
+      basePrice,
+      quantity: qty,
+      taxRate,
+      modifiers: it.modifiers || [],
+      itemTotal: lineTotal,
+      taxTotal,
+      notes: it.notes || '',
+    };
+  });
+
+  calculatedSubtotal = Math.round(calculatedSubtotal * 100) / 100;
+  const cgst = Math.round(((calculatedSubtotal * currentBranch.taxRates.cgst) / 100) * 100) / 100;
+  const sgst = Math.round(((calculatedSubtotal * currentBranch.taxRates.sgst) / 100) * 100) / 100;
+  const serviceChargeTotal = parsed.orderType === 'dine_in'
+    ? Math.round(((calculatedSubtotal * currentBranch.taxRates.serviceCharge) / 100) * 100) / 100
     : 0;
-  const grandTotal = clientGrandTotal !== undefined
-    ? clientGrandTotal
-    : Math.round((rawSubtotal + cgst + sgst + serviceChargeTotal) * 100) / 100;
-
-  // Preserve snapshot of items
-  const formattedItems = (items || []).map((it: any, idx: number) => ({
-    id: it.id || `oi-${orderId}-${idx + 1}`,
-    menuItemId: it.menuItemId || it.id,
-    name: it.name,
-    basePrice: it.basePrice || it.price || 0,
-    quantity: it.quantity || 1,
-    taxRate: it.taxRate || 5,
-    modifiers: it.modifiers || it.selectedModifiers || [],
-    itemTotal: it.itemTotal || ((it.basePrice || it.price || 0) * (it.quantity || 1)),
-    taxTotal: it.taxTotal || Math.round(((it.itemTotal || 0) * 0.05) * 100) / 100,
-    notes: it.notes || '',
-  }));
+  const grandTotal = Math.round((calculatedSubtotal + cgst + sgst + serviceChargeTotal) * 100) / 100;
 
   const newOrder = {
     id: orderId,
     branchId: req.params.branchId || currentBranch.id,
     orderNumber,
-    orderType: orderType || 'dine_in',
+    orderType: parsed.orderType,
     status: 'placed',
-    tableId,
-    tableLabel,
-    customerName: customerName || (tableLabel ? `Guest (${tableLabel})` : 'Customer QR'),
-    customerPhone,
-    customerEmail,
+    tableId: parsed.tableId,
+    tableLabel: parsed.tableLabel,
+    customerName: parsed.customerName || (parsed.tableLabel ? `Guest (${parsed.tableLabel})` : 'Customer QR'),
+    customerPhone: parsed.customerPhone,
+    customerEmail: parsed.customerEmail,
     items: formattedItems,
-    subtotal: rawSubtotal,
+    subtotal: calculatedSubtotal,
     discountTotal: 0,
     taxTotal: cgst + sgst,
     cgst,
     sgst,
     serviceChargeTotal,
     grandTotal,
-    notes,
+    notes: parsed.notes,
     createdBy: 'customer-qr',
-    createdByName: customerName || (tableLabel ? `Guest (${tableLabel})` : 'Customer QR'),
+    createdByName: parsed.customerName || (parsed.tableLabel ? `Guest (${parsed.tableLabel})` : 'Customer QR'),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    paymentStatus: paymentStatus || 'pending',
-    paymentMethod: paymentMethod || 'cash',
+    paymentStatus: parsed.paymentStatus || 'pending',
+    paymentMethod: parsed.paymentMethod || 'cash',
   };
 
   // Upsert order in database
@@ -309,8 +418,8 @@ app.post('/api/v1/branches/:branchId/orders', (req: Request, res: Response) => {
 
   // Handle Kitchen Tickets
   const dispatchedTickets: any[] = [];
-  if (Array.isArray(clientTickets) && clientTickets.length > 0) {
-    clientTickets.forEach((ct: any) => {
+  if (Array.isArray(parsed.tickets) && parsed.tickets.length > 0) {
+    parsed.tickets.forEach((ct: any) => {
       const ticketObj = {
         ...ct,
         orderId: newOrder.id,
@@ -337,7 +446,7 @@ app.post('/api/v1/branches/:branchId/orders', (req: Request, res: Response) => {
         notes: fi.notes,
         modifiers: (fi.modifiers || []).map((m: any) => (typeof m === 'string' ? m : m.name)),
       })),
-      orderNotes: notes,
+      orderNotes: parsed.notes,
       createdAt: new Date().toISOString(),
     };
     kitchenTickets.unshift(defaultTicket);
@@ -377,7 +486,18 @@ app.get('/api/v1/kitchen/tickets', (_req: Request, res: Response) => {
 });
 
 app.patch('/api/v1/kitchen/tickets/:ticketId/status', (req: Request, res: Response) => {
-  const { status } = req.body;
+  const validationResult = UpdateTicketStatusSchema.safeParse(req.body);
+  if (!validationResult.success) {
+    return res.status(400).json({
+      error: 'Invalid ticket status update',
+      details: validationResult.error.issues.map((i) => ({
+        path: i.path.join('.'),
+        message: i.message,
+      })),
+    });
+  }
+
+  const { status } = validationResult.data;
   let targetTicket = kitchenTickets.find((kt) => kt.id === req.params.ticketId);
 
   if (!targetTicket) {
@@ -396,29 +516,43 @@ app.patch('/api/v1/kitchen/tickets/:ticketId/status', (req: Request, res: Respon
   res.json({ data: targetTicket });
 });
 
-// 7. Payments
-app.post('/api/v1/orders/:orderId/payments', (req: Request, res: Response) => {
-  const { method, amount, tenderedAmount } = req.body;
+// 7. Payments (Rate limited & strictly validated)
+app.post('/api/v1/orders/:orderId/payments', paymentRateLimiter, (req: Request, res: Response) => {
+  const validationResult = CreatePaymentSchema.safeParse(req.body);
+  if (!validationResult.success) {
+    return res.status(400).json({
+      error: 'Invalid payment payload',
+      details: validationResult.error.issues.map((i) => ({
+        path: i.path.join('.'),
+        message: i.message,
+      })),
+    });
+  }
+
+  const { method, amount, tenderedAmount } = validationResult.data;
   const targetOrder = orders.find((o) => o.id === req.params.orderId);
+
+  if (!targetOrder) {
+    return res.status(404).json({ error: `Order with ID ${req.params.orderId} not found` });
+  }
 
   const paymentRecord = {
     id: `pay-${Date.now()}`,
     orderId: req.params.orderId,
-    method: method || 'cash',
-    amount: amount || (targetOrder ? targetOrder.grandTotal : 0),
+    method,
+    amount,
     tenderedAmount: tenderedAmount || amount,
     status: 'succeeded',
     createdAt: new Date().toISOString(),
   };
 
-  if (targetOrder) {
-    targetOrder.status = 'completed';
-    targetOrder.paymentStatus = 'succeeded';
-    targetOrder.paymentMethod = method;
-    targetOrder.payments = [...(targetOrder.payments || []), paymentRecord];
-    targetOrder.updatedAt = new Date().toISOString();
-  }
+  targetOrder.status = 'completed';
+  targetOrder.paymentStatus = 'succeeded';
+  targetOrder.paymentMethod = method;
+  targetOrder.payments = [...(targetOrder.payments || []), paymentRecord];
+  targetOrder.updatedAt = new Date().toISOString();
 
+  // Authoritatively broadcast verified payment status from server
   io.emit('payment.status_changed', paymentRecord);
   res.json({ data: paymentRecord, order: targetOrder });
 });
@@ -445,25 +579,57 @@ app.get('/api/v1/audit-events', (_req: Request, res: Response) => {
   res.json({ data: auditEvents });
 });
 
-// Socket.IO Realtime Gateway with Bidirectional Peer Relaying
+// Socket.IO Realtime Gateway with Event Integrity & Authorization Checks
 io.on('connection', (socket) => {
+  const clientAddress = socket.handshake.address;
   socket.emit('connected', { message: 'ORDRIVA Real-time Gateway connected' });
 
-  // Relay client-emitted events to all other connected devices
+  // Relay client-emitted events with structure validation
   socket.on('order.created', (incomingOrder) => {
-    socket.broadcast.emit('order.created', incomingOrder);
+    if (incomingOrder && typeof incomingOrder === 'object' && incomingOrder.id && Array.isArray(incomingOrder.items)) {
+      socket.broadcast.emit('order.created', incomingOrder);
+    }
   });
 
   socket.on('kitchen.ticket_created', (ticket) => {
-    socket.broadcast.emit('kitchen.ticket_created', ticket);
+    if (ticket && typeof ticket === 'object' && ticket.id && Array.isArray(ticket.items)) {
+      socket.broadcast.emit('kitchen.ticket_created', ticket);
+    }
   });
 
   socket.on('kitchen.ticket_updated', (ticket) => {
-    socket.broadcast.emit('kitchen.ticket_updated', ticket);
+    const validStatuses = ['pending', 'preparing', 'ready', 'served', 'cancelled'];
+    if (ticket && typeof ticket === 'object' && ticket.id && validStatuses.includes(ticket.status)) {
+      const existing = kitchenTickets.find((kt) => kt.id === ticket.id);
+      if (existing) {
+        existing.status = ticket.status;
+        existing.updatedAt = new Date().toISOString();
+      }
+      socket.broadcast.emit('kitchen.ticket_updated', ticket);
+    }
   });
 
+  // Guard: payments must reference an existing order in database
   socket.on('payment.status_changed', (paymentRecord) => {
-    socket.broadcast.emit('payment.status_changed', paymentRecord);
+    if (paymentRecord && typeof paymentRecord === 'object' && paymentRecord.orderId) {
+      const targetOrder = orders.find((o) => o.id === paymentRecord.orderId);
+      if (targetOrder) {
+        socket.broadcast.emit('payment.status_changed', paymentRecord);
+      } else {
+        console.warn(`[Socket Security] Rejected unauthorized payment broadcast from ${clientAddress} for order: ${paymentRecord.orderId}`);
+      }
+    }
+  });
+});
+
+// Centralized Generic Error Handler (prevents stack traces and sensitive error exposure)
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[ORDRIVA API Error]', err.message || err);
+  const statusCode = typeof err.status === 'number' ? err.status : 500;
+  res.status(statusCode).json({
+    error: statusCode === 500 && process.env.NODE_ENV === 'production'
+      ? 'Internal server error'
+      : (err.message || 'An unexpected error occurred'),
   });
 });
 

@@ -1,6 +1,24 @@
 import { Order, Branch } from '@/types';
 
 /**
+ * Safely sanitizes dynamic user-controlled strings to prevent Cross-Site Scripting (XSS)
+ * when rendered in HTML print documents / iframes.
+ */
+function escapeHtml(unsafe: unknown): string {
+  if (unsafe === null || unsafe === undefined) return '';
+  return String(unsafe).replace(/[&<>"']/g, (m) => {
+    switch (m) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#039;';
+      default: return m;
+    }
+  });
+}
+
+/**
  * Creates an off-screen iframe with actual non-zero dimensions so Chromium
  * builds a complete layout tree and never delegates print to window.top.
  */
@@ -54,16 +72,16 @@ export function print80mmReceipt(
     .map((it) => {
       const modText =
         it.modifiers && it.modifiers.length > 0
-          ? `<div style="font-size:9.5px;color:#555;padding-left:8px;">+ ${it.modifiers.map((m) => m.name).join(', ')}</div>`
+          ? `<div style="font-size:9.5px;color:#555;padding-left:8px;">+ ${it.modifiers.map((m) => escapeHtml(m.name)).join(', ')}</div>`
           : '';
 
       return `
         <div style="margin-bottom:5px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:11px;">
             <div style="flex:1;padding-right:6px;">
-              <span style="font-weight:bold;">${it.quantity}x</span> ${it.name}
+              <span style="font-weight:bold;">${Number(it.quantity)}x</span> ${escapeHtml(it.name)}
             </div>
-            <div style="font-weight:bold;white-space:nowrap;">₹${it.itemTotal.toFixed(2)}</div>
+            <div style="font-weight:bold;white-space:nowrap;">₹${Number(it.itemTotal).toFixed(2)}</div>
           </div>
           ${modText}
         </div>
@@ -73,7 +91,7 @@ export function print80mmReceipt(
 
   const isPaid = order.paymentStatus === 'succeeded';
   const payMethodText = isPaid
-    ? `SETTLED • ${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'CASH'}`
+    ? `SETTLED • ${order.paymentMethod ? escapeHtml(order.paymentMethod.toUpperCase()) : 'CASH'}`
     : 'UNPAID / RUNNING TAB';
 
   doc.open();
@@ -81,7 +99,7 @@ export function print80mmReceipt(
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Receipt_Order_${order.orderNumber}</title>
+        <title>Receipt_Order_${escapeHtml(order.orderNumber)}</title>
         <meta charset="utf-8" />
         <style>
           @page {
@@ -174,10 +192,10 @@ export function print80mmReceipt(
         <!-- Header -->
         <div class="text-center">
           <div class="brand-title">ORDRIVA</div>
-          <div class="branch-name">${branch.name}</div>
-          <div class="branch-sub">${branch.address}</div>
-          <div class="branch-sub">GSTIN: <span class="bold">${branch.gstin}</span></div>
-          <div class="branch-sub">Phone: ${branch.phone}</div>
+          <div class="branch-name">${escapeHtml(branch.name)}</div>
+          <div class="branch-sub">${escapeHtml(branch.address)}</div>
+          <div class="branch-sub">GSTIN: <span class="bold">${escapeHtml(branch.gstin)}</span></div>
+          <div class="branch-sub">Phone: ${escapeHtml(branch.phone)}</div>
           <div class="branch-sub">FSSAI Lic: 10019011000123</div>
         </div>
 
@@ -191,16 +209,16 @@ export function print80mmReceipt(
 
         <!-- Metadata -->
         <div class="row">
-          <span><span class="bold">Bill No:</span> #${order.orderNumber}</span>
+          <span><span class="bold">Bill No:</span> #${escapeHtml(order.orderNumber)}</span>
           <span><span class="bold">Date:</span> ${dateStr}</span>
         </div>
         <div class="row">
-          <span><span class="bold">Type:</span> ${order.orderType === 'dine_in' ? `Dine-In (${order.tableLabel || 'Table'})` : 'Takeaway / Counter'}</span>
+          <span><span class="bold">Type:</span> ${order.orderType === 'dine_in' ? `Dine-In (${escapeHtml(order.tableLabel || 'Table')})` : 'Takeaway / Counter'}</span>
           <span><span class="bold">Time:</span> ${timeStr}</span>
         </div>
         <div class="row">
-          <span><span class="bold">Cashier:</span> ${cashierName}</span>
-          <span><span class="bold">Guest:</span> ${order.customerName || 'Walk-in'}</span>
+          <span><span class="bold">Cashier:</span> ${escapeHtml(cashierName)}</span>
+          <span><span class="bold">Guest:</span> ${escapeHtml(order.customerName || 'Walk-in')}</span>
         </div>
 
         <div class="double-divider"></div>
@@ -302,17 +320,17 @@ export function printA4TaxInvoice(
       <tr style="border-bottom: 1px solid #e2e8f0;">
         <td style="padding: 10px 12px; text-align: center; color: #64748b;">${idx + 1}</td>
         <td style="padding: 10px 12px;">
-          <div style="font-weight: 700; color: #0f172a;">${it.name}</div>
+          <div style="font-weight: 700; color: #0f172a;">${escapeHtml(it.name)}</div>
           ${
             it.modifiers && it.modifiers.length > 0
-              ? `<div style="font-size: 11px; color: #64748b;">+ ${it.modifiers.map((m) => m.name).join(', ')}</div>`
+              ? `<div style="font-size: 11px; color: #64748b;">+ ${it.modifiers.map((m) => escapeHtml(m.name)).join(', ')}</div>`
               : ''
           }
         </td>
         <td style="padding: 10px 12px; text-align: center;">996331</td>
-        <td style="padding: 10px 12px; text-align: center; font-weight: 700;">${it.quantity}</td>
-        <td style="padding: 10px 12px; text-align: right;">₹${(it.itemTotal / it.quantity).toFixed(2)}</td>
-        <td style="padding: 10px 12px; text-align: right; font-weight: 700;">₹${it.itemTotal.toFixed(2)}</td>
+        <td style="padding: 10px 12px; text-align: center; font-weight: 700;">${Number(it.quantity)}</td>
+        <td style="padding: 10px 12px; text-align: right;">₹${(Number(it.itemTotal) / Number(it.quantity)).toFixed(2)}</td>
+        <td style="padding: 10px 12px; text-align: right; font-weight: 700;">₹${Number(it.itemTotal).toFixed(2)}</td>
       </tr>
     `
     )
@@ -323,7 +341,7 @@ export function printA4TaxInvoice(
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Tax_Invoice_${order.orderNumber}</title>
+        <title>Tax_Invoice_${escapeHtml(order.orderNumber)}</title>
         <meta charset="utf-8" />
         <style>
           @page { size: A4; margin: 15mm; }
@@ -342,15 +360,15 @@ export function printA4TaxInvoice(
         <div class="header">
           <div>
             <div class="brand">ORDRIVA RESTAURANT OS</div>
-            <div style="font-weight: bold; font-size: 15px; margin-top: 4px;">${branch.name}</div>
-            <div style="color: #475569;">${branch.address}</div>
-            <div style="color: #475569;">GSTIN: <strong>${branch.gstin}</strong> • Phone: ${branch.phone}</div>
+            <div style="font-weight: bold; font-size: 15px; margin-top: 4px;">${escapeHtml(branch.name)}</div>
+            <div style="color: #475569;">${escapeHtml(branch.address)}</div>
+            <div style="color: #475569;">GSTIN: <strong>${escapeHtml(branch.gstin)}</strong> • Phone: ${escapeHtml(branch.phone)}</div>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 20px; font-weight: 900; color: #2563eb;">TAX INVOICE</div>
-            <div style="font-weight: bold; margin-top: 4px;">Invoice No: #${order.orderNumber}</div>
+            <div style="font-weight: bold; margin-top: 4px;">Invoice No: #${escapeHtml(order.orderNumber)}</div>
             <div style="color: #475569;">Date: ${dateStr}</div>
-            <div style="color: #475569;">Order Type: ${order.orderType.toUpperCase()} ${order.tableLabel ? `• Table ${order.tableLabel}` : ''}</div>
+            <div style="color: #475569;">Order Type: ${escapeHtml(order.orderType.toUpperCase())} ${order.tableLabel ? `• Table ${escapeHtml(order.tableLabel)}` : ''}</div>
           </div>
         </div>
 
@@ -401,7 +419,7 @@ export function printA4TaxInvoice(
             <tr>
               <td style="font-size: 11px; color: #64748b;">Payment Status:</td>
               <td style="text-align: right; font-weight: 700; color: ${order.paymentStatus === 'succeeded' ? '#16a34a' : '#d97706'};">
-                ${order.paymentStatus === 'succeeded' ? `PAID (${order.paymentMethod?.toUpperCase() || 'CASH'})` : 'PENDING'}
+                ${order.paymentStatus === 'succeeded' ? `PAID (${escapeHtml(order.paymentMethod?.toUpperCase() || 'CASH')})` : 'PENDING'}
               </td>
             </tr>
           </table>
@@ -471,8 +489,8 @@ export function printZReport80mm(data: ReportPrintData): void {
           .map(
             (d, i) => `
         <div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:10px;">
-          <span>${i + 1}. ${d.name} (${d.count}x)</span>
-          <span style="font-weight:bold;">₹${d.revenue.toFixed(2)}</span>
+          <span>${i + 1}. ${escapeHtml(d.name)} (${Number(d.count)}x)</span>
+          <span style="font-weight:bold;">₹${Number(d.revenue).toFixed(2)}</span>
         </div>
       `
           )
@@ -517,10 +535,10 @@ export function printZReport80mm(data: ReportPrintData): void {
       <body>
         <div class="text-center">
           <div style="font-size:16px;font-weight:900;letter-spacing:1px;">ORDRIVA</div>
-          <div class="bold" style="font-size:12px;">${data.branch.name}</div>
-          <div style="font-size:10px;">${data.branch.address}</div>
-          <div style="font-size:10px;">GSTIN: <span class="bold">${data.branch.gstin}</span></div>
-          <div style="font-size:10px;">Phone: ${data.branch.phone}</div>
+          <div class="bold" style="font-size:12px;">${escapeHtml(data.branch.name)}</div>
+          <div style="font-size:10px;">${escapeHtml(data.branch.address)}</div>
+          <div style="font-size:10px;">GSTIN: <span class="bold">${escapeHtml(data.branch.gstin)}</span></div>
+          <div style="font-size:10px;">Phone: ${escapeHtml(data.branch.phone)}</div>
           <div style="font-size:10px;">FSSAI: 10019011000123</div>
         </div>
 
@@ -535,12 +553,12 @@ export function printZReport80mm(data: ReportPrintData): void {
           <span>Time: <span class="bold">${timeStr}</span></span>
         </div>
         <div class="row">
-          <span>Period: <span class="bold" style="text-transform:uppercase;">${data.periodLabel}</span></span>
+          <span>Period: <span class="bold" style="text-transform:uppercase;">${escapeHtml(data.periodLabel)}</span></span>
           <span>Register: <span class="bold">POS-01</span></span>
         </div>
         <div class="row">
-          <span>Audited By: <span class="bold">${data.cashierName}</span></span>
-          <span>Settled Bills: <span class="bold">${data.totalOrders}</span></span>
+          <span>Audited By: <span class="bold">${escapeHtml(data.cashierName)}</span></span>
+          <span>Settled Bills: <span class="bold">${Number(data.totalOrders)}</span></span>
         </div>
 
         <div class="double-divider"></div>
@@ -679,9 +697,9 @@ export function printExecutiveReportA4(data: ReportPrintData): void {
             (d, idx) => `
         <tr style="border-bottom: 1px solid #f1f5f9;">
           <td style="padding: 6px 8px; color: #64748b; font-weight: bold;">${idx + 1}</td>
-          <td style="padding: 6px 8px; font-weight: bold; color: #0f172a;">${d.name}</td>
-          <td style="padding: 6px 8px; text-align: center; color: #475569;">${d.count} sold</td>
-          <td style="padding: 6px 8px; text-align: right; font-weight: bold; color: #0f172a;">₹${d.revenue.toFixed(2)}</td>
+          <td style="padding: 6px 8px; font-weight: bold; color: #0f172a;">${escapeHtml(d.name)}</td>
+          <td style="padding: 6px 8px; text-align: center; color: #475569;">${Number(d.count)} sold</td>
+          <td style="padding: 6px 8px; text-align: right; font-weight: bold; color: #0f172a;">₹${Number(d.revenue).toFixed(2)}</td>
         </tr>
       `
           )
@@ -829,13 +847,13 @@ export function printExecutiveReportA4(data: ReportPrintData): void {
         <div class="header">
           <div>
             <div class="brand-title">ORDRIVA RESTAURANT OS</div>
-            <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">${data.branch.name}</div>
-            <div style="color: #64748b;">${data.branch.address}</div>
-            <div style="color: #64748b;">GSTIN: <strong style="color:#0f172a;">${data.branch.gstin}</strong> • Phone: ${data.branch.phone}</div>
+            <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">${escapeHtml(data.branch.name)}</div>
+            <div style="color: #64748b;">${escapeHtml(data.branch.address)}</div>
+            <div style="color: #64748b;">GSTIN: <strong style="color:#0f172a;">${escapeHtml(data.branch.gstin)}</strong> • Phone: ${escapeHtml(data.branch.phone)}</div>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 14px; font-weight: 900; color: #1e3a8a; letter-spacing: 0.5px;">EXECUTIVE AUDIT &amp; SALES STATEMENT</div>
-            <div style="font-size: 11px; font-weight: bold; margin-top: 2px;">Report Period: ${data.periodLabel.toUpperCase()}</div>
+            <div style="font-size: 11px; font-weight: bold; margin-top: 2px;">Report Period: ${escapeHtml(data.periodLabel.toUpperCase())}</div>
             <div style="color: #64748b;">Generated: ${dateStr} at ${timeStr}</div>
             <div style="color: #16a34a; font-weight: bold; font-size: 10px; margin-top: 2px;">REGISTER CLOSED &amp; AUDITED</div>
           </div>
@@ -946,7 +964,7 @@ export function printExecutiveReportA4(data: ReportPrintData): void {
         <!-- Verification Signatures -->
         <div class="sign-grid">
           <div class="sign-line">
-            Cashier / Shift Lead (${data.cashierName})
+            Cashier / Shift Lead (${escapeHtml(data.cashierName)})
           </div>
           <div class="sign-line">
             Duty Restaurant Manager

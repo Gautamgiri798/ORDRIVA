@@ -766,6 +766,7 @@ interface PosStoreContextType {
   // Actions
   createOrder: () => Order | null;
   settlePayment: (orderId: string, method: PaymentMethod, tendered?: number, splitData?: any) => { success: boolean; order?: Order };
+  requestUpiVerification: (orderId: string, utrRef?: string) => { success: boolean; ref: string };
   refundOrder: (orderId: string, amount: number, reason: string) => boolean;
   updateOrderStatus: (orderId: string, newStatus: Order['status']) => void;
   updateKitchenTicketStatus: (ticketId: string, newStatus: KitchenTicket['status']) => void;
@@ -1344,6 +1345,48 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
     return { success: true, order: updatedOrder };
   };
 
+  const requestUpiVerification = (
+    orderId: string,
+    utrRef?: string
+  ): { success: boolean; ref: string } => {
+    const targetOrder = orders.find((o) => o.id === orderId);
+    if (!targetOrder) return { success: false, ref: '' };
+
+    const ref = utrRef && utrRef.trim() ? utrRef.trim() : `UPI-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    const updatedOrder: Order = {
+      ...targetOrder,
+      paymentStatus: 'processing',
+      paymentMethod: 'upi',
+      notes: targetOrder.notes
+        ? `${targetOrder.notes} | [UPI Claimed: ${ref}]`
+        : `[UPI Claimed: ${ref}]`,
+      updatedAt: new Date().toISOString(),
+    };
+
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? updatedOrder : o)));
+
+    addAuditEvent('UPI_PAYMENT_CLAIMED', 'ORDER', orderId, {
+      utr: ref,
+      amount: targetOrder.grandTotal,
+      table: targetOrder.tableLabel,
+    });
+
+    const socket = getSocket();
+    if (socket && socket.connected) {
+      socket.emit('payment.status_changed', {
+        id: `pay-claim-${Date.now()}`,
+        orderId,
+        method: 'upi',
+        amount: targetOrder.grandTotal,
+        status: 'processing',
+        providerReference: ref,
+      });
+    }
+
+    return { success: true, ref };
+  };
+
   const refundOrder = (orderId: string, amount: number, reason: string): boolean => {
     const targetOrder = orders.find((o) => o.id === orderId);
     if (!targetOrder) return false;
@@ -1775,6 +1818,7 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
         cartCalculations,
         createOrder,
         settlePayment,
+        requestUpiVerification,
         refundOrder,
         updateOrderStatus,
         updateKitchenTicketStatus,
