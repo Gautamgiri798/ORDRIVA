@@ -31,7 +31,7 @@ export default function TableQrStandsAdminPage() {
   const [batchMode, setBatchMode] = useState<boolean>(false);
   const [batchQrs, setBatchQrs] = useState<{ [label: string]: string }>({});
   const [printTheme, setPrintTheme] = useState<'dark' | 'light'>('dark');
-  const [customHost, setCustomHost] = useState<string>('');
+  const [customHost, setCustomHost] = useState<string>('10.212.16.102:3000');
   const [isLocalhost, setIsLocalhost] = useState<boolean>(false);
 
   const currentTableObj = tables.find((t) => t.label === selectedTable) || tables[0];
@@ -39,7 +39,11 @@ export default function TableQrStandsAdminPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ordriva_custom_qr_host');
-      if (saved) setCustomHost(saved);
+      if (saved) {
+        setCustomHost(saved);
+      } else {
+        setCustomHost('10.212.16.102:3000');
+      }
       setIsLocalhost(
         window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1' ||

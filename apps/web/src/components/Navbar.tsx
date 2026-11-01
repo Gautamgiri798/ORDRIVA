@@ -154,15 +154,12 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Right: Switch to Staff / Admin POS */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <Link
-            href="/"
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-medium border border-slate-700 transition-all"
-          >
-            <span>Staff Portal</span>
-            <span className="text-[#60A5FA] font-bold">&rarr;</span>
-          </Link>
+        {/* Right: Dining Status Badge */}
+        <div className="flex items-center space-x-2">
+          <span className="inline-flex items-center space-x-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Kitchen Online</span>
+          </span>
         </div>
       </header>
     );
