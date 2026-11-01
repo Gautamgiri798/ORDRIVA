@@ -13,7 +13,6 @@ import {
   ShoppingBag,
   ChevronDown,
   QrCode,
-  Check,
   Shield,
   ShieldCheck,
   Settings,
@@ -74,11 +73,7 @@ export function Navbar() {
   const pathname = usePathname();
   const {
     currentUser,
-    setCurrentUser,
-    availableUsers,
     currentBranch,
-    setCurrentBranch,
-    availableBranches,
     isOnline,
     cart,
     inventory,
@@ -290,7 +285,6 @@ export function Navbar() {
             <button
               onClick={() => {
                 setIsUserDropdownOpen(!isUserDropdownOpen);
-                setIsBranchDropdownOpen(false);
               }}
               className={`flex items-center space-x-1 sm:space-x-2.5 p-1 sm:p-1.5 sm:pr-2.5 rounded-xl transition-all ${
                 isUserDropdownOpen
