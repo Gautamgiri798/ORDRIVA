@@ -47,18 +47,6 @@ const INITIAL_BRANCHES: Branch[] = [
     currency: 'INR',
     taxRates: { cgst: 2.5, sgst: 2.5, serviceCharge: 5.0 },
   },
-  {
-    id: 'br-roof-02',
-    organizationId: 'org-ordriva',
-    name: 'ORDRIVA Sky Lounge - Aerocity',
-    code: 'ORD-SKY-02',
-    address: 'Level 12, Worldmark 3, Aerocity, New Delhi',
-    phone: '+91 98765 43211',
-    gstin: '07AABCO1234F1Z8',
-    timezone: 'Asia/Kolkata',
-    currency: 'INR',
-    taxRates: { cgst: 2.5, sgst: 2.5, serviceCharge: 7.5 },
-  },
 ];
 
 const INITIAL_CATEGORIES: MenuCategory[] = [
@@ -827,7 +815,14 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
 
     const onOrderCreated = (incomingOrder: Order) => {
       setOrders((prev) => {
-        if (prev.some((o) => o.id === incomingOrder.id)) return prev;
+        const existingIdx = prev.findIndex(
+          (o) => o.id === incomingOrder.id || o.orderNumber === incomingOrder.orderNumber
+        );
+        if (existingIdx >= 0) {
+          const next = [...prev];
+          next[existingIdx] = { ...next[existingIdx], ...incomingOrder };
+          return next;
+        }
         return [incomingOrder, ...prev];
       });
 
@@ -855,7 +850,7 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
         orderNumber: incomingOrder.orderNumber,
         tableLabel: incomingOrder.tableLabel || (incomingOrder.orderType === 'takeaway' ? 'Takeaway' : undefined),
         grandTotal: incomingOrder.grandTotal,
-        itemsCount: (incomingOrder.items || []).reduce((sum, it) => sum + it.quantity, 0),
+        itemsCount: (incomingOrder.items || []).reduce((sum, it) => sum + (it.quantity || 1), 0),
         createdAt: incomingOrder.createdAt,
       });
 
@@ -939,7 +934,7 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Restore Branch & Tax Settings from LocalStorage
+  // Restore Branch & Tax Settings from LocalStorage (single restaurant enforced)
   useEffect(() => {
     try {
       const savedBranches = localStorage.getItem('ordriva_available_branches');
@@ -947,13 +942,22 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
       if (savedBranches) {
         const parsed = JSON.parse(savedBranches);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setAvailableBranches(parsed);
+          const filtered = parsed.filter((b: any) => b.id === 'br-dt-01');
+          const finalBranches = filtered.length > 0 ? filtered : INITIAL_BRANCHES;
+          setAvailableBranches(finalBranches);
+          localStorage.setItem('ordriva_available_branches', JSON.stringify(finalBranches));
         }
+      } else {
+        localStorage.setItem('ordriva_available_branches', JSON.stringify(INITIAL_BRANCHES));
       }
+
       if (savedCurrentBranch) {
         const parsedCurrent = JSON.parse(savedCurrentBranch);
-        if (parsedCurrent && parsedCurrent.taxRates) {
+        if (parsedCurrent && parsedCurrent.id === 'br-dt-01' && parsedCurrent.taxRates) {
           setCurrentBranch(parsedCurrent);
+        } else {
+          setCurrentBranch(INITIAL_BRANCHES[0]);
+          localStorage.setItem('ordriva_current_branch', JSON.stringify(INITIAL_BRANCHES[0]));
         }
       }
     } catch {
@@ -1317,6 +1321,26 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
       changeAmount,
     });
 
+    // Synchronize settlement across backend & sockets
+    try {
+      fetch(`${getApiBaseUrl()}/orders/${orderId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          method,
+          amount: paymentAmount,
+          tenderedAmount: tendered,
+        }),
+      }).catch((err) => {
+        console.warn('[ORDRIVA API] Payment settlement dispatch deferred:', err.message);
+      });
+    } catch {}
+
+    const socket = getSocket();
+    if (socket && socket.connected) {
+      socket.emit('payment.status_changed', paymentRecord);
+    }
+
     return { success: true, order: updatedOrder };
   };
 
@@ -1560,19 +1584,24 @@ export function PosStoreProvider({ children }: { children: React.ReactNode }) {
           'Idempotency-Key': orderId,
         },
         body: JSON.stringify({
+          id: orderId,
+          orderNumber: nextOrderNum,
           orderType: payload.orderType,
           tableId: payload.tableId,
+          tableLabel: payload.tableLabel,
           customerName: newOrder.customerName,
           customerPhone: payload.customerPhone,
+          customerEmail: payload.customerEmail,
           notes: payload.notes,
-          items: payload.items.map((it) => ({
-            menuItemId: it.menuItem.id,
-            name: it.menuItem.name,
-            price: it.menuItem.price,
-            quantity: it.quantity,
-            modifiers: it.selectedModifiers,
-            notes: it.notes,
-          })),
+          items,
+          subtotal: payload.subtotal,
+          cgst: payload.cgst,
+          sgst: payload.sgst,
+          serviceChargeTotal: payload.serviceCharge,
+          grandTotal: payload.grandTotal,
+          paymentMethod: payload.paymentMethod,
+          paymentStatus: newOrder.paymentStatus,
+          tickets: newTickets,
         }),
       }).catch((err) => {
         console.warn('[ORDRIVA API] Backend order dispatch deferred:', err.message);

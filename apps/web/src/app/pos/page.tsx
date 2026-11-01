@@ -84,9 +84,20 @@ function PosContent() {
   // Success / Receipt Modal
   const [settledOrder, setSettledOrder] = useState<Order | null>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState<boolean>(false);
+  const [settlingTableOrderId, setSettlingTableOrderId] = useState<string | null>(null);
 
   // Mobile navigation tab ('menu' vs 'cart')
   const [mobileTab, setMobileTab] = useState<'menu' | 'cart'>('menu');
+
+  const selectedTable = tables.find((t) => t.id === selectedTableId);
+  const activeTableOrder = selectedTable?.activeOrderId
+    ? orders.find((o) => o.id === selectedTable.activeOrderId && o.paymentStatus === 'pending')
+    : undefined;
+
+  const targetOrder = settlingTableOrderId ? orders.find((o) => o.id === settlingTableOrderId) : null;
+  const checkoutTotal = targetOrder ? targetOrder.grandTotal : cartCalculations.grandTotal;
+  const changeDue = Math.max(0, tenderedAmount - checkoutTotal);
+  const totalCartQty = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
     if (tableParam) {
@@ -98,14 +109,14 @@ function PosContent() {
   // Generate UPI QR Code whenever payment modal opens or total changes
   useEffect(() => {
     if (isCheckoutOpen && paymentMethod === 'upi') {
-      const upiUrl = `upi://pay?pa=ordriva@icici&pn=ORDRIVA%20Bistro&am=${cartCalculations.grandTotal}&cu=INR&tn=Order%20Bill`;
+      const upiUrl = `upi://pay?pa=ordriva@icici&pn=ORDRIVA%20Bistro&am=${checkoutTotal}&cu=INR&tn=Order%20Bill`;
       QRCode.toDataURL(upiUrl, { width: 220, margin: 1 }, (err, url) => {
         if (!err && url) {
           setUpiQrDataUrl(url);
         }
       });
     }
-  }, [isCheckoutOpen, paymentMethod, cartCalculations.grandTotal]);
+  }, [isCheckoutOpen, paymentMethod, checkoutTotal]);
 
   const filteredItems = menuItems.filter((item) => {
     const matchesCat = activeCategory === 'all' || item.categoryId === activeCategory;
@@ -146,6 +157,7 @@ function PosContent() {
 
   const handleOpenCheckout = () => {
     if (cart.length === 0) return;
+    setSettlingTableOrderId(null);
     setTenderedAmount(cartCalculations.grandTotal);
     setIsCheckoutOpen(true);
   };
@@ -159,6 +171,18 @@ function PosContent() {
   };
 
   const handleCompleteSettlement = () => {
+    if (settlingTableOrderId) {
+      const result = settlePayment(settlingTableOrderId, paymentMethod, tenderedAmount);
+      if (result.success && result.order) {
+        setIsCheckoutOpen(false);
+        setSettledOrder(result.order);
+        setSettlingTableOrderId(null);
+        setIsReceiptOpen(true);
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      }
+      return;
+    }
+
     const order = createOrder();
     if (!order) return;
 
@@ -170,13 +194,6 @@ function PosContent() {
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     }
   };
-
-  const selectedTable = tables.find((t) => t.id === selectedTableId);
-  const activeTableOrder = selectedTable?.activeOrderId
-    ? orders.find((o) => o.id === selectedTable.activeOrderId && o.paymentStatus === 'pending')
-    : undefined;
-  const changeDue = Math.max(0, tenderedAmount - cartCalculations.grandTotal);
-  const totalCartQty = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-slate-100 relative">
@@ -543,12 +560,13 @@ function PosContent() {
                 </span>
               </div>
               <div className="text-[11px] text-blue-800 flex justify-between">
-                <span>Running Total ({activeTableOrder.items.length} items):</span>
+                <span>Running Total ({activeTableOrder.items?.length || 0} items):</span>
                 <span className="font-extrabold tabular-nums">{formatCurrency(activeTableOrder.grandTotal)}</span>
               </div>
               <div className="pt-1.5 border-t border-blue-200/80 flex items-center justify-between gap-1.5">
                 <button
                   onClick={() => {
+                    setSettlingTableOrderId(activeTableOrder.id);
                     setTenderedAmount(activeTableOrder.grandTotal);
                     setIsCheckoutOpen(true);
                   }}
@@ -850,10 +868,13 @@ function PosContent() {
             <div className="p-4 bg-gradient-to-r from-[#0F172A] via-[#1E3A8A] to-[#0F172A] text-white flex items-center justify-between">
               <div>
                 <h3 className="font-extrabold text-lg">Checkout & Settlement</h3>
-                <p className="text-[#60A5FA] text-xs">Total: {formatCurrency(cartCalculations.grandTotal)}</p>
+                <p className="text-[#60A5FA] text-xs">Total: {formatCurrency(checkoutTotal)}</p>
               </div>
               <button
-                onClick={() => setIsCheckoutOpen(false)}
+                onClick={() => {
+                  setIsCheckoutOpen(false);
+                  setSettlingTableOrderId(null);
+                }}
                 aria-label="Close checkout modal"
                 className="p-1 rounded-full hover:bg-white/10"
               >
@@ -1004,7 +1025,10 @@ function PosContent() {
             {/* Footer Finish */}
             <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
               <button
-                onClick={() => setIsCheckoutOpen(false)}
+                onClick={() => {
+                  setIsCheckoutOpen(false);
+                  setSettlingTableOrderId(null);
+                }}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200"
               >
                 Back
@@ -1057,7 +1081,7 @@ function PosContent() {
 
               {/* Items List */}
               <div className="space-y-1">
-                {settledOrder.items.map((item, idx) => (
+                {(settledOrder.items || []).map((item, idx) => (
                   <div key={idx} className="flex justify-between text-[11px]">
                     <span className="flex-1">
                       {item.quantity}x {item.name}

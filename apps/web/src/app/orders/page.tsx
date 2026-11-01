@@ -379,7 +379,8 @@ export default function OrdersHistoryPage() {
                 </tr>
               ) : (
                 filteredOrders.map((order) => {
-                  const totalItems = order.items.reduce((s, i) => s + i.quantity, 0);
+                  const safeItems = order.items || [];
+                  const totalItems = safeItems.reduce((s, i) => s + (i.quantity || 1), 0);
                   const isPaid = order.paymentStatus === 'succeeded';
                   const orderDate = new Date(order.createdAt);
 
@@ -444,8 +445,8 @@ export default function OrdersHistoryPage() {
                       {/* Items */}
                       <td className="py-3.5 px-4 text-slate-600">
                         <span>
-                          {totalItems} items ({order.items.map((i) => i.name).slice(0, 2).join(', ')}
-                          {order.items.length > 2 ? '...' : ''})
+                          {totalItems} items ({safeItems.map((i) => i.name).slice(0, 2).join(', ')}
+                          {safeItems.length > 2 ? '...' : ''})
                         </span>
                       </td>
 
@@ -602,7 +603,7 @@ export default function OrdersHistoryPage() {
                   <span>ITEM</span>
                   <span>AMOUNT</span>
                 </div>
-                {selectedOrder.items.map((it, idx) => (
+                {(selectedOrder.items || []).map((it, idx) => (
                   <div key={idx} className="flex justify-between items-start text-[11px]">
                     <div className="pr-2">
                       <span className="font-bold">{it.quantity}x</span> {it.name}

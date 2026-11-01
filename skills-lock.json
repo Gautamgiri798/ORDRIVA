@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "security-audit": {
+      "source": "sickn33/agentic-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/security-audit/SKILL.md",
+      "computedHash": "89fe3d367f9b1b87a36127ce7c3d402936d763fd2fc4720d965bd1ab3f76c405"
+    },
+    "security-scanning-security-sast": {
+      "source": "sickn33/agentic-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/security-scanning-security-sast/SKILL.md",
+      "computedHash": "e0898e7eac83bdc0920db3ed6472ea9faa9fcc71059e98c212c0b1f58154e4fb"
+    }
+  }
+}

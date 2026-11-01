@@ -1590,7 +1590,7 @@ export default function AdminDashboardPage() {
 
               {/* Items List */}
               <div className="space-y-1.5 divide-y divide-slate-100">
-                {viewingOrder.items.map((it, idx) => (
+                {(viewingOrder.items || []).map((it, idx) => (
                   <div key={idx} className="pt-1.5 flex justify-between items-start">
                     <div>
                       <span className="font-bold">{it.quantity}x</span> {it.name}
